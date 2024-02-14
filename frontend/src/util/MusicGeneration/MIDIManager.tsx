@@ -184,8 +184,8 @@ export class MIDIManager {
             return [...acc, ...Array.from(midiFileChunk)];
         }, []));
 
-        const base64String = await this.convertToBase64(fileString);
-        return base64String;
+        //const base64String = await this.convertToBase64(fileString);
+        return fileString;
     }
 
     /* This function is a helper in order to return the proper type to assign to the

@@ -24,6 +24,8 @@ import { MIDIManager } from "./MusicGeneration/MIDIManager";
 import { Stream } from "stream";
 import { useSelector } from "react-redux";
 
+import * as mm from '@magenta/music/esm';
+
 import { NoteHandler } from "./MusicGeneration/NoteGeneration";
 import { WebSerial } from "webserial-wrapper";
 
@@ -138,10 +140,30 @@ export class ConcreteTestStream implements AbstractTestStream {
         this.stopFlag = true;
         this.noteHandler.setStopFlag();
 
-        return await this.noteHandler.returnMIDI();
+        var outputMidi = await this.noteHandler.returnMIDI();
+        var res = await this.convertToBase64(outputMidi);
+
+        return res;
     }
 
     public setDebugOutput(b:boolean) { this.debugOutput = b; }
+
+    private convertToBase64(file:Uint8Array): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var fileBlob = new Blob([file], {
+                type: 'audio/midi'
+            });
+            const fileReader = new FileReader();
+        
+            fileReader.readAsDataURL(fileBlob);
+            fileReader.onload = () => {
+                resolve(fileReader.result as string);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        })
+    }
     
 }
 
@@ -247,7 +269,37 @@ export class ConcreteCytonStream implements AbstractCytonStream {
         var res:string;
 
         try {
-            var res = await this.noteHandler.returnMIDI();
+
+            var originalMidi = await this.noteHandler.returnMIDI();
+            let outputMidi = originalMidi;
+
+            let doCoco = true;
+
+            if (doCoco) {
+
+                // initializes the coconet model using the bach checkpoint
+                const coco = new mm.Coconet("https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach");
+                await coco.initialize();
+
+                // converts the original midi into a quantized note sequence for coco to iterate on
+                let originalSequence = mm.midiToSequenceProto(originalMidi);
+                originalSequence = mm.sequences.quantizeNoteSequence(originalSequence, 8);
+                originalSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
+
+                // lets coco iterate then merges so notes sustains
+                let infilledSequence = await coco.infill(originalSequence, {temperature: .25, numIterations: 10}); // temp and iter could be variables selected by user
+                infilledSequence = mm.sequences.mergeConsecutiveNotes(infilledSequence);
+                infilledSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
+
+                // converts infilledsequence to a midi
+                const infilledMidi = mm.sequenceProtoToMidi(infilledSequence);
+
+                // swap to the new output
+                outputMidi = infilledMidi;
+
+            }
+
+            res = await this.convertToBase64(outputMidi);
             return res;
         }
         catch {
@@ -255,6 +307,24 @@ export class ConcreteCytonStream implements AbstractCytonStream {
             return "Error";
         }
     }
+
+    private convertToBase64(file:Uint8Array): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var fileBlob = new Blob([file], {
+                type: 'audio/midi'
+            });
+            const fileReader = new FileReader();
+        
+            fileReader.readAsDataURL(fileBlob);
+            fileReader.onload = () => {
+                resolve(fileReader.result as string);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        })
+    }
+
 }
 
 /* This device is no longer being supported as the ObenBCI packages have been deprecated for 5 years, 
@@ -318,8 +388,31 @@ export class ConcreteGanglionStream implements AbstractGanglionStream {
         this.stopFlag = true;
         this.device.disconnect();
         
-        return await this.noteHandler.returnMIDI();
+        const originalMidi = await this.noteHandler.returnMIDI();
+        let outputMidi = originalMidi;
+
+        var res = await this.convertToBase64(outputMidi);
+        return res;
+
     }
+
+    private convertToBase64(file:Uint8Array): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var fileBlob = new Blob([file], {
+                type: 'audio/midi'
+            });
+            const fileReader = new FileReader();
+        
+            fileReader.readAsDataURL(fileBlob);
+            fileReader.onload = () => {
+                resolve(fileReader.result as string);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        })
+    }
+
 }
 
 
