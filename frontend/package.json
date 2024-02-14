@@ -11,6 +11,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@magenta/music": "^1.23.1",
     "@reduxjs/toolkit": "^1.9.2",
     "@sendgrid/mail": "^7.7.0",
     "@stellarogs/tonejs-instruments": "^1.0.0",
