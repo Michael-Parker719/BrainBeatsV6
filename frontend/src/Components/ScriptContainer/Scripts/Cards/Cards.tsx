@@ -8,6 +8,11 @@ import { Card } from '../../../../util/Interfaces'
 import { useDispatch } from 'react-redux';
 import { set, unset } from '../../../../Redux/slices/cardArraySlice'
 import { useNavigate } from 'react-router-dom';
+import videojs from 'video.js';
+import VideoJS from '../../../Video/Video';
+import Player from "video.js/dist/types/player";
+import React from 'react';
+import 'video.js/dist/video-js.css';
 
 import * as Tone from 'tone';
 
@@ -31,6 +36,17 @@ function Cards() {
         },
     }
 
+    const videoJsOptions = {
+        autoplay: true,
+        controls: true,
+        responsive: true,
+        fluid: true,
+        sources: [{
+            src: '/path/to/video.mp4',
+            type: 'video/mp4'
+        }]
+    };
+
     // For displaying Modal
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
@@ -48,14 +64,30 @@ function Cards() {
     const [backgroundColor, setBackgroundColor] = useState(initialBackground);
     const [textColor, setTextColor] = useState(initialTextColor);
     const [imageURL, setImageURL] = useState('');
+    const [videoURL, setVideoURL] = useState('');
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
+
+    const playerRef = React.useRef<Player>();
 
     // Navigating
     const navigate = useNavigate();
     const doNavigate = (route: string) => {
         navigate(route);
     }
+
+    const handlePlayerReady = (player: Player) => {
+        playerRef.current = player;
+
+        // You can handle player events here, for example:
+        player.on('waiting', () => {
+            videojs.log('player is waiting');
+        });
+
+        player.on('dispose', () => {
+            videojs.log('player will dispose');
+        });
+    };
 
     const handleVideoAudio = () => {
         setUsingVideoAudio(!usingVideoAudio);
@@ -71,16 +103,29 @@ function Cards() {
         }
 
         setImageURL(URL.createObjectURL(event.target.files[0]));
-        
+
+
+    }
+
+    const uploadVideo = (event: React.ChangeEvent<HTMLInputElement>) => {
+        // console.log(event!.target.files[0]);
+        // setImageURL(event.target.name); 
+        if (!event.target.files) {
+            console.log("it's null")
+            return
+        }
+
+        setVideoURL(URL.createObjectURL(event.target.files[0]));
+
 
     }
 
     const uploadAudio = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if(!event.target.files) {
+        if (!event.target.files) {
             console.log("Audio URL is null")
             return
         }
-        
+
         setAudioURL(URL.createObjectURL(event.target.files[0]));
     }
 
@@ -181,7 +226,7 @@ function Cards() {
 
                         <div className='area-settings' hidden={selectedView !== "video"}>
                             <label className='record-heading2' htmlFor="file-upload">Select Video File:</label>
-                            <input type="file" className="btn btn-secondary" />
+                            <input type="file" className="btn btn-secondary" onChange={uploadVideo} />
 
 
                             <label className='record-heading' htmlFor="file-upload">Video Start Time:</label>
@@ -260,6 +305,7 @@ function Cards() {
                             <h1>{cardText}</h1>
                         </div>
                     </div>
+                    <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
                 </div>
             </div>
             <div className='cards-footer-div'>

@@ -96,6 +96,7 @@
   "devDependencies": {
     "@types/node": "^18.15.11",
     "@types/react-color": "^3.0.6",
+    "video.js": "^8.10.0",
     "webpack": "^5.75.0"
   }
 }
