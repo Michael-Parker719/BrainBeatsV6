@@ -25,7 +25,8 @@ function Record() {
     const [debugOption1, setDebugOption1] = useState(false);
     const [debugOption2, setDebugOption2] = useState(false);
     const [debugOption3, setDebugOption3] = useState(false);
-    const [genOption, setGenOption] = useState('legacy');
+    const [genOption, setGenOption] = useState('Legacy');
+    const [algorithms, setAlgorithms] = useState(['Legacy']);
 
     /*  Add the interface of a new stream here in the case that you've created a new one, you should define it in the DeviceAbstractFactory
     and import it. */
@@ -63,15 +64,17 @@ function Record() {
             debugOption3
         }
 
+        let NoteHandler = await import("../../util/MusicGeneration/Algorithms/" + genOption + "/NoteGeneration");
+
         switch (deviceName) {
             case "random data":
-                setDevice(new ConcreteTestStream(settings, debugOptionObject));
+                setDevice(new ConcreteTestStream(settings, debugOptionObject, NoteHandler));
                 break;
             case "cyton":
-                setDevice(new ConcreteCytonStream(settings, debugOptionObject));
+                setDevice(new ConcreteCytonStream(settings, debugOptionObject, NoteHandler));
                 break;
             case "ganglion":
-                setDevice(new ConcreteGanglionStream(settings, debugOptionObject));
+                setDevice(new ConcreteGanglionStream(settings, debugOptionObject, NoteHandler));
                 break;
             default: return;
         }
@@ -257,7 +260,7 @@ function Record() {
                             Otherwise, continue by hitting the record button below:</p>
                         <label htmlFor="genselect">Select Music Generation Method:</label>
                         <select disabled={isRecording} name="genselect"value={genOption} id="genselect" onChange={(e) => setGenOption(e.target.value)}>
-                            <option value="legacy">Legacy</option>
+                            <option value="Legacy">Legacy</option>
                             <option value="procedural">Procedural</option>
                             <option value="ai">AI</option>
                         </select>

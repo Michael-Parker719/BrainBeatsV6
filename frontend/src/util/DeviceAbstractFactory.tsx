@@ -26,11 +26,13 @@ import { useSelector } from "react-redux";
 
 import * as mm from '@magenta/music/esm';
 
-import { NoteHandler } from "./MusicGeneration/NoteGeneration";
+//import { NoteHandler } from "./MusicGeneration/NoteGeneration";
 import { WebSerial } from "webserial-wrapper";
 
 import EventEmitter from "events";
 import { Random } from "unsplash-js/dist/methods/photos/types";
+
+let NoteHandler: any;
 
 /* So we can leave specific debug statements in 
  * which will only show in dev */
@@ -72,14 +74,21 @@ export interface AbstractCytonStream {
     recordInputStream(data:any): void
 }
 
+async function loadModule(path: string) {
+
+    return await import(path);
+    
+}
+
 
 /*  The test stream is one that is only used in development, it provides us a way to test out implementations to
     the MIDI production without having to set up a device connection, this is primarily for our
     own sanity, if you're running into playback issues/MIDI generation this is incredibly useful. */
 export class ConcreteTestStream implements AbstractTestStream {
+    
     public stopFlag:boolean;
     public settings:MusicSettings;
-    public noteHandler;
+    public noteHandler: any;
     private debugOutput:boolean;
     private counter:number;
 
@@ -90,14 +99,16 @@ export class ConcreteTestStream implements AbstractTestStream {
         return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
     }
 
-    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject) {
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any) {
         this.debugOutput = debugOptionObject.debugOption1;
 
         if (this.debugOutput) console.log("Constructed Test Stream");
         
         this.stopFlag = false;
         this.settings = settings;
-        this.noteHandler = new NoteHandler(this.settings, debugOptionObject);
+        console.log(handler);
+
+        this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
 
         this.noteHandler.setDebugOutput(debugOptionObject.debugOption2);
         this.counter = 0;
@@ -174,11 +185,11 @@ export class ConcreteCytonStream implements AbstractCytonStream {
     public noteHandler;
     private debugOutput:boolean;
 
-    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject) {
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any) {
         this.stopFlag = false;
         this.settings = settings;
-        this.noteHandler = new NoteHandler(this.settings, debugOptionObject);
-        
+
+        this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
         
         /* If in dev, and you enable "debugOption1"  or, individually set this to true to enable music related output during recording.
          * Ex: 
@@ -336,12 +347,13 @@ export class ConcreteGanglionStream implements AbstractGanglionStream {
     public device:any;
     public stopFlag:boolean;
     public settings:MusicSettings;
-    public noteHandler:NoteHandler;
+    public noteHandler:any;
     private debugOutput:boolean;
 
-    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject) {
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any) {
         this.settings = settings;
-        this.noteHandler = new NoteHandler(this.settings, debugOptionObject);
+
+        this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
         this.noteHandler.setDebugOutput(debugOptionObject.debugOption2);
         this.stopFlag = false;
         this.debugOutput = debugOptionObject.debugOption1;
