@@ -63,9 +63,11 @@ function Cards() {
         autoplay: true,
         controls: true,
         responsive: true,
-        fluid: true,
+        fluid: false,
+        height: "500px",
+        width: "auto",
         sources: [{
-            src: videoURL, 
+            src: videoURL,
             type: 'video/mp4'
         }]
     };
@@ -299,7 +301,7 @@ function Cards() {
                 </div>
                 <div id='display-card-div'>
                     Card Display:
-                    <div id='card-display' hidden
+                    <div id='card-display' 
                         style={{
                             color: `rgba(${textColor.color.r}, ${textColor.color.g}, ${textColor.color.b}, ${textColor.color.a})`,
                             background: `rgba(${backgroundColor.color.r}, ${backgroundColor.color.g}, ${backgroundColor.color.b}, ${backgroundColor.color.a})`,
@@ -310,7 +312,13 @@ function Cards() {
                             <h1>{cardText}</h1>
                         </div>
                     </div>
-                    <VideoJS className="video" options={videoJsOptions} onReady={handlePlayerReady} height='500px'/>
+                    <VideoJS className="video" options={videoJsOptions} onReady={handlePlayerReady} />
+                    {/*<div>
+                        <video id="example_video_1" className="video-js vjs-default-skin" controls preload="auto" width="auto" height="500px" data-setup='{}'>
+                            <source src={videoURL} type="video/mp4" data-quality="hd" data-res="HD" data-default="true"></source>
+                            <p className="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.</p>
+                        </video>
+                    </div>*/}
                 </div>
             </div>
             <div className='cards-footer-div'>

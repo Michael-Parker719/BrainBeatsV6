@@ -4,7 +4,7 @@ import 'video.js/dist/video-js.css';
 import Player from "video.js/dist/types/player";
 
 export const VideoJS = (props: any) => {
-    const videoRef = React.useRef<HTMLDivElement>(null);
+    const videoRef:any = React.useRef(null);
     const playerRef = React.useRef<Player>();
     const { options, onReady } = props;
 
