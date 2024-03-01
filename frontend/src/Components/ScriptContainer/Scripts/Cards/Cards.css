@@ -252,4 +252,11 @@
         color:white;
         align-self: center;
     }
+
+    .video {
+        hedght: 200px;
+        width: 700px;
+    }
 }
+
+

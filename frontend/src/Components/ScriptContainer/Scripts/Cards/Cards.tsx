@@ -36,16 +36,6 @@ function Cards() {
         },
     }
 
-    const videoJsOptions = {
-        autoplay: true,
-        controls: true,
-        responsive: true,
-        fluid: true,
-        sources: [{
-            src: '/path/to/video.mp4',
-            type: 'video/mp4'
-        }]
-    };
 
     // For displaying Modal
     const [show, setShow] = useState(false);
@@ -69,6 +59,16 @@ function Cards() {
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
 
     const playerRef = React.useRef<Player>();
+    const videoJsOptions = {
+        autoplay: true,
+        controls: true,
+        responsive: true,
+        fluid: true,
+        sources: [{
+            src: videoURL, 
+            type: 'video/mp4'
+        }]
+    };
 
     // Navigating
     const navigate = useNavigate();
@@ -108,15 +108,20 @@ function Cards() {
     }
 
     const uploadVideo = (event: React.ChangeEvent<HTMLInputElement>) => {
-        // console.log(event!.target.files[0]);
         // setImageURL(event.target.name); 
         if (!event.target.files) {
             console.log("it's null")
             return
         }
 
-        setVideoURL(URL.createObjectURL(event.target.files[0]));
+        console.log("setting video!", event.target.files[0]);
 
+        setVideoURL(URL.createObjectURL(event.target.files[0]));
+        // videoJsOptions.sources =
+        //     [{
+        //         src: URL.createObjectURL(event.target.files[0]),
+        //         type: 'video/mp4'
+        //     }]
 
     }
 
@@ -294,7 +299,7 @@ function Cards() {
                 </div>
                 <div id='display-card-div'>
                     Card Display:
-                    <div id='card-display'
+                    <div id='card-display' hidden
                         style={{
                             color: `rgba(${textColor.color.r}, ${textColor.color.g}, ${textColor.color.b}, ${textColor.color.a})`,
                             background: `rgba(${backgroundColor.color.r}, ${backgroundColor.color.g}, ${backgroundColor.color.b}, ${backgroundColor.color.a})`,
@@ -305,7 +310,7 @@ function Cards() {
                             <h1>{cardText}</h1>
                         </div>
                     </div>
-                    <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
+                    <VideoJS className="video" options={videoJsOptions} onReady={handlePlayerReady} height='500px'/>
                 </div>
             </div>
             <div className='cards-footer-div'>
