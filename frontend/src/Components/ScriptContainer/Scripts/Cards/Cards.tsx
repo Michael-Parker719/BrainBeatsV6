@@ -12,11 +12,14 @@ import videojs from 'video.js';
 import VideoJS from '../../../Video/Video';
 import Player from "video.js/dist/types/player";
 import React from 'react';
+import ReactPaginate from 'react-paginate';
 import 'video.js/dist/video-js.css';
+// import "https://cdn..net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
 
-import * as Tone from 'tone';
 
 function Cards() {
+    // console.log("bruh")
+
     const initialBackground = {
         displayColorPicker: false,
         color: {
@@ -50,6 +53,7 @@ function Cards() {
     // For holding card information
     const [cards, setCards] = useState<Card[]>([])
     const [cardText, setCardTextState] = useState('');
+    const [cardDisplayed, setCardDisplayed] = useState(0);
     const [speed, setSpeed] = useState(1)
     const [backgroundColor, setBackgroundColor] = useState(initialBackground);
     const [textColor, setTextColor] = useState(initialTextColor);
@@ -57,6 +61,8 @@ function Cards() {
     const [videoURL, setVideoURL] = useState('');
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
+    // addCard() // make sure there is one card at the beginning
+    
 
     const playerRef = React.useRef<Player>();
     const videoJsOptions = {
@@ -66,6 +72,7 @@ function Cards() {
         fluid: false,
         height: "500px",
         width: "auto",
+        loop: true,
         sources: [{
             src: videoURL,
             type: 'video/mp4'
@@ -90,6 +97,14 @@ function Cards() {
             videojs.log('player will dispose');
         });
     };
+
+    const resetVideo = () => {
+        console.log("reset!");
+        if (playerRef.current) {
+            playerRef.current.currentTime(0);
+
+        }
+    }
 
     const handleVideoAudio = () => {
         setUsingVideoAudio(!usingVideoAudio);
@@ -135,10 +150,17 @@ function Cards() {
 
         setAudioURL(URL.createObjectURL(event.target.files[0]));
     }
-
     const disableAudio = () => {
         return selectedView === "video" && usingVideoAudio;
     }
+
+    const handlePageClick = (event: any) => {
+        // const newOffset = (event.selected * itemsPerPage) % items.length;
+        console.log(
+            `User requested page number ${event.selected}`
+        );
+        // setItemOffset(newOffset);
+    };
 
     const setColorBackground = (color: { rgb: any; }) => {
         setBackgroundColor({ displayColorPicker: backgroundColor.displayColorPicker, color: color.rgb });
@@ -149,10 +171,10 @@ function Cards() {
     };
 
     const addCard = () => {
-        if (cardText === '' && imageURL === '') {
-            alert("Invalid Card format: Must include either an image or text")
-            return
-        }
+        // if (cardText === '' && imageURL === '') {
+        //     alert("Invalid Card format: Must include either an image or text")
+        //     return
+        // }
         let newCard: Card = {
             textColor: textColor.color,
             backgroundColor: backgroundColor.color,
@@ -175,6 +197,7 @@ function Cards() {
         console.log(cards);
         // dispatch(set(cards));
     }
+    console.log("huh?")
 
     const sendCards = () => {
         dispatch(set(cards));
@@ -192,6 +215,7 @@ function Cards() {
             </Modal>
             <div className='cards-body-div'>
                 <div id='card-settings-div'>
+                    <button value="reset" onClick={resetVideo} />
                     <h6 className='record-heading'>Card Settings</h6>
                     <div id='record-uploads-div'>
                         <div>
@@ -301,7 +325,7 @@ function Cards() {
                 </div>
                 <div id='display-card-div'>
                     Card Display:
-                    <div id='card-display' 
+                    <div id='card-display'
                         style={{
                             color: `rgba(${textColor.color.r}, ${textColor.color.g}, ${textColor.color.b}, ${textColor.color.a})`,
                             background: `rgba(${backgroundColor.color.r}, ${backgroundColor.color.g}, ${backgroundColor.color.b}, ${backgroundColor.color.a})`,
@@ -321,6 +345,18 @@ function Cards() {
                     </div>*/}
                 </div>
             </div>
+            <div>
+                <ReactPaginate
+                    breakLabel="..."
+                    nextLabel="next >"
+                    onPageChange={handlePageClick}
+                    pageRangeDisplayed={5}
+                    pageCount={cards.length}
+                    previousLabel="< previous"
+                    renderOnZeroPageCount={null}
+                />
+            </div>
+
             <div className='cards-footer-div'>
                 <div id='record-buttons-div'>
                     <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>

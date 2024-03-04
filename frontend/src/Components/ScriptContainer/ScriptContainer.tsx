@@ -7,6 +7,7 @@ const ScriptContainer = () => {
     const doNavigate = (route:string) => {
         navigate(route);
     }  
+    console.log("why?")
     
     return (
         <div className='container' id='record-container'>
