@@ -12,7 +12,6 @@ import videojs from 'video.js';
 import VideoJS from '../../../Video/Video';
 import Player from "video.js/dist/types/player";
 import React from 'react';
-import ReactPaginate from 'react-paginate';
 import 'video.js/dist/video-js.css';
 // import "https://cdn..net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
 
@@ -54,14 +53,14 @@ function Cards() {
     const [cards, setCards] = useState<Card[]>([])
     const [cardText, setCardTextState] = useState('');
     const [cardDisplayed, setCardDisplayed] = useState(0);
-    const [speed, setSpeed] = useState(1)
+    const [speed, setSpeed] = useState(1000)
     const [backgroundColor, setBackgroundColor] = useState(initialBackground);
     const [textColor, setTextColor] = useState(initialTextColor);
     const [imageURL, setImageURL] = useState('');
     const [videoURL, setVideoURL] = useState('');
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
-    
+
 
     const playerRef = React.useRef<Player>();
     const videoJsOptions = {
@@ -155,7 +154,7 @@ function Cards() {
 
     const handlePageClick = (event: any) => {
         // const newOffset = (event.selected * itemsPerPage) % items.length;
-        setCardDisplayed(event.selected - 1); 
+        setCardDisplayed(event.selected - 1);
         console.log(
             `User requested page number ${event.selected}`
         );
@@ -170,65 +169,86 @@ function Cards() {
         setTextColor({ displayColorPicker: textColor.displayColorPicker, color: color.rgb });
     };
 
+    const changeCard = (cardInd: number) => {
+
+        let newCard: Card = {
+            textColor: textColor.color,
+            backgroundColor: backgroundColor.color,
+            speed: speed,
+            text: cardText,
+            imageURL: imageURL,
+            audioURL: audioURL,
+        }
+        cards[cardDisplayed] = newCard;
+
+        setCardDisplayed(cardInd);
+    }
+
     const addCard = () => {
         // if (cardText === '' && imageURL === '') {
         //     alert("Invalid Card format: Must include either an image or text")
         //     return
         // }
         let newCard: Card = {
-            textColor: textColor.color,
-            backgroundColor: backgroundColor.color,
-            speed: speed * 1000,
-            text: cardText,
-            imageURL: imageURL,
-            audioURL: audioURL,
+            textColor: initialTextColor.color,
+            backgroundColor: initialBackground.color,
+            speed: 1000,
+            text: '',
+            imageURL: '',
+            audioURL: '',
         }
-
-        //set input back to default
-        setBackgroundColor(initialBackground);
-        setTextColor(initialTextColor);
-        setCardTextState('');
-        setSpeed(1);
-        setImageURL('');
-
         cards.push(newCard);
+
+        changeCard(cards.length-1);
+
+
 
         console.log(newCard);
         console.log(cards);
         // dispatch(set(cards));
     }
-    if (cards.length === 0 )
+    if (cards.length === 0)
         addCard()
 
     const sendCards = () => {
+        changeCard(cardDisplayed);
         dispatch(set(cards));
     }
 
     const cardSelect = (count: number) => {
         const options = []
-        for (let i = 1; i <= count; i++){
+        for (let i = 1; i <= count; i++) {
             let option = <option key={i} value={i}>{i}</option>
             options.push(option)
 
         }
         return (
-          <select onChange={(e) => setCardDisplayed(+e.target.value - 1)}>
-            {options}
-          </select>
+            <select value={cardDisplayed+1} onChange={(e) => changeCard(+e.target.value - 1)}>
+                {options}
+            </select>
         )
     }
+
 
     useEffect(() => {
         setImageURL(image.urls.regular)
         setShow(false);
     }, [image]);
 
-    useEffect(() =>{
+    useEffect(() => {
         console.log(
             `User requested page number: ${cardDisplayed}`
         );
-        
-    }, [cardDisplayed]);
+        let i = cardDisplayed;
+        setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor});
+        setTextColor({displayColorPicker: false, color: cards[i].textColor});
+        setCardTextState(cards[i].text);
+        setSpeed(cards[i].speed);
+        setImageURL(cards[i].imageURL);
+        setAudioURL(cards[i].audioURL);
+
+
+    }, [cardDisplayed, cards]);
 
     return (
         <div id='record-card-info-div'>
