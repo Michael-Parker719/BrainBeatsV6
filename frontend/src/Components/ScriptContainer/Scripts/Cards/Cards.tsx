@@ -61,7 +61,6 @@ function Cards() {
     const [videoURL, setVideoURL] = useState('');
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
-    // addCard() // make sure there is one card at the beginning
     
 
     const playerRef = React.useRef<Player>();
@@ -156,6 +155,7 @@ function Cards() {
 
     const handlePageClick = (event: any) => {
         // const newOffset = (event.selected * itemsPerPage) % items.length;
+        setCardDisplayed(event.selected - 1); 
         console.log(
             `User requested page number ${event.selected}`
         );
@@ -197,16 +197,38 @@ function Cards() {
         console.log(cards);
         // dispatch(set(cards));
     }
-    console.log("huh?")
+    if (cards.length === 0 )
+        addCard()
 
     const sendCards = () => {
         dispatch(set(cards));
+    }
+
+    const cardSelect = (count: number) => {
+        const options = []
+        for (let i = 1; i <= count; i++){
+            let option = <option key={i} value={i}>{i}</option>
+            options.push(option)
+
+        }
+        return (
+          <select onChange={(e) => setCardDisplayed(+e.target.value - 1)}>
+            {options}
+          </select>
+        )
     }
 
     useEffect(() => {
         setImageURL(image.urls.regular)
         setShow(false);
     }, [image]);
+
+    useEffect(() =>{
+        console.log(
+            `User requested page number: ${cardDisplayed}`
+        );
+        
+    }, [cardDisplayed]);
 
     return (
         <div id='record-card-info-div'>
@@ -336,7 +358,7 @@ function Cards() {
                             <h1>{cardText}</h1>
                         </div>
                     </div>
-                    <VideoJS className="video" options={videoJsOptions} onReady={handlePlayerReady} />
+                    {/*<VideoJS className="video" options={videoJsOptions} onReady={handlePlayerReady} />*/}
                     {/*<div>
                         <video id="example_video_1" className="video-js vjs-default-skin" controls preload="auto" width="auto" height="500px" data-setup='{}'>
                             <source src={videoURL} type="video/mp4" data-quality="hd" data-res="HD" data-default="true"></source>
@@ -346,15 +368,7 @@ function Cards() {
                 </div>
             </div>
             <div>
-                <ReactPaginate
-                    breakLabel="..."
-                    nextLabel="next >"
-                    onPageChange={handlePageClick}
-                    pageRangeDisplayed={5}
-                    pageCount={cards.length}
-                    previousLabel="< previous"
-                    renderOnZeroPageCount={null}
-                />
+                {cardSelect(cards.length)}
             </div>
 
             <div className='cards-footer-div'>
