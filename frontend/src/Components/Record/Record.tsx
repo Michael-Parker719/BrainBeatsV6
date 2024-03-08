@@ -16,6 +16,7 @@ import { emptyTrack, emptyUser } from '../../util/Constants';
 import { Track } from '../../util/Interfaces';
 import { useRecoilState } from 'recoil';
 import { userModeState } from '../../JWT';
+import names from '../../util/MusicGeneration/Algorithms/names.json';
 
 function Record() {
     const settings = useAppSelector(state => state.musicGenerationSettingsSlice);
@@ -26,7 +27,8 @@ function Record() {
     const [debugOption2, setDebugOption2] = useState(false);
     const [debugOption3, setDebugOption3] = useState(false);
     const [genOption, setGenOption] = useState('Legacy');
-    const [algorithms, setAlgorithms] = useState(['Legacy']);
+
+    const algorithms = names.algorithmNames;
 
     /*  Add the interface of a new stream here in the case that you've created a new one, you should define it in the DeviceAbstractFactory
     and import it. */
@@ -260,9 +262,13 @@ function Record() {
                             Otherwise, continue by hitting the record button below:</p>
                         <label htmlFor="genselect">Select Music Generation Method:</label>
                         <select disabled={isRecording} name="genselect"value={genOption} id="genselect" onChange={(e) => setGenOption(e.target.value)}>
-                            <option value="Legacy">Legacy</option>
-                            <option value="procedural">Procedural</option>
-                            <option value="ai">AI</option>
+                            {algorithms.map((option, index) => {
+                                return (
+                                    <option key={index} value={option}>
+                                        {option}
+                                    </option>
+                                )
+                            })}
                         </select>
                     </div>
                     {!isRecording && <button type="button" className="btn btn-secondary" id='recording-play-btn' onClick={doRecording}>
