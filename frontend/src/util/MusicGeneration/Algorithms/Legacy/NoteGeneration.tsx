@@ -6,14 +6,14 @@ import { CytonSettings, GanglionSettings, MusicSettings, DataStream8Ch, DataStre
 import { KeyGroups, Keys } from '../../../Enums';
 import { MIDIManager } from './MIDIManager';
 import { TDebugOptionsObject } from '../../../Types';
+import { AbstractNoteHandler } from '../AbstractNoteHandler';
 
-export class NoteHandler {
+export class NoteHandler extends AbstractNoteHandler{
 
     /*  debugOutput functions in the same way as the other classes which have this boolean, if we are in dev then
         checkboxes will display on the record page that allow us to select if we want console logs for data, if you
         want to implement logs that will show up on dev but not production, simply add an if conditional with this
         boolean before them. */
-    private debugOutput:boolean;    
     
     // Universally used settings
     private numNotes:number;
@@ -42,13 +42,6 @@ export class NoteHandler {
 
     private midiGenerator;
 
-    private stopFlag:boolean = false;
-
-    public setStopFlag() {
-        this.stopFlag = true;
-    }
-
-
     /* An array of size numNotes is used to store the cutoff values for each increment. 
     * 
     * The MIN_MAX_AMPLITUDE_DIFFERENCE is divided by numNotes to create evenly spaced sections in the array. 
@@ -66,7 +59,7 @@ export class NoteHandler {
 
 
     constructor(settings:MusicSettings, debugOptionsObject: TDebugOptionsObject) {
-        this.debugOutput = debugOptionsObject.debugOption2;
+        super(settings, debugOptionsObject);
         
         if (this.debugOutput) {
             console.log("Constructing originalNoteGeneration Class with the following settings: ");
@@ -360,12 +353,6 @@ export class NoteHandler {
     public prepNotesForMIDI(){
         let res;
         return res;
-    }
-
-
-    public setDebugOutput(b:boolean){
-        this.debugOutput = b;
-        if (this.debugOutput) console.log("Setting Notehandler debug to ", b);
     }
 
 }
