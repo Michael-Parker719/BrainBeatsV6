@@ -31,6 +31,8 @@ model User {
 
   playlists Playlist[]
   likes     Like[]
+
+  scripts Script[]
 }
 
 model Track {
@@ -99,4 +101,23 @@ model Like {
   createdAt DateTime @default(now())
 
   @@id([trackID, userID])
+}
+
+model Script {
+  id          String  @id @default(uuid())
+  title       String
+  thumbnail   String? @db.LongText // Store file path in database instead of the actual image
+
+  user        User         @relation(fields: [userID], references: [id], onDelete: Cascade)
+
+  // Track array alternative
+  // User_Track     User_Track?
+
+
+  userID         String // relation scalar field  (used in the `@relation` attribute above)
+  createdAt      DateTime        @default(now())
+  // playlistTracks PlaylistTrack[]
+  // playlists Playlist[]     // Simpler alternative to playlists
+  public         Boolean
+  // likes          Like[]
 }
