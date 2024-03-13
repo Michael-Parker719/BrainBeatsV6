@@ -103,12 +103,26 @@ model Like {
   @@id([trackID, userID])
 }
 
+model Card {
+  id                String  @id @default(uuid())
+  script            Script  @relation(fields: [scriptID], references: [id], onDelete: Cascade)
+  scriptID          String  
+
+  order             Int
+  textColor         String
+  backgroundColor   String
+  imageURL          String
+  audioURL          String 
+  text              String 
+  speed             Int
+}
+
 model Script {
   id          String  @id @default(uuid())
   title       String
   thumbnail   String? @db.LongText // Store file path in database instead of the actual image
-
   user        User         @relation(fields: [userID], references: [id], onDelete: Cascade)
+  cards       Card[]
 
   // Track array alternative
   // User_Track     User_Track?

@@ -103,6 +103,21 @@ async function getLikeExists(trackID, userID) {
     return result;
 }
 
+async function getScriptExists(searchVal, searchType) {
+    let result;
+    switch (searchType) {
+        case 'id':
+            result = await prisma.script.findUnique({
+                where: { id: searchVal }
+            });
+
+            break;
+    }
+
+    if (!result) result = false;
+    return result;
+}
+
 // async function getUserLIkes(userID) {
 //     let res = await prisma.Like.findUnique({
 //         where: {
@@ -117,5 +132,6 @@ module.exports = {
     getTrackExists: getTrackExists,
     getPlaylistExists: getPlaylistExists,
     getLikeExists: getLikeExists,
+    getScriptExists: getScriptExists,
     getIsTokenExpired: getIsTokenExpired
 }
