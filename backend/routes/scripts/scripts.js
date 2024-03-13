@@ -108,3 +108,42 @@ router.post('/updateScript', async (req, res) => {
     }
 
 });
+
+// Get all tracks based on a username
+router.get('/getUserScriptsByUsername', async (req, res) => {
+    try {
+        const username = req.query.username;
+        if (username === "") {
+            const allTracks = await prisma.script.findMany({
+                include: {user : true}
+            });
+
+            return res.json(allTracks);
+        }
+
+        const userExists = await getUserExists(username, "username");
+
+        if (!userExists) {
+            return res.status(404).json({
+                msg: "Username not found"
+            });
+        } else {
+            // Find the records
+            const userScripts = await prisma.script.findMany({
+                where: { userID: userExists.id },
+                include: {user: true}
+            });
+
+            if (!userScripts) {
+                return res.status(404).json({
+                    msg: "Scripts not found"
+                });
+            }
+            
+            return res.status(200).json(userScripts);
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ msg: err });
+    }
+});
