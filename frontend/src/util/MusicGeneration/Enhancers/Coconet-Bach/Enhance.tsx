@@ -1,9 +1,10 @@
 import * as mm from '@magenta/music/esm';
+import { AbstractEhancer } from '../AbstractEnhancer';
 
-export class Enhance 
+export class Enhance extends AbstractEhancer
 {
 
-    constructor() { }
+    constructor() {super()}
 
     public async Enhancer(midi: Uint8Array): Promise<Uint8Array>
     {
