@@ -89,6 +89,7 @@ export class ConcreteTestStream implements AbstractTestStream {
     public stopFlag:boolean;
     public settings:MusicSettings;
     public noteHandler: any;
+    public enhancer: any;
     private debugOutput:boolean;
     private counter:number;
 
@@ -99,7 +100,7 @@ export class ConcreteTestStream implements AbstractTestStream {
         return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
     }
 
-    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any) {
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any, enhancer: any) {
         this.debugOutput = debugOptionObject.debugOption1;
 
         if (this.debugOutput) console.log("Constructed Test Stream");
@@ -109,6 +110,9 @@ export class ConcreteTestStream implements AbstractTestStream {
         console.log(handler);
 
         this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
+
+        if (enhancer === 'None') this.enhancer = 'None';
+        else this.enhancer = new enhancer.Enhance();
 
         this.noteHandler.setDebugOutput(debugOptionObject.debugOption2);
         this.counter = 0;
@@ -183,13 +187,17 @@ export class ConcreteCytonStream implements AbstractCytonStream {
     public stopFlag:boolean;
     public settings:MusicSettings;
     public noteHandler;
+    public enhancer;
     private debugOutput:boolean;
 
-    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any) {
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any, enhancer: any) {
         this.stopFlag = false;
         this.settings = settings;
 
         this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
+
+        if (enhancer === 'None') this.enhancer = 'None';
+        else this.enhancer = new enhancer.Enhance();
         
         /* If in dev, and you enable "debugOption1"  or, individually set this to true to enable music related output during recording.
          * Ex: 
@@ -280,34 +288,11 @@ export class ConcreteCytonStream implements AbstractCytonStream {
         var res:string;
 
         try {
-
             var originalMidi = await this.noteHandler.returnMIDI();
             let outputMidi = originalMidi;
 
-            let doCoco = true;
-
-            if (doCoco) {
-
-                // initializes the coconet model using the bach checkpoint
-                const coco = new mm.Coconet("https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach");
-                await coco.initialize();
-
-                // converts the original midi into a quantized note sequence for coco to iterate on
-                let originalSequence = mm.midiToSequenceProto(originalMidi);
-                originalSequence = mm.sequences.quantizeNoteSequence(originalSequence, 8);
-                originalSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
-
-                // lets coco iterate then merges so notes sustains
-                let infilledSequence = await coco.infill(originalSequence, {temperature: .25, numIterations: 10}); // temp and iter could be variables selected by user
-                infilledSequence = mm.sequences.mergeConsecutiveNotes(infilledSequence);
-                infilledSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
-
-                // converts infilledsequence to a midi
-                const infilledMidi = mm.sequenceProtoToMidi(infilledSequence);
-
-                // swap to the new output
-                outputMidi = infilledMidi;
-
+            if (this.enhancer != 'None') {
+                outputMidi = await this.enhancer.Enhancer(originalMidi)
             }
 
             res = await this.convertToBase64(outputMidi);
@@ -348,15 +333,19 @@ export class ConcreteGanglionStream implements AbstractGanglionStream {
     public stopFlag:boolean;
     public settings:MusicSettings;
     public noteHandler:any;
+    public enhancer:any;
     private debugOutput:boolean;
 
-    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any) {
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any, enhancer: any) {
         this.settings = settings;
 
         this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
         this.noteHandler.setDebugOutput(debugOptionObject.debugOption2);
         this.stopFlag = false;
         this.debugOutput = debugOptionObject.debugOption1;
+
+        if (enhancer === 'None') this.enhancer = 'None';
+        else this.enhancer = new enhancer.Enhance();
     }
 
     public setDebugOutput(b:boolean) {

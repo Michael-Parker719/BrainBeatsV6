@@ -16,7 +16,8 @@ import { emptyTrack, emptyUser } from '../../util/Constants';
 import { Track } from '../../util/Interfaces';
 import { useRecoilState } from 'recoil';
 import { userModeState } from '../../JWT';
-import names from '../../util/MusicGeneration/Algorithms/names.json';
+import algorithmNames from '../../util/MusicGeneration/Algorithms/names.json';
+import enhancerNames from '../../util/MusicGeneration/Enhancers/names.json';
 
 function Record() {
     const settings = useAppSelector(state => state.musicGenerationSettingsSlice);
@@ -27,8 +28,10 @@ function Record() {
     const [debugOption2, setDebugOption2] = useState(false);
     const [debugOption3, setDebugOption3] = useState(false);
     const [genOption, setGenOption] = useState('Legacy');
+    const [enhanceOption, setEnhanceOption] = useState('None');
 
-    const algorithms = names.algorithmNames;
+    const algorithms = algorithmNames.algorithmNames;
+    const enhancers = enhancerNames.enhancerNames;
 
     /*  Add the interface of a new stream here in the case that you've created a new one, you should define it in the DeviceAbstractFactory
     and import it. */
@@ -68,15 +71,20 @@ function Record() {
 
         let NoteHandler = await import("../../util/MusicGeneration/Algorithms/" + genOption + "/NoteGeneration");
 
+        let Enhancer = "None";
+        if (enhanceOption != 'None') {
+            Enhancer = await import("../../util/MusicGeneration/Enhancers/" + enhanceOption + "/Enhance");
+        }
+
         switch (deviceName) {
             case "random data":
-                setDevice(new ConcreteTestStream(settings, debugOptionObject, NoteHandler));
+                setDevice(new ConcreteTestStream(settings, debugOptionObject, NoteHandler, Enhancer));
                 break;
             case "cyton":
-                setDevice(new ConcreteCytonStream(settings, debugOptionObject, NoteHandler));
+                setDevice(new ConcreteCytonStream(settings, debugOptionObject, NoteHandler, Enhancer));
                 break;
             case "ganglion":
-                setDevice(new ConcreteGanglionStream(settings, debugOptionObject, NoteHandler));
+                setDevice(new ConcreteGanglionStream(settings, debugOptionObject, NoteHandler, Enhancer));
                 break;
             default: return;
         }
@@ -263,6 +271,16 @@ function Record() {
                         <label htmlFor="genselect">Select Music Generation Method:</label>
                         <select disabled={isRecording} name="genselect"value={genOption} id="genselect" onChange={(e) => setGenOption(e.target.value)}>
                             {algorithms.map((option, index) => {
+                                return (
+                                    <option key={index} value={option}>
+                                        {option}
+                                    </option>
+                                )
+                            })}
+                        </select>
+                        <label htmlFor="enhanceselect">Select Music Enhancer Method:</label>
+                        <select disabled={isRecording} name="enhanceselect"value={enhanceOption} id="enhanceselect" onChange={(e) => setEnhanceOption(e.target.value)}>
+                            {enhancers.map((option, index) => {
                                 return (
                                     <option key={index} value={option}>
                                         {option}
