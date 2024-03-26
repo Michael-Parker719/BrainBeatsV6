@@ -4,7 +4,7 @@ import './Cards.css';
 import { Modal } from 'react-bootstrap';
 import ImageModal from '../../../Modals/ImageModal/ImageModal';
 import { useAppSelector } from '../../../../Redux/hooks';
-import { Card } from '../../../../util/Interfaces'
+import { Card, Script} from '../../../../util/Interfaces'
 import { useDispatch } from 'react-redux';
 import { set, unset } from '../../../../Redux/slices/cardArraySlice'
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,9 @@ import VideoJS from '../../../Video/Video';
 import Player from "video.js/dist/types/player";
 import React from 'react';
 import 'video.js/dist/video-js.css';
+import { useRecoilState, useRecoilValue} from 'recoil';
+import { userModeState, userJWT } from '../../../../JWT';
+import sendAPI from '../../../../SendAPI';
 // import "https://cdn..net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
 
 
@@ -215,6 +218,35 @@ function Cards() {
         dispatch(set(cards));
     }
 
+    const [user, setUser] = useRecoilState(userModeState);
+    const jwt = useRecoilValue(userJWT);
+
+    const saveScript = () => {
+        console.log("saving script!");
+
+        if (!user) {
+            console.error("You must be logged in to create a post");
+            navigate('/login');
+            return;
+        }
+
+        const info:Script = {
+            id: "",
+            userID: user.id,
+            title: "Test Title",
+            token: jwt,
+            public: true,
+            cards: cards,
+        }
+        sendAPI('post', '/tracks/createScript', info)
+            .then(res => {
+                console.log(res);
+            }).catch(err => {
+                console.error(err);
+            })
+        
+    }
+
     const cardSelect = (count: number) => {
         const options = []
         for (let i = 1; i <= count; i++) {
@@ -236,9 +268,6 @@ function Cards() {
     }, [image]);
 
     useEffect(() => {
-        console.log(
-            `User requested page number: ${cardDisplayed}`
-        );
         let i = cardDisplayed;
         setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor});
         setTextColor({displayColorPicker: false, color: cards[i].textColor});
@@ -395,6 +424,7 @@ function Cards() {
                 <div id='record-buttons-div'>
                     <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>
                     <button type="button" className="btn btn-secondary" id='go-record-btn' onClick={() => { doNavigate("/record"); sendCards(); }}>Go to Record</button>
+                    <button type="button" className="btn btn-secondary" id='save-script-btn' onClick={() => {saveScript()}}>Save Script</button>
                 </div>
             </div>
         </div>);

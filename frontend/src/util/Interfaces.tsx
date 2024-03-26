@@ -106,6 +106,19 @@ export type Card = {
     speed: number,
 }
 
+export interface Script {
+    id: string,
+    title: string,
+    cards: Card[],
+    userID: string,
+    public: boolean,
+    // optional, assigned by mysql reference
+    user?: User | null,
+    
+    // optional
+    token?: any
+}
+
 export interface Track {
     id: string,        
     title: string,
