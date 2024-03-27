@@ -132,7 +132,7 @@ export class MIDIManager {
         into chunks is because the base64 string is very large, which overflows the buffer and causes
         errors, this is a workaround to that. */
     private sliceIntoChunks(arr:Uint8Array | Uint16Array, chunkSize:number) {
-        const res = [];
+        const res:any = [];
         for (let i = 0; i < arr.length; i += chunkSize) {
           const chunk = arr.slice(i, i + chunkSize);
           res.push(chunk);
@@ -180,7 +180,7 @@ export class MIDIManager {
         const midiFileChunks = this.sliceIntoChunks(midiBuildFile, 5000);
         // console.log(midiFileChunks);
 
-        const fileString = new Uint8Array(midiFileChunks.reduce((acc:any[], midiFileChunk) => {
+        const fileString = new Uint8Array(midiFileChunks.reduce((acc:any[], midiFileChunk:any) => {
             return [...acc, ...Array.from(midiFileChunk)];
         }, []));
 
