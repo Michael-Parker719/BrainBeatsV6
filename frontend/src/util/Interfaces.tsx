@@ -116,7 +116,10 @@ export interface Script {
     user?: User | null,
     
     // optional
+    createdAt?: Date,
     token?: any
+    fullname?: string // Used to display a users name above a track
+    thumbnail?: string,
 }
 
 export interface Track {

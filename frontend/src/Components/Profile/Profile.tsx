@@ -6,6 +6,7 @@ import { userJWT, userModeState } from "../../JWT";
 import sendAPI from '../../SendAPI';
 import react, { useEffect, useState } from 'react';
 import TrackCard from '../TrackCard/TrackCard';
+import ScriptCard from '../ScriptCard/ScriptCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Buffer } from 'buffer';
 import buildPath from '../../util/ImagePath';
@@ -391,7 +392,7 @@ const Profile = () => {
             <div id='profile-bottom-container' style={{display: selectedTab===SelectedTab.SCRIPTS? "block" : "none"}}>
                 <h1>My Scripts</h1>
                 <hr></hr>
-                {user && <TrackCard cardType={'Scripts'} input={user.id} />}
+                {user && <ScriptCard cardType={'Profile'} input={user.id} />}
             </div>
         </div>
     )
