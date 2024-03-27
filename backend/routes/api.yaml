@@ -237,15 +237,15 @@ paths:
             description: URL Not Found
 
   # Create user scripts
-    /api/tracks/createScript:
+    /api/scripts/createScript:
       post:
         tags:
-          - Tracks
+          - Scripts
         summary: Create script at user profile
         operationId: createScript
         description: Create a script for a user by username
-        consumes: 
-        - application/json
+        consumes: Scripts
+         - application/json
         produces:
         - application/json
         parameters:

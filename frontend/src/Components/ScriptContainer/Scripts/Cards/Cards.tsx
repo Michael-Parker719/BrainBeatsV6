@@ -238,11 +238,11 @@ function Cards() {
             public: true,
             cards: cards,
         }
-        sendAPI('post', '/tracks/createScript', info)
+        sendAPI('post', '/scripts/createScript', info)
             .then(res => {
                 console.log(res);
             }).catch(err => {
-                console.error(err);
+                console.error("error!", err);
             })
         
     }

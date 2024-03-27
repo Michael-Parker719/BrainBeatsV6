@@ -7,40 +7,46 @@ const { user, track } = new PrismaClient();
 const { getJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists } = require("../../utils/database");
 
-async function updateScript(scriptId, token, cards) {
+async function updateScript(scriptID, token, cards, res) {
 
     const queries = [];
-    const deleteCards = prisma.user.deleteMany({
+    console.log("deleting!")
+    const deleteCards = await prisma.card.deleteMany({
         where: {
-            userID: scriptID,
+            scriptID: scriptID,
         },
     })
-    queries.push(deleteCards);
+    console.log("finished deleting!")
+    // queries.push(deleteCards);
 
     for (let i = 0; i < cards.length; i++) {
-        const newCard = prisma.card.create({
-            data: {
-                script: {
-                    connect: {
-                        id: scriptID,
-                    }
-                },
-                order: i,
-                textColor: cards[i].textColor,
-                backgroundColor: cards[i].backgroundColor,
-                imageURL: cards[i].imageURL,
-                audioURL: cards[i].audioURL,
-                text: cards[i].text,
-                speed: cards[i].speed,
+        const newCard = {
+            script: {
+                connect: {
+                    id: scriptID,
+                }
+            },
+            order: i,
+            textColor: cards[i].textColor,
+            backgroundColor: cards[i].backgroundColor,
+            imageURL: cards[i].imageURL,
+            audioURL: cards[i].audioURL,
+            text: cards[i].text,
+            speed: cards[i].speed,
 
 
-            }
-        });
+        };
         queries.push(newCard);
 
     }
-    let newCards = await prisma.batch(queries);
-    return res.status(201).json(newCards);
+    console.log(queries);
+    console.log("creating")
+    let newCards = await prisma.card.createMany({
+        data: [queries],
+    }
+    );
+    console.log("finished creating")
+    return newCards;
 }
 
 router.post('/createScript', async (req, res) => {
@@ -59,25 +65,27 @@ router.post('/createScript', async (req, res) => {
             return res.status(404).json({
                 msg: "User not found"
             });
-        } else {
-            // Create a single record
-            console.log(req)
-            const newScript = await prisma.script.create({
-                data: {
-                    user: {
-                        connect: {
-                            id: userID
-                        }
-                    },
-                    title: title,
-                    thumbnail: thumbnail,
-                    public: true,
-                }
-            });
-
-
-            return res.status(201).json(newScript);
         }
+        // Create a single record
+        console.log(req)
+        const newScript = await prisma.script.create({
+            data: {
+                user: {
+                    connect: {
+                        id: userID
+                    }
+                },
+                title: title,
+                thumbnail: thumbnail,
+                public: true,
+            }
+        });
+
+        let newCards = updateScript(newScript.id, token, cards, res);
+
+        ret = { newScript, newCards };
+
+        return res.status(201).json(ret);
     } catch (err) {
         console.log(err);
         return res.status(500).send({ msg: err });
@@ -115,7 +123,7 @@ router.get('/getUserScriptsByUsername', async (req, res) => {
         const username = req.query.username;
         if (username === "") {
             const allTracks = await prisma.script.findMany({
-                include: {user : true}
+                include: { user: true }
             });
 
             return res.json(allTracks);
@@ -131,7 +139,7 @@ router.get('/getUserScriptsByUsername', async (req, res) => {
             // Find the records
             const userScripts = await prisma.script.findMany({
                 where: { userID: userExists.id },
-                include: {user: true}
+                include: { user: true }
             });
 
             if (!userScripts) {
@@ -139,7 +147,7 @@ router.get('/getUserScriptsByUsername', async (req, res) => {
                     msg: "Scripts not found"
                 });
             }
-            
+
             return res.status(200).json(userScripts);
         }
     } catch (err) {
@@ -147,3 +155,4 @@ router.get('/getUserScriptsByUsername', async (req, res) => {
         return res.status(500).send({ msg: err });
     }
 });
+module.exports = router;
