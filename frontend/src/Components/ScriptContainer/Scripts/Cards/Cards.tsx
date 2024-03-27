@@ -380,7 +380,7 @@ function Cards() {
                                 value={cardText}
                             />
                         </div>
-                        <label className='record-heading' htmlFor="file-upload">Card Duration (seconds):</label>
+                        <label className='record-heading' htmlFor="file-upload">Card Duration (milliseconds):</label>
                         <div className='record-upload1'>
                             <input
                                 type="number"

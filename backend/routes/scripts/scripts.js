@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 const { user, track } = new PrismaClient();
 // const { JSON } = require("express");
 const { getJWT, verifyJWT } = require("../../utils/jwt");
-const { getUserExists, getTrackExists } = require("../../utils/database");
+const { getUserExists, getTrackExists, getScriptExists } = require("../../utils/database");
 
 function colorToHex(color){
     var redHex = ('00' + color.r.toString(16)).slice(-2); //009A
@@ -162,4 +162,9 @@ router.get('/getUserScriptsByUsername', async (req, res) => {
         return res.status(500).send({ msg: err });
     }
 });
+
+router.get('/getCardsByScript', async (req, res) => {
+});
+
+
 module.exports = router;
