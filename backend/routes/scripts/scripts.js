@@ -7,28 +7,37 @@ const { user, track } = new PrismaClient();
 const { getJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists } = require("../../utils/database");
 
-async function updateScript(scriptID, token, cards, res) {
+function colorToHex(color){
+    var redHex = ('00' + color.r.toString(16)).slice(-2); //009A
+    var greenHex = ('00' + color.g.toString(16)).slice(-2); //009A
+    var blueHex = ('00' + color.b.toString(16)).slice(-2); //009A
+
+    let ret = redHex + greenHex + blueHex;
+    console.log(color);
+    console.log("color: ", ret);
+    return ret;
+}
+
+async function updateScript(scriptID, token, cards) {
 
     const queries = [];
-    console.log("deleting!")
     const deleteCards = await prisma.card.deleteMany({
         where: {
             scriptID: scriptID,
         },
     })
-    console.log("finished deleting!")
-    // queries.push(deleteCards);
 
     for (let i = 0; i < cards.length; i++) {
         const newCard = {
-            script: {
-                connect: {
-                    id: scriptID,
-                }
-            },
+            // script: {
+            //     connect: {
+            //         id: scriptID,
+            //     }
+            // },
+            scriptID: scriptID,
             order: i,
-            textColor: cards[i].textColor,
-            backgroundColor: cards[i].backgroundColor,
+            textColor: colorToHex(cards[i].textColor),
+            backgroundColor: colorToHex(cards[i].backgroundColor),
             imageURL: cards[i].imageURL,
             audioURL: cards[i].audioURL,
             text: cards[i].text,
@@ -40,12 +49,10 @@ async function updateScript(scriptID, token, cards, res) {
 
     }
     console.log(queries);
-    console.log("creating")
     let newCards = await prisma.card.createMany({
-        data: [queries],
+        data: queries,
     }
     );
-    console.log("finished creating")
     return newCards;
 }
 
@@ -81,7 +88,7 @@ router.post('/createScript', async (req, res) => {
             }
         });
 
-        let newCards = updateScript(newScript.id, token, cards, res);
+        let newCards = updateScript(newScript.id, token, cards);
 
         ret = { newScript, newCards };
 

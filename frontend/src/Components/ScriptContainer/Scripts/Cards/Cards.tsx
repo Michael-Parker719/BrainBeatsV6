@@ -25,19 +25,19 @@ function Cards() {
     const initialBackground = {
         displayColorPicker: false,
         color: {
-            r: '14',
-            g: '14',
-            b: '14',
-            a: '14',
+            r: 14,
+            g: 14,
+            b: 14,
+            a: 14,
         },
     }
     const initialTextColor = {
         displayColorPicker: false,
         color: {
-            r: '255',
-            g: '255',
-            b: '255',
-            a: '255',
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 255,
         },
     }
 
