@@ -3,17 +3,29 @@ import { useState } from 'react';
 // Importing CSS
 import '../../About/About.css'
 import profileImage from '../../../images/blankProfile.png'
-import { Modal } from 'react-bootstrap';
 import TeamMemberModal from '../../Modals/TeamMemberModal/TeamMemberModal';
+import { Modal } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 // Importing Team Member Images
-import quanminhNguen from '../../../images/Version3Photos/QuanminhNguyen.jpg';
-import noahLang from '../../../images/Version3Photos/NoahLang.jpg';
-import shyamParikh from '../../../images/Version3Photos/ShyamParikh.jpg';
-import SamiEskirjeh from '../../../images/Version3Photos/SamiEskirjeh.jpg';
+import martinMcCarthy from '../../../images/Version4Photos/MartinMcCarthy.jpg';
+import brandonMrgich from '../../../images/Version4Photos/BrandonMrgich.png';
+import aidanFleming from '../../../images/Version4Photos/AidanFleming.jpg';
+import aribelRuiz from '../../../images/Version4Photos/AribelRuiz.jpg';
+import version4Team from '../../../images/Version4Photos/BrainBeats.jpg';
 
-const Team3 = () => {
+
+import AidanAhern from '../../../images/Version5Photos/AidanAhern.png';
+import GraftonLeGare from '../../../images/Version5Photos/GraftonLeGare.jpg';
+import IsabellaFaile from '../../../images/Version5Photos/IsabellaFaile.jpg';
+import kmiFlorez from '../../../images/Version5Photos/kmiFlorez.jpg';
+import McGreggorKennison from '../../../images/Version5Photos/McGreggorKennison.jpg';
+import RobertPerez from '../../../images/Version5Photos/RobertPerez.jpg';
+import SerinaChugani from '../../../images/Version5Photos/SerinaChugani.jpg';
+import TsehaiBoucaud from '../../../images/Version5Photos/TsehaiBoucaud.jpg';
+import VicenteVivanco from '../../../images/Version5Photos/VicenteVivanco.png';
+
+const Team5 = () => {
 
     // =============================  Enter values for TEAM info here ============================== 
     interface Team {
@@ -25,28 +37,26 @@ const Team3 = () => {
     }
 
     const teamInfo : Team = {
-        "number": 3,  // Format as integer number
-        "yearsFound": "2022",  // format as string 'yyyy-yyyy'
+        "number": 5,  // Format as integer number
+        "yearsFound": "2023-2024",  // format as string 'yyyy-yyyy'
 
-        "objectives": "The primary goal of BrainBeats version 3 was to migrate the previous state of" + 
-        " the platform into a more scalable medium that allows public users to create, view," + 
-        " and share content created by BrainBeats. This entails translating version 2's" +
-        " desktop application into a web application. BrainBeats version 3's goals also included the overall" +
-        " increase of the user experience.", 
+        "objectives": "The primary goal of BrainBeats version 5 was to introduce a more robust music generation process that supports polyphonic output. Additionally, there was a focus on improving the scripting process along with its visual format.", 
 
-        "contributions": "Version 3’s contributions include:" +
-        "\n\t• Developing a web platform for BrainBeats." +
-        "\n\t\t◦ Allowing users to create, read, update, and delete their own posts." +
-        "\n\t\t◦ Allowing users to find and discover public posts and playlists." +
+        "contributions": "Version ’s contributions include:" +
+        "\n\t• A redesign of the scripting functionality and interface." +
+        "\n\t\t◦ The site now supports: images, audio, and video upload." +
+        "\n\t\t◦ Users are able to save their scripts for editing or sharing." +
         
-        "\n\t• Establishing a Bluetooth connection over the Web." +
-        "\n\t\t◦ Functional use of the OpenBCI headset to generate music." +
+        "\n\t• Procedural music generation based on EEG data" +
+        "\n\t\t◦ Algorithm is able to detect mood." +
+        "\n\t\t◦ There is precision for notes relative to their predecessors." +
+        "\n\t\t◦ Tempo and volume are dynamically determined." +
+    
+        
+        "\n\t• Improved Emotion detection." +
+        "\n\t\t◦ Intermediary step that improves music generation for the machine learning model.",
 
-        "\n\t• Music generation and playback." +
-        "\n\t\t◦ Live-feedback loop when recording/creating a MIDI file." +
-        "\n\t\t◦ Live visual accompaniment when generating music using brainwaves.",
-
-        "github": "https://github.com/BrainBeatsv3/BrainBeatsWeb",
+        "github": "actual link not created yet",
     }
     // ===============================  Enter TEAM MEMBERS info here =============================== 
 
@@ -68,25 +78,37 @@ const Team3 = () => {
 
     const defaultImage = profileImage;
     var teamMembers : TeamMember[] = [
-        {name: "Shyam Parikh", position: "Project Manager • Systems Administrator • Backend Developer", image: shyamParikh, 
-        bio: "Learn more about me and my other projects on GitHub: https://github.com/Aestrus",
-        contributions:"• Handled Agile development practices" + "\n• Handled system administration" +
-        "\n• Developed scripts for building/testing the web application" + "\n• Assisted in creating music generation model" + 
-        "\n • Helped in data transmission between browser and EEG device" + "\n• Handled database design and management" + 
-        "\n• Worked on the API"},
 
-        {name: "Noah Lang", position: "Music Generation • Full-Stack Developer", image: noahLang, 
-        bio: "I'm a UCF Alumni who graduated in 2022 and is passionate about all things computer science and music. I am excited by the opportunity to combine my passions in a meaningful way via the BrainBeats project.",
-        contributions: "• Researched music generation and algorithms" + "\n• Assisted in creating music generation model" + 
-        "\n• Helped in data transmission between browser and EEG device" + "\n• Assisted with frontend functionality"},
+        {name: "Robert Perez", position: "Frontend Developer", image: RobertPerez, bio: "", 
+        contributions: ""}, 
 
-        {name: "Sami Eskirjeh", position: "EEG Connection • Backend Developer", image: SamiEskirjeh, bio: "",
-        contributions: "• Researched backend technologies" + "\n• Developed API functionality with OpenBCI headset" + 
-        "\n• Worked in data transmission between browser and EEG device" + "\n• Assisted with frontend functionality"},
+       {name: "McGreggor Kennison", position: "AI/ML Music Generation", image: McGreggorKennison, bio: "", 
+        contributions: ""},
 
-        {name: "Quanminh Nguyen", position: "Frontend Developer • Visual Designer", image: quanminhNguen, bio: "",
-        contributions: "• Researched frontend technologies" + "\n• Designed and implemented UI/UX for web application" + 
-        "\n• Developed functional frontend components" + "\n• Assisted in developing a music generation model"},
+       {name: "Serina Chugani", position: "EEG Data Collection", image: SerinaChugani, bio: "", 
+       contributions: ""}, 
+
+      {name: "Isabella Faile", position: "Frontend Devleoper", image: IsabellaFaile, bio: "", 
+        contributions: ""},
+
+        {name: "Aidan Ahern", position: "AI/ML Music Generation", image: AidanAhern, bio: "", 
+        contributions:""},
+
+        {name: "Grafton LeGare", position: "Procedural Music Generation", image: GraftonLeGare, bio: "",
+        contributions: ""},
+
+        {name: "Vicente Vivanco", position: "EEG to Emotion Framework", image: VicenteVivanco, bio: "", 
+     contributions: ""}, 
+
+        {name: "kmi Florez", position: "Vicente's Manager", image: kmiFlorez, bio: "", 
+        contributions: ""}, 
+
+     {name: "Tsehai Boucaud", position: "Project Manager", image: TsehaiBoucaud, bio: "", 
+     contributions: ""}, 
+
+     
+
+     
     ];
     // ============================================================================================= 
     
@@ -103,7 +125,7 @@ const Team3 = () => {
 
     function PopulateTeamMembers() {
         const MAX_COLS:number = 2;
-        const MAX_ROWS:number = 3;
+        const MAX_ROWS:number = 5;
         var gridArray:any[] = [];
         var currentMemberCounter:number = 0;
 
@@ -138,12 +160,8 @@ const Team3 = () => {
                 {'GitHub '} 
                 <a href={teamInfo.github}>{teamInfo.github}</a>
             </h6>
-            <br></br>
-            <h6>
-                <FontAwesomeIcon className='modal-track-icons' icon={["fab", "youtube"]} />
-                {'Senior Design Showcase Video '}
-            </h6>
-            <iframe width="80%" height="300px" src="https://www.youtube.com/embed/wvttb2_AZag" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+            <img src={''} id='version4-team-photo' alt="Team image" onClick={() => {}}/>
+
         </div>
         <div className='about-team-members'>
             {memberList.map((teamMember, index) => (
@@ -168,4 +186,4 @@ const Team3 = () => {
     );
 };
 
-export default Team3;
+export default Team5;
