@@ -1,14 +1,13 @@
 import * as mm from '@magenta/music/esm';
+import { NoteSequence } from '@magenta/music/esm';
 import { AbstractEhancer } from '../AbstractEnhancer';
 
 export class Enhance extends AbstractEhancer
 {
 
-    constructor() {super()}
-
     public async Enhancer(midi: Uint8Array): Promise<Uint8Array>
     {
-        
+
         // initializes the coconet model using the bach checkpoint
         const coco = new mm.Coconet("https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach");
         await coco.initialize();

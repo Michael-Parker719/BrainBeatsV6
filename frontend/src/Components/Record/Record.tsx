@@ -18,6 +18,7 @@ import { useRecoilState } from 'recoil';
 import { userModeState } from '../../JWT';
 import algorithmNames from '../../util/MusicGeneration/Algorithms/names.json';
 import enhancerNames from '../../util/MusicGeneration/Enhancers/names.json';
+import Loading from '../Loading/Loading';
 
 function Record() {
     const settings = useAppSelector(state => state.musicGenerationSettingsSlice);
@@ -29,6 +30,7 @@ function Record() {
     const [debugOption3, setDebugOption3] = useState(false);
     const [genOption, setGenOption] = useState('Legacy');
     const [enhanceOption, setEnhanceOption] = useState('None');
+    const [isLoading, setLoading] = useState(false);
 
     const algorithms = algorithmNames.algorithmNames;
     const enhancers = enhancerNames.enhancerNames;
@@ -45,6 +47,7 @@ function Record() {
         if (device) {
             setTimeout(() => {
                 setRecording(true); // Used for the record button in the HTML.
+                setLoading(true);
                 device.setDebugOutput(debugOption1);
             }, 3000);
 
@@ -53,8 +56,19 @@ function Record() {
         // unset 
         else {
             setRecording(false);
+            setLoading(false);
         }
     }, [device]);
+
+    useEffect(() => {
+        // set
+        if(isLoading) {
+            setLoading(true);
+        }
+        else {
+            setLoading(false);
+        }
+    }, [isLoading]);
 
     /*  doRecording simply creates an instance of the device we're using, in our case we only have the ganglion board and the
         cyton board, the if condition that assigns the deviceType is checking to see the number of channels accepted, here you
@@ -96,13 +110,13 @@ function Record() {
             initialize connection function to avoid errors. */
     }
 
-    function stopRecording() {
+    async function stopRecording() {
         // console.log('Recording stopped!');
         /* When the device is stopped it signals the call to return the MIDI since
             we are no longer recording input. 
             This will check for sucessful return of a MIDI base64 string to be stored 
             in the database and make it easily downloadable. */
-        device?.stopDevice()?.then(
+        await device?.stopDevice()?.then(
             (url: string) => {
                 // console.log("Midi URL from Record.tsx: ", url);
                 setMIDIURI(url);
@@ -258,17 +272,21 @@ function Record() {
                         </div>
                     </div>}
 
-                    {isDev() && <a id='download-midi-btn' download={'currentMIDI.MID'} href={MIDIUri}>
-                        <FontAwesomeIcon icon={["fas", "arrow-up-from-bracket"]} />
-                        download the midi
-                    </a>}
+                    {isLoading==true?
+                        <Loading/>:
+                        <a id='download-midi-btn' download={'currentMIDI.MID'} href={MIDIUri}>
+                            <FontAwesomeIcon icon={["fas", "arrow-up-from-bracket"]} />
+                            download the midi
+                        </a>
+                    }
+                    
 
                     {/* ------------------------------------- End Debug checkboxes */}
                     <div className="setupGuide">
                         <h2>New to BrainBeats?</h2>
                         <p>If you need to understand how to get started, view our setup guide <Link to="/setup" target="_blank">here.</Link><br />
                             Otherwise, continue by hitting the record button below:</p>
-                        <label htmlFor="genselect">Select Music Generation Method:</label>
+                        <label htmlFor="genselect">Select Music Generation Method: </label>
                         <select disabled={isRecording} name="genselect"value={genOption} id="genselect" onChange={(e) => setGenOption(e.target.value)}>
                             {algorithms.map((option, index) => {
                                 return (
@@ -278,7 +296,8 @@ function Record() {
                                 )
                             })}
                         </select>
-                        <label htmlFor="enhanceselect">Select Music Enhancer Method:</label>
+                        <p></p>
+                        <label htmlFor="enhanceselect">Select Music Enhancer Method: </label>
                         <select disabled={isRecording} name="enhanceselect"value={enhanceOption} id="enhanceselect" onChange={(e) => setEnhanceOption(e.target.value)}>
                             {enhancers.map((option, index) => {
                                 return (

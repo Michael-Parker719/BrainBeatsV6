@@ -3,8 +3,5 @@ new enhancer algorithms. */
 
 export abstract class AbstractEhancer
 {
-
-    constructor() {}
     public abstract Enhancer(midi: Uint8Array): Promise<Uint8Array>;
-
 }

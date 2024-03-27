@@ -156,6 +156,11 @@ export class ConcreteTestStream implements AbstractTestStream {
         this.noteHandler.setStopFlag();
 
         var outputMidi = await this.noteHandler.returnMIDI();
+
+        if (this.enhancer != 'None') {
+            outputMidi = await this.enhancer.Enhancer(outputMidi)
+        }
+
         var res = await this.convertToBase64(outputMidi);
 
         return res;
@@ -391,6 +396,10 @@ export class ConcreteGanglionStream implements AbstractGanglionStream {
         
         const originalMidi = await this.noteHandler.returnMIDI();
         let outputMidi = originalMidi;
+
+        if (this.enhancer != 'None') {
+            outputMidi = await this.enhancer.Enhancer(outputMidi)
+        }
 
         var res = await this.convertToBase64(outputMidi);
         return res;
