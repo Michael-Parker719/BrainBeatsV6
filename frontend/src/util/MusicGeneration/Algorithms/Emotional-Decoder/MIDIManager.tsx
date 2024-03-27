@@ -1,14 +1,14 @@
-import { MusicSettings } from "../Interfaces";
+import { MusicSettings } from "../../../Interfaces";
 // import { getNoteData } from './Playback'
-import {getMillisecondsFromBPM, findNumSamples} from './MusicHelperFunctions';
-import * as Enums from '../Enums';
-import * as Constants from '../Constants';
-import { instrumentList } from "./InstOvertoneDefinitions";
+import {getMillisecondsFromBPM, findNumSamples} from '../../MusicHelperFunctions';
+import * as Enums from '../../../Enums';
+import * as Constants from '../../../Constants';
+import { instrumentList } from "../../InstOvertoneDefinitions";
 import * as Tone from 'tone'
-import {SamplerList} from '../Samplers';
-import * as SL from "../Instruments";
+import {SamplerList} from '../../../Samplers';
+import * as SL from "../../../Instruments";
 
-import { TDebugOptionsObject } from "../Types";
+import { TDebugOptionsObject } from "../../../Types";
 
 import MidiWriter from 'midi-writer-js';
 import { Midi, Track } from '@tonejs/midi';
