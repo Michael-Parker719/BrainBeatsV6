@@ -138,6 +138,7 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
 
                 setScriptList(objArray);
                 setScriptsPulled(true)
+                console.log(scriptList)
 
             }).catch(e => {
                 console.error("Failed to pull profile scripts: ", e);
