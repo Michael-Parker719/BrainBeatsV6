@@ -4,7 +4,7 @@ import './Cards.css';
 import { Modal } from 'react-bootstrap';
 import ImageModal from '../../../Modals/ImageModal/ImageModal';
 import { useAppSelector } from '../../../../Redux/hooks';
-import { Card, Script} from '../../../../util/Interfaces'
+import { Card, Script } from '../../../../util/Interfaces'
 import { useDispatch } from 'react-redux';
 import { set, unset } from '../../../../Redux/slices/cardArraySlice'
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ import VideoJS from '../../../Video/Video';
 import Player from "video.js/dist/types/player";
 import React from 'react';
 import 'video.js/dist/video-js.css';
-import { useRecoilState, useRecoilValue} from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { userModeState, userJWT } from '../../../../JWT';
 import sendAPI from '../../../../SendAPI';
 // import "https://cdn..net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
@@ -64,6 +64,7 @@ function Cards() {
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
 
+    const [scriptTitle, setScriptTitleState] = useState('');
 
     const playerRef = React.useRef<Player>();
     const videoJsOptions = {
@@ -202,7 +203,7 @@ function Cards() {
         }
         cards.push(newCard);
 
-        changeCard(cards.length-1);
+        changeCard(cards.length - 1);
 
 
 
@@ -230,7 +231,7 @@ function Cards() {
             return;
         }
 
-        const info:Script = {
+        const info: Script = {
             id: "",
             userID: user.id,
             title: "Test Title",
@@ -244,7 +245,7 @@ function Cards() {
             }).catch(err => {
                 console.error("error!", err);
             })
-        
+
     }
 
     const cardSelect = (count: number) => {
@@ -255,7 +256,7 @@ function Cards() {
 
         }
         return (
-            <select value={cardDisplayed+1} onChange={(e) => changeCard(+e.target.value - 1)}>
+            <select value={cardDisplayed + 1} onChange={(e) => changeCard(+e.target.value - 1)}>
                 {options}
             </select>
         )
@@ -269,8 +270,8 @@ function Cards() {
 
     useEffect(() => {
         let i = cardDisplayed;
-        setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor});
-        setTextColor({displayColorPicker: false, color: cards[i].textColor});
+        setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor });
+        setTextColor({ displayColorPicker: false, color: cards[i].textColor });
         setCardTextState(cards[i].text);
         setSpeed(cards[i].speed);
         setImageURL(cards[i].imageURL);
@@ -286,7 +287,15 @@ function Cards() {
             </Modal>
             <div className='cards-body-div'>
                 <div id='card-settings-div'>
-                    <button value="reset" onClick={resetVideo} />
+                    <label className='record-heading' htmlFor="file-upload">Title:</label>
+                    <div className='record-upload1'>
+                        <input
+                            className="input-card-text"
+                            placeholder="My Script"
+                            onChange={(e) => setCardTextState(e.target.value)}
+                            value={scriptTitle}
+                        />
+                    </div>
                     <h6 className='record-heading'>Card Settings</h6>
                     <div id='record-uploads-div'>
                         <div>
@@ -424,7 +433,7 @@ function Cards() {
                 <div id='record-buttons-div'>
                     <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>
                     <button type="button" className="btn btn-secondary" id='go-record-btn' onClick={() => { doNavigate("/record"); sendCards(); }}>Go to Record</button>
-                    <button type="button" className="btn btn-secondary" id='save-script-btn' onClick={() => {saveScript()}}>Save Script</button>
+                    <button type="button" className="btn btn-secondary" id='save-script-btn' onClick={() => { saveScript() }}>Save Script</button>
                 </div>
             </div>
         </div>);
