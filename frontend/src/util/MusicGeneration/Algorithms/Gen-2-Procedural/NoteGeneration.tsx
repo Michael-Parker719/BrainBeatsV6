@@ -167,6 +167,11 @@ export class NoteHandler extends AbstractNoteHandler {
         ]
     }
 
+    // Return the previousThousandEEG
+    public getPreviousThousandEEG(): Array<Array<number>> {
+        return this.previousThousandEEG;
+    }
+
     // This creates the array in which different "increments" for notes are housed. 
     // For more info see the comment for "var incrementArr"
     private InitIncrementArr(ampVal: number) {
@@ -370,17 +375,17 @@ export class NoteHandler extends AbstractNoteHandler {
         }
         // Volume up/down
         if (this.eegPerSecond !== undefined && this.streaks[i] === 3 * this.eegPerSecond) {
-            if (i === 2) {
+            if (i === 1) {
                 if (this.relativeVolume > -3) {
                     console.log("Volume lowered!");
-                    this.midiGenerator.adjustVolume(-5, 0);
+                    this.midiGenerator.adjustVolume(-4, 0);
                     this.relativeVolume--;
                 }
             }
             else {
                 if (this.relativeVolume < 3) {
                     console.log("Volume raised!");
-                    this.midiGenerator.adjustVolume(5, 0);
+                    this.midiGenerator.adjustVolume(4, 0);
                     this.relativeVolume++;
                 }
             }
@@ -700,7 +705,7 @@ export class NoteHandler extends AbstractNoteHandler {
                 pattern[i] = this.prevBeat + (pattern[i] - 1);
                 // Make sure you don't go out of bounds
                 if (pattern[i] >= this.numNotes) {
-                    pattern[i] = pattern[i] % this.numNotes + 14;
+                    pattern[i] = pattern[i] % this.numNotes + this.numNotes - 7;
                 }
                 this.prevBeat = pattern[i];
             }

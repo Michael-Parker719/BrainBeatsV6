@@ -105,6 +105,11 @@ export class NoteHandler extends AbstractNoteHandler{
         this.midiGenerator.setDebugOutput(debugOptionsObject.debugOption3); // debug
     }
 
+    // Return the previousThousandEEG
+    public getPreviousThousandEEG(): Array<Array<number>> {
+        return this.previousThousandEEG;
+    }
+
     /* setTimeForEachNoteArray does simple logic to return the values of each note in milliseconds as an array. 
        BPM affects the amount of time for each note, and the math logic can be explained on this website if you
        are interested: https://tuneform.com/tools/time-tempo-bpm-to-milliseconds-ms. The indices are arranged 

@@ -130,7 +130,7 @@ export class MIDIManager {
         /* This is just a start, we're going to work on a condition here
            where the number of tempos get set by the type of settings */
         for(var i = 0; i < this.MIDIChannels.length; i++) {
-            this.MIDIChannels[i].setTempo(settings.bpm, 100);
+            this.MIDIChannels[i].setTempo(settings.bpm, .1);
             this.MIDIChannels[i].setTimeSignature(4, 4);
         }
     }
@@ -141,7 +141,7 @@ export class MIDIManager {
 
     public adjustTempo(amount: number, channel:number) {
         this.BPM += amount;
-        this.MIDIChannels[channel].setTempo(this.BPM, 100);
+        this.MIDIChannels[channel].setTempo(this.BPM, 0.1);
         Tone.getTransport().bpm.value = this.BPM;
     }
 
@@ -149,7 +149,7 @@ export class MIDIManager {
         into chunks is because the base64 string is very large, which overflows the buffer and causes
         errors, this is a workaround to that. */
     private sliceIntoChunks(arr:Uint8Array | Uint16Array, chunkSize:number) {
-        const res:any = [];
+        const res = [];
         for (let i = 0; i < arr.length; i += chunkSize) {
           const chunk = arr.slice(i, i + chunkSize);
           res.push(chunk);
@@ -197,7 +197,7 @@ export class MIDIManager {
         const midiFileChunks = this.sliceIntoChunks(midiBuildFile, 5000);
         // console.log(midiFileChunks);
 
-        const fileString = new Uint8Array(midiFileChunks.reduce((acc:any[], midiFileChunk:any) => {
+        const fileString = new Uint8Array(midiFileChunks.reduce((acc:any[], midiFileChunk) => {
             return [...acc, ...Array.from(midiFileChunk)];
         }, []));
 
@@ -293,7 +293,7 @@ export class MIDIManager {
                 // }
 
                 // this.midiWriterTracks[i].addNote(temp);
-                
+
                 generatedNote = new MidiWriter.NoteEvent({pitch: pitch, duration: noteDuration});
                 this.MIDIChannels[0].addEvent(generatedNote);
                 // if (this.debugOutput) console.log('the channel after this write: ', this.MIDIChannels[i]);
