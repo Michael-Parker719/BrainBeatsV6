@@ -11,27 +11,26 @@ import React from 'react';
 import isDev from '../../../util/isDev';
 import * as Tone from 'tone';
 
-import trackPlayback from './trackPlayback';
 import Playback from '../../Playback/Playback';
 
-import { Track, Like } from '../../../util/Interfaces';
+import { Track, Like, Script} from '../../../util/Interfaces';
 
 // Import CSS
-import './TrackModal.css';
-import '../../TrackCard/TrackCard.css';
+import './ScriptModal.css';
+import '../../ScriptCard/ScriptCard.css';
 import TrackCard from '../../TrackCard/TrackCard';
 import { time } from 'console';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import * as Interfaces from '../../../util/Interfaces';
 
 type Props = {
-    track: Interfaces.Track;
+    script: Interfaces.Script;
     closeModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const emptyLikeArr: Interfaces.Like[] = [];
 
-const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
+const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
     const navigate = useNavigate();
     const jwt: any = useRecoilValue(userJWT);
     const [user, setUser] = useRecoilState(userModeState);
@@ -40,14 +39,13 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     const [errMsg, setErrMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
-    const [trackIsPlaying, setTrackIsPlaying] = useState(false);
-    const [trackName, setTrackName] = useState(track.title);
-    const [visibility, setVisibility] = useState(track.public);
+    const [scriptName, setScriptName] = useState(script.title);
+    const [visibility, setVisibility] = useState(script.public);
     const [editVisibility, setEditVisibility] = useState(false);
     const [buttonText, setButtonText] = useState(visibility ? "Make Private" : "Make Public");
-    const [thumbnail, setThumbnail] = useState(track.thumbnail);
+    const [thumbnail, setThumbnail] = useState(script.thumbnail);
 
-    const [likeCount, setLikeCount] = useState(track.likeCount);
+    const [likeCount, setLikeCount] = useState(script.likeCount);
 
 
     // The ternary just sets the like array to the user like array if it exists, else the empty
@@ -57,21 +55,21 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
 
     // Initializes favorited variable
     useEffect(() => {
-        checkTrackOwner();
+        checkScriptOwner();
         checkLike();
     }, []);
 
      
 
     // ============================= Functions for User Track =============================
-    function checkTrackOwner() {
+    function checkScriptOwner() {
 
         if (user != null) {
-            if (user?.id == track.userID) {
+            if (user?.id === script.userID) {
                 setEditVisibility(true);
             }
 
-            // if(user.likes != undefined){
+            // if(user.likes !== undefined){
             //   setUserLikeArr(user.likes);
             // }
         }
@@ -81,7 +79,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     // ============================= Functions for Track Updating System =============================
 
     function verifyDeleteRecording() {
-        let erase = window.confirm("Want to delete track '" + track.title + "'? \nPress ok to delete this track.");
+        let erase = window.confirm("Want to delete track '" + script.title + "'? \nPress ok to delete this track.");
 
         // if(erase) {
         //   closeModal(false);
@@ -92,13 +90,13 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     }
 
     function doDelete() {
-        let data = { id: track.id, token: jwt }
+        let data = { id: script.id, token: jwt }
 
         let deleteConfirmed = verifyDeleteRecording();
 
         if (deleteConfirmed) {
             sendAPI("delete", "/tracks/deleteTrack", data).then((res) => {
-                if (res.status != 200) {
+                if (res.status !== 200) {
                     setErrMsg("Failed To Delete");
                     setSuccessMsg("");
                 }
@@ -120,26 +118,25 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     }
 
     // Updates a track
-    function updateTrack(newVisibility = visibility, newTrackName = trackName, thumbnailPic = displayThumbnail, likes = likeCount) {
+    function updateScript(newVisibility = visibility, newScriptName = scriptName, thumbnailPic = displayThumbnail,likes = likeCount) {
 
         if (jwt == null || user == null) navigate("/login");
 
         // check if picture is of valid size before moving on
         // i.e.: <= 2mb
 
-        let updatedTrack = {
-            id: track.id,
-            title: newTrackName,
-            midi: track.midi,
+        let updatedScript = {
+            id: script.id,
+            title: newScriptName,
             thumbnail: thumbnailPic,
             likeCount: likes,
             public: newVisibility,
             token: jwt,
         }
 
-        sendAPI("put", "/tracks/updateTrack", updatedTrack).then((res) => {
+        sendAPI("put", "/scripts/updateScript", updatedScript).then((res) => {
             if (res.status === 200) {
-                setErrMsg(trackName);
+                setErrMsg(scriptName);
             }
             else if (res.status === 413) {
                 setErrMsg("Image must be < 3mb")
@@ -151,9 +148,9 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
         })
 
         setEditing(false);
-        track.title = newTrackName;
-        track.public = newVisibility;
-        track.likeCount = likes;
+        script.title = newScriptName;
+        script.public = newVisibility;
+        script.likeCount = likes;
 
         // console.log("updating track");
     }
@@ -162,9 +159,9 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     // ============================= Functions for Track Cover System =============================
         
     // For displaying track thumbnail picture
-    const [displayThumbnail, setDisplayThumbnail] = useState(track !== null ? track.thumbnail : undefined);
+    const [displayThumbnail, setDisplayThumbnail] = useState(script !== null ? script.thumbnail : undefined);
 
-    if (displayThumbnail !== undefined) {
+    if (displayThumbnail !== undefined && displayThumbnail !== null) {
         if ((displayThumbnail as string).split('/')[0] === 'data:text') {
             var encodedThumbnailPic = (displayThumbnail as string).split(',')[1];
             var decodedThumbnailPic = Buffer.from(encodedThumbnailPic, 'base64').toString('ascii');
@@ -232,9 +229,9 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     }
 
     // Function updating thumbnail picture
-    async function updateThumbnail(track: Interfaces.Track) {
+    async function updateThumbnail(script: Interfaces.Script) {
         if (displayThumbnail != null) {
-            track.thumbnail = displayThumbnail;
+            script.thumbnail = displayThumbnail;
         }
     };
 
@@ -254,7 +251,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
         })
 
         var updatedPost = {
-            id: track.id,
+            id: script.id,
             token: jwt,
             thumbnail: base64result
         };
@@ -279,7 +276,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
                 for (var i = 0; i < res.data.length; i++) {
 
                     var trackID: string = res.data[i].trackID;
-                    if (track.id === trackID) {
+                    if (script.id == trackID) {
                         favorited = true;
                         break;
                     }
@@ -296,7 +293,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
         return new Promise((resolve, reject) => {
             var didSucceed = true;
 
-            var newLikes: number = likeCount + 1;
+            var newLikes: number = likeCount + 1; 
             setLikeCount(newLikes);
 
             didSucceed ? resolve(newLikes) : reject('Error');
@@ -313,7 +310,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
 
         // Create the new like
         let newUserLike: Like = {
-            objectID: track.id,
+            objectID: script.id,
             userID: user.id,
         }
 
@@ -329,8 +326,8 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
             // console.log("res: ", res.data);    
 
             // If success
-            if (res.status == 201) {
-                setErrMsg(track.title);
+            if (res.status === 201) {
+                setErrMsg(script.title);
                 setSuccessMsg(JSON.stringify(res.data))
                 setFavorited(true);
 
@@ -389,15 +386,15 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
         if ((user != null)) {
             let removedLike: Like = {
                 userID: user.id,
-                objectID: track.id,
+                objectID: script.id,
                 token: jwt,
             }
 
             setFavorited(false);
 
             sendAPI("delete", "/likes/removeUserLike", removedLike).then((res) => {
-                if (res.status == 200) {
-                    setErrMsg(track.title);
+                if (res.status === 200) {
+                    setErrMsg(script.title);
                     setSuccessMsg(JSON.stringify(res.data));
 
                     // Decrements local likeCount
@@ -453,18 +450,17 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
         if (jwt == null || user == null) navigate("/login");
 
         let updatedTrack = {
-            id: track.id,
-            title: track.title,
-            midi: track.midi,
-            thumbnail: track.thumbnail,
+            id: script.id,
+            title: script.title,
+            thumbnail: script.thumbnail,
             likeCount: likes,
-            public: track.public,
+            public: script.public,
             token: jwt,
         }
 
-        sendAPI("put", "/tracks/updateTrack", updatedTrack).then((res) => {
+        sendAPI("put", "/scripts/updateScript", updatedTrack).then((res) => {
             if (res.status === 200) {
-                setErrMsg(trackName);
+                setErrMsg(scriptName);
             }
             else {
                 setErrMsg("Could not save post.");
@@ -472,88 +468,14 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
             }
         })
 
-        track.likeCount = likes;
-    }
-
-    useEffect(() => {
-        if (trackIsPlaying) {
-
-            // If we set the boolean, meaning we're gauranteed to have a base64 string,
-            // await the event to play the midi
-            // We must pass it the musicGenerationSettings for this current track
-            // await () {
-
-            // }
-
-        }
-
-    }, [trackIsPlaying]);
-
-    function playTrack() {
-        console.log("playing track");
-
-        var midiToPlay: string = track.midi;
-        var msg: string;
-
-        if (midiToPlay === "") {
-            msg = track.title + " contains no midi!";
-
-            console.error(msg);
-            setErrMsg(msg);
-            setTrackIsPlaying(false);
-        } else {
-
-            //midiBlob:Blob = 
-            trackPlayback(track.midi)
-            setTrackIsPlaying(true);
-        }
-
-    }
-
-    async function cleanStuff(){
-        console.log("closing modal");
-        Tone.Transport.cancel();
-    }
-
-
-    // ! Just for testing playback, will be removed !
-    async function uploadMidi(file: File) {
-        var base64result: any;
-
-        /* This is returning a compressed base 64 image of <= 1024 x 1024
-        * However it will not correctly display when I attempt to attach it to the model
-        * 
-        * var compressedBase64:any = compressImage(file); 
-        */
-
-        await convertToBase64(file).then(res => {
-            base64result = res;
-            // console.log("base64", base64result);
-        })
-
-        track.midi = base64result;
-        var payload = track;
-
-        payload = Object.assign({ token: jwt }, payload);
-
-
-
-        // console.log({track});
-        // return;
-
-        sendAPI('put', '/tracks/updateTrack', payload).then((res) => {
-            // console.log(res);
-
-        }).catch(err => {
-            console.error(err);
-        })
+        script.likeCount = likes;
     }
 
     return (
         <>
             <div>
                 <div className='modal-background'>
-                    <Modal.Header className='modal-container-header' closeButton onClick={() => cleanStuff()}>
+                    <Modal.Header className='modal-container-header' closeButton>
                     </Modal.Header>
                     <Modal.Body className='modal-container-body'>
                         <div id='modal-track-cover-div'>
@@ -568,30 +490,21 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
                         <div id='modal-track-text-div'>
                             {!visibility && <h6 id="hidden-track-text">
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "eye-slash"]} />
-                                hidden track
+                                hidden script
                             </h6>}
                             {visibility && <h6 id="hidden-track-text">
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "eye"]} />
-                                Public track
+                                Public script
                             </h6>}
-                            {!editing && <h1 id='track-title-text'>{trackName}</h1>}
-                            {editing && <input type="text" id='track-title-text' defaultValue={trackName} onChange={(e) => setTrackName(e.target.value)}></input>}
+                            {!editing && <h1 id='track-title-text'>{scriptName}</h1>}
+                            {editing && <input type="text" id='track-title-text' defaultValue={scriptName} onChange={(e) => setScriptName(e.target.value)}></input>}
 
-                            <h6 id="track-author-text">By {track.fullname} </h6>
+                            <h6 id="track-author-text">By {script.fullname} </h6>
 
 
-                            {<button type="button" className="btn btn-primary" id='download-btn'>
-                                <a style={{ color: "white", textDecoration: "none", display: "flex", justifyContent: "center" }} id='download-midi-btn' download={'myTrack.MID'} href={track.midi}>
-                                    <FontAwesomeIcon className='modal-track-icons fa-xl' id='modal-track-play-icon' icon={["fas", "download"]} />
-                                    <h4>Download</h4>
-                                </a>
-                            </button>}
                             <div className='mt-3'>
-                                <h6 id="track-author-text">Track:</h6>
-                                <Playback midiString={track.midi} />
+                                <h6 id="track-author-text">Script:</h6>
                             </div>
-
-                            {isDev() && <h5>Upload midi<input id="track-cover-upload" onChange={event => { if (!event.target.files) { return } else { uploadMidi(event.target.files[0]) } }} name="midi" type="file" accept='.MID, .MIDI' /></h5>}
 
                             <h5>{errMsg}</h5>
 
@@ -631,7 +544,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "plus"]} />
                 Add to Playlist
               </button> */}
-                            {editing && <button className='btn btn-secondary modal-btn' onClick={() => { updateTrack(); updateThumbnail(track) }}>
+                            {editing && <button className='btn btn-secondary modal-btn' onClick={() => { updateScript(); updateThumbnail(script) }}>
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "edit"]} />
                                 Save
                             </button>}
@@ -647,4 +560,4 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
     );
 }
 
-export default TrackModal;
+export default ScriptModal;

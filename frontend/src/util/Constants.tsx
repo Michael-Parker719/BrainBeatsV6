@@ -106,6 +106,7 @@ export const emptyScript:Script = {
     "userID": "",
     "public": false,
     "cards": [],
+    "likeCount": 0,
 }
 
 export const emptyUser:User = {

@@ -112,6 +112,7 @@ export interface Script {
     cards: Card[],
     userID: string,
     public: boolean,
+    likeCount: number,
     // optional, assigned by mysql reference
     user?: User | null,
     
@@ -173,7 +174,7 @@ export interface PlaylistTracks {
 }
 
 export interface Like {
-    trackID: string,
+    objectID: string,
     userID: string,
     
     // optional, assigned by mysql reference

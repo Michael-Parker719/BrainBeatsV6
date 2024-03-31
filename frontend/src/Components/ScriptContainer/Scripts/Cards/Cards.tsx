@@ -64,7 +64,7 @@ function Cards() {
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
 
-    const [scriptTitle, setScriptTitleState] = useState('');
+    const [scriptTitle, setScriptTitle] = useState('');
 
     const playerRef = React.useRef<Player>();
     const videoJsOptions = {
@@ -234,10 +234,11 @@ function Cards() {
         const info: Script = {
             id: "",
             userID: user.id,
-            title: "Test Title",
+            title: scriptTitle,
             token: jwt,
             public: true,
             cards: cards,
+            likeCount: 0,
         }
         sendAPI('post', '/scripts/createScript', info)
             .then(res => {
@@ -292,7 +293,7 @@ function Cards() {
                         <input
                             className="input-card-text"
                             placeholder="My Script"
-                            onChange={(e) => setCardTextState(e.target.value)}
+                            onChange={(e) => setScriptTitle(e.target.value)}
                             value={scriptTitle}
                         />
                     </div>

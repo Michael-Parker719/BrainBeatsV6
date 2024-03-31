@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './ScriptCard.css';
 import { Modal } from 'react-bootstrap';
 import TrackModal from '../Modals/TrackModal/TrackModal';
+import ScriptModal from '../Modals/ScriptModal/ScriptModal';
 import sendAPI from '../../SendAPI';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
@@ -138,7 +139,7 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
 
                 setScriptList(objArray);
                 setScriptsPulled(true)
-                console.log(scriptList)
+                console.log("Script List:", scriptList)
 
             }).catch(e => {
                 console.error("Failed to pull profile scripts: ", e);
@@ -188,6 +189,7 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
                         "public": res.data.public,
                         "user": res.data.user,
                         "cards": res.data.cards,
+                        "likeCount": 0,
                     }
                 }
                 // console.log(likedScript);
@@ -263,7 +265,7 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
                 ))}
             </div>
             <Modal id='pop-up' show={show} onHide={handleClose} onExit={resetScriptComponent}>
-                {/*<ScriptModal key={seed} script={currentScript} closeModal={setShow}/>*/}
+                <ScriptModal key={seed} script={currentScript} closeModal={setShow}/>
             </Modal>
         </div>
     )
