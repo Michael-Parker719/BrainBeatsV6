@@ -49,6 +49,7 @@ async function updateScript(scriptID, token, cards) {
 
 
         };
+        console.log(newCard);
         queries.push(newCard);
 
     }
@@ -235,10 +236,10 @@ router.get('/getCardsByScriptID', async (req, res) => {
                     msg: "Cards not found"
                 });
             }
-            function compareCards(card1, card2){
-                return card1.order - card2.order
-            }
-            scriptCards.sort(compareCards)
+            // function compareCards(card1, card2){
+            //     return card1.order - card2.order
+            // }
+            // scriptCards.sort(compareCards)
 
             return res.status(200).json(scriptCards);
         }

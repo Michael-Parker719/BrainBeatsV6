@@ -171,6 +171,7 @@ function Cards() {
     };
     const setColorText = (color: { rgb: any; }) => {
         setTextColor({ displayColorPicker: textColor.displayColorPicker, color: color.rgb });
+        console.log("new text color", textColor)
     };
 
     const changeCard = (cardInd: number) => {
@@ -220,13 +221,15 @@ function Cards() {
     const jwt = useRecoilValue(userJWT);
 
     const saveScript = () => {
-        console.log("saving script!");
+        console.log("saving script!", cards);
+        changeCard(cardDisplayed);
 
         if (!user) {
             console.error("You must be logged in to create a post");
             navigate('/login');
             return;
         }
+
 
         const info: Script = {
             id: "",

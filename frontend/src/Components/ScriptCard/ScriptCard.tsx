@@ -240,6 +240,20 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
         return gridArray;
     }
 
+    function hexToColor(hex: string){
+        let red = Number("0x" + hex.substring(0,2));
+        let green = Number("0x" + hex.substring(2,4));
+        let blue = Number("0x" + hex.substring(4,6));
+
+        return {
+            r: red,
+            g: green,
+            b: blue,
+            a: 255,
+        }
+        
+    }
+
     async function setScript(currentScript: Script) {
         var objArray: Card[] = [];
         console.log(currentScript)
@@ -247,8 +261,15 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
         await sendAPI('get', '/scripts/getCardsByScriptID', currentScript)
             .then(res => {
                 console.log(res)
+                function compareCards(card1: any, card2: any) {
+                    return card1.order - card2.order
+                }
+                res.data.sort(compareCards)
                 for (var i = 0; i < res.data.length; i++) {
-                    var currentCard: Card = res.data[i];
+                    let currentCard: Card = res.data[i];
+                    currentCard.textColor = hexToColor(res.data[i].textColor);
+                    currentCard.backgroundColor = hexToColor(res.data[i].backgroundColor);
+                    
                     // var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
                     // currentCard = Object.assign({ fullname: fullname }, currentScript);
 
@@ -257,7 +278,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
                 // setCardList(objArray);
                 // setScriptsPulled(true)
-                // console.log("Script List:", scriptList)
+                console.log("Card List:", objArray)
 
             }).catch(e => {
                 console.error("Failed to pull script cards: ", e);
