@@ -15,7 +15,7 @@ import * as Tone from 'tone';
 
 import Playback from '../../Playback/Playback';
 
-import { Track, Like, Script} from '../../../util/Interfaces';
+import { Track, Like, Script } from '../../../util/Interfaces';
 
 // Import CSS
 import './ScriptModal.css';
@@ -61,7 +61,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
         checkLike();
     }, []);
 
-     
+
 
     // ============================= Functions for User Track =============================
     function checkScriptOwner() {
@@ -120,7 +120,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
     }
 
     // Updates a track
-    function updateScript(newVisibility = visibility, newScriptName = scriptName, thumbnailPic = displayThumbnail,likes = likeCount) {
+    function updateScript(newVisibility = visibility, newScriptName = scriptName, thumbnailPic = displayThumbnail, likes = likeCount) {
 
         if (jwt == null || user == null) navigate("/login");
 
@@ -159,7 +159,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
 
 
     // ============================= Functions for Track Cover System =============================
-        
+
     // For displaying track thumbnail picture
     const [displayThumbnail, setDisplayThumbnail] = useState(script !== null ? script.thumbnail : undefined);
 
@@ -295,7 +295,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
         return new Promise((resolve, reject) => {
             var didSucceed = true;
 
-            var newLikes: number = likeCount + 1; 
+            var newLikes: number = likeCount + 1;
             setLikeCount(newLikes);
 
             didSucceed ? resolve(newLikes) : reject('Error');
@@ -446,6 +446,10 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
         }
     }
 
+    function goToRecord(){
+        navigate("/record")
+    }
+
     // Function updating track likes
     function updateLikes(likes: any) {
 
@@ -526,7 +530,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                             </button>}
                             {editing && <button className='btn btn-secondary modal-btn-public' id='delete-track-btn' onClick={() => doDelete()}>
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "trash"]} />
-                                Delete Track
+                                Delete Script
                             </button>}
                         </div>
                         <div id='modal-container-footer-2'>
@@ -555,6 +559,10 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "edit"]} />
                                 Edit
                             </button>}
+                            <button className='btn btn-secondary modal-btn' onClick={() => goToRecord()}>
+                                <FontAwesomeIcon className='modal-track-icons' icon={["fas", "music"]} />
+                                Record
+                            </button>
                         </div>
                     </Modal.Footer>
                 </div>
