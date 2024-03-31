@@ -6,18 +6,20 @@ import ScriptModal from '../Modals/ScriptModal/ScriptModal';
 import sendAPI from '../../SendAPI';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
-import { Track, Script } from '../../util/Interfaces';
+import { Track, Script, Card } from '../../util/Interfaces';
+import { useDispatch } from 'react-redux';
+import { set, unset } from '../../Redux/slices/cardArraySlice'
 import { emptyTrack, emptyScript } from '../../util/Constants';
 import { useRecoilState } from 'recoil';
 import { userJWT, userModeState } from '../../JWT';
 // import { Script } from 'vm';
 
 type Props = {
-    cardType:string;
+    cardType: string;
     input: string; // was :any
 }
 
-const ScriptCard: React.FC<Props> = ({cardType, input}) => {
+const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
     // For displaying Modal
     const [show, setShow] = useState(false);
@@ -28,9 +30,11 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
     const [scriptsPulled, setScriptsPulled] = useState(false);
     const [currentSearch, setCurrentSearch] = useState('');
 
+    const dispatch = useDispatch();
+
     // For refresing script list component on page
     const [seed, setSeed] = useState(1);
-    
+
     const resetScriptComponent = () => {
         // console.log("resetTrackComponent()");
         setSeed(Math.random());
@@ -58,19 +62,19 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
     //     return 
     // }
 
-    async function getPopularScripts(numScripts:number) {
+    async function getPopularScripts(numScripts: number) {
 
         // hit api for 'numTracks' tracks
-        var objArray:Script[] = [];
+        var objArray: Script[] = [];
 
         await sendAPI('get', '/scripts/getPublicPopularScripts')
-        .then((res) => {
-                for(let i = 0; i < res.data.length; i++) {
-                    if(i > numScripts) break;
+            .then((res) => {
+                for (let i = 0; i < res.data.length; i++) {
+                    if (i > numScripts) break;
 
                     // Here the track is unchanged so just push it
                     // No need to do for each entry
-                    let currentScript:Script = res.data[i];
+                    let currentScript: Script = res.data[i];
                     currentScript.fullname = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
                     objArray.push(currentScript);
 
@@ -84,21 +88,21 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
         return;
     }
 
-    async function getSearchScripts(title:string) {
-        var objArray:Script[] = [];
+    async function getSearchScripts(title: string) {
+        var objArray: Script[] = [];
         setCurrentSearch(title);
         // console.log(title)
-        let query = {title: title};
+        let query = { title: title };
         await sendAPI('get', '/scripts/getScriptsByTitle', query)
-        .then((res) => {
-                for(var i = 0; i < res.data.length; i++) {
+            .then((res) => {
+                for (var i = 0; i < res.data.length; i++) {
 
-                    var currentScript:Script = res.data[i];
+                    var currentScript: Script = res.data[i];
 
-                    var fullname:string =  res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
 
                     // Copy over the script from res, "append" the fullname key-value to it
-                    currentScript = Object.assign({fullname: fullname}, currentScript);
+                    currentScript = Object.assign({ fullname: fullname }, currentScript);
 
                     // var currentScript:Track = {
                     //     createdAt: res.data[i].createdAt,
@@ -123,16 +127,17 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
     }
 
     async function getProfileScripts() {
-        var objArray:Script[] = [];
+        var objArray: Script[] = [];
 
-        var currentUser = {userID: input};
+        var currentUser = { userID: input };
 
         await sendAPI('get', '/scripts/getUserScriptsByID', currentUser)
             .then(res => {
-                for(var i = 0; i < res.data.length; i++) {                    
-                    var currentScript:Script = res.data[i];
-                    var fullname:string =  res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
-                    currentScript = Object.assign({fullname: fullname}, currentScript);
+                console.log(res)
+                for (var i = 0; i < res.data.length; i++) {
+                    var currentScript: Script = res.data[i];
+                    var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    currentScript = Object.assign({ fullname: fullname }, currentScript);
 
                     objArray.push(currentScript);
                 }
@@ -143,40 +148,40 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
 
             }).catch(e => {
                 console.error("Failed to pull profile scripts: ", e);
-        })
+            })
     }
 
     async function getLikedScripts() {
-        var objArray:Script[] = [];
+        var objArray: Script[] = [];
 
-        var currentUser = {userID: input};
+        var currentUser = { userID: input };
 
         await sendAPI('get', '/likes/getAllUserLikes', currentUser)
-            .then(async(res) => {
-                for(var i = 0; i < res.data.length; i++) {
-                    
-                    var scriptID: string = res.data[i].scriptID;
-                    var currentScript:Script = await getLikedScriptByID(scriptID);
+            .then(async (res) => {
+                for (var i = 0; i < res.data.length; i++) {
 
-                    var fullname:string =  currentScript?.user?.firstName + ' ' + currentScript?.user?.lastName;
+                    var scriptID: string = res.data[i].scriptID;
+                    var currentScript: Script = await getLikedScriptByID(scriptID);
+
+                    var fullname: string = currentScript?.user?.firstName + ' ' + currentScript?.user?.lastName;
                     // console.log(currentScript.user);
-                    currentScript = Object.assign({fullname: fullname}, currentScript);
-                    
+                    currentScript = Object.assign({ fullname: fullname }, currentScript);
+
                     objArray.push(currentScript);
                 }
                 setScriptList(objArray);
                 setScriptsPulled(true)
-                
+
             }).catch(e => {
                 console.error("Failed to pull liked scripts: ", e);
-        })
+            })
     }
 
     async function getLikedScriptByID(scriptID: string) {
 
-        let scriptObj = {id: scriptID};
+        let scriptObj = { id: scriptID };
 
-        let likedScript:Script = emptyScript;
+        let likedScript: Script = emptyScript;
 
         await sendAPI('get', '/scripts/getScriptByID', scriptObj)
             .then(res => {
@@ -193,40 +198,40 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
                     }
                 }
                 // console.log(likedScript);
-                
+
             }).catch(e => {
                 console.error("Failed to pull liked scripts: ", e);
             })
-            return likedScript;
+        return likedScript;
     }
-    
+
     function PopulateScriptCards() {
-        const MAX_COLS:number = 4;
-        const MAX_ROWS:number = 4;
-        var gridArray:any[] = [];
-        var currentScriptCounter:number = 0;
+        const MAX_COLS: number = 4;
+        const MAX_ROWS: number = 4;
+        var gridArray: any[] = [];
+        var currentScriptCounter: number = 0;
         const defaultImage = 'https://cdn.discordapp.com/attachments/1022862908012634172/1028025868175540355/DALLE_2022-10-07_15.27.09_-_A_brain_listening_music_eyes_open_smiling_vector_art.png';
-        
+
         //cardType Search goes outside of the conditional because there is the case where searching has already happened
-        if (cardType === 'Search' && currentSearch !== input) 
+        if (cardType === 'Search' && currentSearch !== input)
             getSearchScripts(input);
-        if(!scriptsPulled) {
-            if(cardType === 'Profile') getProfileScripts();
-            else if(cardType === 'Popular') getPopularScripts(MAX_COLS * MAX_ROWS);
+        if (!scriptsPulled) {
+            if (cardType === 'Profile') getProfileScripts();
+            else if (cardType === 'Popular') getPopularScripts(MAX_COLS * MAX_ROWS);
             else if (cardType === 'Likes') getLikedScripts();
         }
 
-        for(let i = 0; i < MAX_ROWS; i++){
-            for(let j = 0; j < MAX_COLS; j++) {
+        for (let i = 0; i < MAX_ROWS; i++) {
+            for (let j = 0; j < MAX_COLS; j++) {
                 let currentScript = scriptList[currentScriptCounter++];
-                
-                if(currentScript == null) break;
-                if(!currentScript.public && cardType!== 'Profile') continue;
+
+                if (currentScript == null) break;
+                if (!currentScript.public && cardType !== 'Profile') continue;
                 currentScript.thumbnail = currentScript.thumbnail === "" ? defaultImage : currentScript.thumbnail;
                 //let trackLink = JSON.stringify(currentScript.trackLink);
                 let title = currentScript.title;
                 let user = currentScript.fullname;
-    
+
                 gridArray.push(currentScript);
             }
         }
@@ -235,9 +240,33 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
         return gridArray;
     }
 
-   function setScript(currentScript:Script) {
-       setCurrentScript(currentScript);
-       setShow(true);      
+    async function setScript(currentScript: Script) {
+        var objArray: Card[] = [];
+        console.log(currentScript)
+        // must set cards here!
+        await sendAPI('get', '/scripts/getCardsByScriptID', currentScript)
+            .then(res => {
+                console.log(res)
+                for (var i = 0; i < res.data.length; i++) {
+                    var currentCard: Card = res.data[i];
+                    // var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    // currentCard = Object.assign({ fullname: fullname }, currentScript);
+
+                    objArray.push(currentCard);
+                }
+
+                // setCardList(objArray);
+                // setScriptsPulled(true)
+                // console.log("Script List:", scriptList)
+
+            }).catch(e => {
+                console.error("Failed to pull script cards: ", e);
+            })
+
+        dispatch(set(objArray))
+
+        setCurrentScript(currentScript);
+        setShow(true);
     }
 
     let scriptCards = PopulateScriptCards();
@@ -248,7 +277,7 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
                 {scriptCards.map((scriptCard, index) => (
                     <div className="col script-col" key={index}>
                         <button className=" btn btn-primary card" onClick={() => setScript(scriptCard)}>
-                            <img src={scriptCard.thumbnail} className="card-img-top" id="card-img-ID" alt="..."/>
+                            <img src={scriptCard.thumbnail} className="card-img-top" id="card-img-ID" alt="..." />
                             <div className="card-body">
                                 <h5 className="card-title">{scriptCard.title}</h5>
                                 <div className="card-text">
@@ -258,14 +287,14 @@ const ScriptCard: React.FC<Props> = ({cardType, input}) => {
                                         {scriptCard.likeCount}
                                     </div>
                                 </div>
-                                
+
                             </div>
                         </button>
                     </div>
                 ))}
             </div>
             <Modal id='pop-up' show={show} onHide={handleClose} onExit={resetScriptComponent}>
-                <ScriptModal key={seed} script={currentScript} closeModal={setShow}/>
+                <ScriptModal key={seed} script={currentScript} closeModal={setShow} />
             </Modal>
         </div>
     )

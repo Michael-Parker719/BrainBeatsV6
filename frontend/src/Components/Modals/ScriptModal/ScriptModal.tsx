@@ -6,6 +6,8 @@ import { userJWT, userModeState } from "../../../JWT";
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import buildPath from '../../../util/ImagePath';
+import RecordCards from '../../ScriptContainer/Scripts/Cards/RecordCards';
+import CardCarousel from '../../CardCarousel/CardCarousel';
 import { resizeMe } from '../../../util/ImageHelperFunctions';
 import React from 'react';
 import isDev from '../../../util/isDev';
@@ -486,6 +488,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                                 <input id="track-cover-upload" onChange={event => { if (!event.target.files) { return } else { updateDisplayThumbnail(event.target.files[0]) } }} name="image" type="file" accept='.jpeg, .png, .jpg' />
                             </div>}
                             <img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} />
+                            <CardCarousel></CardCarousel>
                         </div>
                         <div id='modal-track-text-div'>
                             {!visibility && <h6 id="hidden-track-text">

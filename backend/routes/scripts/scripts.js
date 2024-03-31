@@ -18,6 +18,10 @@ function colorToHex(color){
     return ret;
 }
 
+function getCards(scriptID){
+
+}
+
 async function updateScript(scriptID, token, cards) {
 
     const queries = [];
@@ -202,7 +206,42 @@ router.get('/getUserScriptsByID', async (req, res) => {
     }
 });
 
-router.get('/getCardsByScript', async (req, res) => {
+router.get('/getCardsByScriptID', async (req, res) => {
+    try {
+        const scriptID = req.query.id;
+        if (scriptID === "") {
+            const allTracks = await prisma.card.findMany({
+                include: { script: true }
+            });
+
+            return res.json(allTracks);
+        }
+
+        const scriptExists = await getScriptExists(scriptID, "id");
+
+        if (!scriptExists) {
+            return res.status(404).json({
+                msg: "Script not found"
+            });
+        } else {
+            // Find the records
+            const scriptCards = await prisma.card.findMany({
+                where: { scriptID: scriptExists.id },
+                // include: { user: true }
+            });
+
+            if (!scriptCards) {
+                return res.status(404).json({
+                    msg: "Cards not found"
+                });
+            }
+
+            return res.status(200).json(scriptCards);
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ msg: err });
+    }
 });
 
 

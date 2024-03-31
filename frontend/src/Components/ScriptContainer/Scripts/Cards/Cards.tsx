@@ -206,9 +206,6 @@ function Cards() {
         changeCard(cards.length - 1);
 
 
-
-        console.log(newCard);
-        console.log(cards);
         // dispatch(set(cards));
     }
     if (cards.length === 0)
