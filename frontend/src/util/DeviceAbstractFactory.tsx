@@ -157,9 +157,12 @@ export class ConcreteTestStream implements AbstractTestStream {
 
         var outputMidi = await this.noteHandler.returnMIDI();
 
+        // artifact from separate enhancer implementation
+        /*
         if (this.enhancer != 'None') {
             outputMidi = await this.enhancer.Enhancer(outputMidi)
         }
+        */
 
         var res = await this.convertToBase64(outputMidi);
 
@@ -296,9 +299,12 @@ export class ConcreteCytonStream implements AbstractCytonStream {
             var originalMidi = await this.noteHandler.returnMIDI();
             let outputMidi = originalMidi;
 
+            // artifact from separate enhancer implementation
+            /*
             if (this.enhancer != 'None') {
                 outputMidi = await this.enhancer.Enhancer(originalMidi)
             }
+            */
 
             res = await this.convertToBase64(outputMidi);
             return res;
@@ -397,9 +403,12 @@ export class ConcreteGanglionStream implements AbstractGanglionStream {
         const originalMidi = await this.noteHandler.returnMIDI();
         let outputMidi = originalMidi;
 
+        // artifact from separate enhancer implementation
+        /*
         if (this.enhancer != 'None') {
             outputMidi = await this.enhancer.Enhancer(outputMidi)
         }
+        */
 
         var res = await this.convertToBase64(outputMidi);
         return res;
