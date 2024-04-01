@@ -7,6 +7,7 @@ import { useAppSelector } from '../../../../Redux/hooks';
 import { Card, Script } from '../../../../util/Interfaces'
 import { useDispatch } from 'react-redux';
 import { set, unset } from '../../../../Redux/slices/cardArraySlice'
+import { setScriptIDGlobal, unsetScriptIDGlobal } from '../../../../Redux/slices/scriptIDSlice'
 import { useNavigate } from 'react-router-dom';
 import videojs from 'video.js';
 import VideoJS from '../../../Video/Video';
@@ -54,7 +55,8 @@ function Cards() {
     const dispatch = useDispatch();
 
     // For holding card information
-    const [cards, setCards] = useState<Card[]>()
+    const globalCard = useAppSelector(state => state.cardArraySlice)
+    const [cards, setCards] = useState<Card[]>([...globalCard])
     const [cardText, setCardTextState] = useState('');
     const [cardDisplayed, setCardDisplayed] = useState(0);
     const [speed, setSpeed] = useState(1000)

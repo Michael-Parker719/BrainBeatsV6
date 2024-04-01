@@ -6,7 +6,7 @@ import type { RootState } from '../store'
 const initialState = "";
 
 export const scriptIDSlice = createSlice({
-    name: 'cardArraySlice',
+    name: 'scriptIDSlice',
     initialState,
     reducers: {
         setScriptIDGlobal: (state, action: PayloadAction<string>) => {
