@@ -16,6 +16,7 @@ import 'video.js/dist/video-js.css';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { userModeState, userJWT } from '../../../../JWT';
 import sendAPI from '../../../../SendAPI';
+import { emptyScript } from '../../../../util/Constants';
 // import "https://cdn..net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
 
 
@@ -53,7 +54,7 @@ function Cards() {
     const dispatch = useDispatch();
 
     // For holding card information
-    const [cards, setCards] = useState<Card[]>([])
+    const [cards, setCards] = useState<Card[]>()
     const [cardText, setCardTextState] = useState('');
     const [cardDisplayed, setCardDisplayed] = useState(0);
     const [speed, setSpeed] = useState(1000)
@@ -65,6 +66,20 @@ function Cards() {
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
 
     const [scriptTitle, setScriptTitle] = useState('');
+
+    const [scriptID, setScriptID] = useState(useAppSelector(state => state.scriptIDSlice));
+
+    const [started, setStarted] = useState(false);
+
+    // useEffect(() => {
+    //     if (scriptID != '') {
+    //         setCards(useAppSelector(state => state.cardArraySlice))
+    //         
+    //     }
+    // }, [])
+
+
+
 
     const playerRef = React.useRef<Player>();
     const videoJsOptions = {
@@ -113,15 +128,43 @@ function Cards() {
         console.log(usingVideoAudio);
     }
 
-    const uploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-        // console.log(event!.target.files[0]);
+    function convertToBase64(file: File) {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            /* This block of code converts the file's old name into one that includes the user's ID for storing */
+            // var fileName:string = file.name;
+            // var extensionArray:string[] = fileName.split('.');
+            // var fileExtension:string = extensionArray[extensionArray.length - 1]; // in the case that there may be any extra '.' for some reason
+            // var renameStr:string = user.userId + '.' + fileExtension
+            // var renamedFile:File = new File([file], renameStr)
+            fileReader.readAsDataURL(file);
+
+            fileReader.onload = () => {
+                resolve(fileReader.result);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        })
+    }
+
+    const uploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
         // setImageURL(event.target.name); 
         if (!event.target.files) {
             console.log("it's null")
             return
         }
+        if (event.target.files[0].size > 64000) {
+            console.error("File too big! Must be 64KB or less");
+            return;
+        }
 
-        setImageURL(URL.createObjectURL(event.target.files[0]));
+        let file64: any
+        await convertToBase64(event.target.files[0]).then(res => {
+            file64 = res
+        })
+        setImageURL(file64)
+        // setImageURL(URL.createObjectURL(event.target.files[0]));
 
 
     }
@@ -144,13 +187,21 @@ function Cards() {
 
     }
 
-    const uploadAudio = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadAudio = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
-            console.log("Audio URL is null")
+            console.log("it's null")
             return
         }
+        if (event.target.files[0].size > 64000) {
+            console.error("File too big! Must be 64KB or less");
+            return;
+        }
 
-        setAudioURL(URL.createObjectURL(event.target.files[0]));
+        let file64: any
+        await convertToBase64(event.target.files[0]).then(res => {
+            file64 = res
+        })
+        setAudioURL(URL.createObjectURL(file64));
     }
     const disableAudio = () => {
         return selectedView === "video" && usingVideoAudio;
@@ -220,6 +271,8 @@ function Cards() {
     const [user, setUser] = useRecoilState(userModeState);
     const jwt = useRecoilValue(userJWT);
 
+
+
     const saveScript = () => {
         console.log("saving script!", cards);
         changeCard(cardDisplayed);
@@ -232,7 +285,7 @@ function Cards() {
 
 
         const info: Script = {
-            id: "",
+            id: scriptID,
             userID: user.id,
             title: scriptTitle,
             token: jwt,
@@ -240,12 +293,24 @@ function Cards() {
             cards: cards,
             likeCount: 0,
         }
-        sendAPI('post', '/scripts/createScript', info)
-            .then(res => {
-                console.log(res);
-            }).catch(err => {
-                console.error("error!", err);
-            })
+        if (scriptID.length === 0) {
+            sendAPI('post', '/scripts/createScript', info)
+                .then(res => {
+                    console.log("Save Script!", res);
+                    setScriptID(res.data.id);
+                }).catch(err => {
+                    console.error("error!", err);
+                })
+        }
+        else {
+            sendAPI('post', '/scripts/updateScript', info)
+                .then(res => {
+                    console.log("Save Script!", res);
+                    // setScriptID(res.data.id);
+                }).catch(err => {
+                    console.error("error!", err);
+                })
+        }
 
     }
 
@@ -288,7 +353,7 @@ function Cards() {
             </Modal>
             <div className='cards-body-div'>
                 <div id='card-settings-div'>
-                    <label className='record-heading' htmlFor="file-upload">Title:</label>
+                    <label className='record-heading'>Title:</label>
                     <div className='record-upload1'>
                         <input
                             className="input-card-text"

@@ -256,7 +256,6 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
     async function setScript(currentScript: Script) {
         var objArray: Card[] = [];
-        console.log(currentScript)
         // must set cards here!
         await sendAPI('get', '/scripts/getCardsByScriptID', currentScript)
             .then(res => {

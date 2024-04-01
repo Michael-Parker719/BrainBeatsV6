@@ -10,6 +10,7 @@ import RecordCards from '../../ScriptContainer/Scripts/Cards/RecordCards';
 import CardCarousel from '../../CardCarousel/CardCarousel';
 import { resizeMe } from '../../../util/ImageHelperFunctions';
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import isDev from '../../../util/isDev';
 import * as Tone from 'tone';
 
@@ -24,6 +25,7 @@ import TrackCard from '../../TrackCard/TrackCard';
 import { time } from 'console';
 import { faHeart } from '@fortawesome/free-solid-svg-icons';
 import * as Interfaces from '../../../util/Interfaces';
+import  {setScriptIDGlobal, unsetScriptIDGlobal} from '../../../Redux/slices/scriptIDSlice';
 
 type Props = {
     script: Interfaces.Script;
@@ -54,6 +56,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
     const [userLikeArr, setUserLikeArr] = useState(user ? user.likes ? user.likes : emptyLikeArr : emptyLikeArr);
 
     const [favorited, setFavorited] = useState(false); // change this later
+
+    const dispatch = useDispatch();
 
     // Initializes favorited variable
     useEffect(() => {
@@ -447,7 +451,12 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
     }
 
     function goToRecord(){
+
         navigate("/record")
+    }
+    function goToEdit(){
+        navigate("/script-settings")
+        dispatch(setScriptIDGlobal(script.id))
     }
 
     // Function updating track likes
@@ -551,14 +560,14 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "plus"]} />
                 Add to Playlist
               </button> */}
-                            {editing && <button className='btn btn-secondary modal-btn' onClick={() => { updateScript(); updateThumbnail(script) }}>
+                            {/*editing && <button className='btn btn-secondary modal-btn' onClick={() => { updateScript(); updateThumbnail(script) }}>
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "edit"]} />
                                 Save
-                            </button>}
-                            {editVisibility && !editing && <button className='btn btn-secondary modal-btn' onClick={() => setEditing(!editing)}>
+                            </button>*/}
+                            <button className='btn btn-secondary modal-btn' onClick={() => goToEdit()}>
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "edit"]} />
                                 Edit
-                            </button>}
+                            </button>
                             <button className='btn btn-secondary modal-btn' onClick={() => goToRecord()}>
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "music"]} />
                                 Record

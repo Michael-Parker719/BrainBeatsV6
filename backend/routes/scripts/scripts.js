@@ -7,7 +7,7 @@ const { user, track } = new PrismaClient();
 const { getJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists, getScriptExists } = require("../../utils/database");
 
-function colorToHex(color){
+function colorToHex(color) {
     var redHex = ('00' + color.r.toString(16)).slice(-2); //009A
     var greenHex = ('00' + color.g.toString(16)).slice(-2); //009A
     var blueHex = ('00' + color.b.toString(16)).slice(-2); //009A
@@ -18,47 +18,51 @@ function colorToHex(color){
     return ret;
 }
 
-function getCards(scriptID){
+function getCards(scriptID) {
 
 }
 
 async function updateScript(scriptID, token, cards) {
+    try {
 
-    const queries = [];
-    const deleteCards = await prisma.card.deleteMany({
-        where: {
-            scriptID: scriptID,
-        },
-    })
+        const queries = [];
+        const deleteCards = await prisma.card.deleteMany({
+            where: {
+                scriptID: scriptID,
+            },
+        })
 
-    for (let i = 0; i < cards.length; i++) {
-        const newCard = {
-            // script: {
-            //     connect: {
-            //         id: scriptID,
-            //     }
-            // },
-            scriptID: scriptID,
-            order: i,
-            textColor: colorToHex(cards[i].textColor),
-            backgroundColor: colorToHex(cards[i].backgroundColor),
-            imageURL: cards[i].imageURL,
-            audioURL: cards[i].audioURL,
-            text: cards[i].text,
-            speed: cards[i].speed,
+        for (let i = 0; i < cards.length; i++) {
+            const newCard = {
+                // script: {
+                //     connect: {
+                //         id: scriptID,
+                //     }
+                // },
+                scriptID: scriptID,
+                order: i,
+                textColor: colorToHex(cards[i].textColor),
+                backgroundColor: colorToHex(cards[i].backgroundColor),
+                imageURL: cards[i].imageURL,
+                audioURL: cards[i].audioURL,
+                text: cards[i].text,
+                speed: cards[i].speed,
 
 
-        };
-        console.log(newCard);
-        queries.push(newCard);
+            };
+            console.log(newCard);
+            queries.push(newCard);
 
+        }
+        console.log(queries);
+        let newCards = await prisma.card.createMany({
+            data: queries,
+        }
+        );
+        return newCards;
+    } catch (err) {
+        throw err;
     }
-    console.log(queries);
-    let newCards = await prisma.card.createMany({
-        data: queries,
-    }
-    );
-    return newCards;
 }
 
 router.post('/createScript', async (req, res) => {
@@ -106,8 +110,7 @@ router.post('/createScript', async (req, res) => {
 
 router.post('/updateScript', async (req, res) => {
     try {
-        const { scriptID, token, cards } = req.body;
-
+        const { scriptID, userID, title, token, thumbnail, cards } = req.body;
         const decoded = verifyJWT(token);
 
         if (!decoded) {
@@ -115,13 +118,36 @@ router.post('/updateScript', async (req, res) => {
                 msg: "Invalid token"
             });
         }
-        const scriptExists = await getScriptExists(scriptID, "id");
-        if (!scriptExists) {
+
+        const userExists = await getUserExists(userID, "id");
+        if (!userExists) {
             return res.status(404).json({
-                msg: "Script not found"
+                msg: "User not found"
             });
         }
-        return updateScript(scriptID, token, cards);
+        // Create a single record
+        console.log(req)
+        const newScript = await prisma.script.update({
+            where:{
+                id: scriptID
+            },
+            data: {
+                user: {
+                    connect: {
+                        id: userID
+                    }
+                },
+                title: title,
+                thumbnail: thumbnail,
+                public: true,
+            }
+        });
+
+        let newCards = updateScript(newScript.id, token, cards);
+
+        ret = { newScript, newCards };
+
+        return res.status(201).json(ret);
     } catch (err) {
         console.log(err);
         return res.status(500).send({ msg: err });

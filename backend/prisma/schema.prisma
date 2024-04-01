@@ -111,8 +111,8 @@ model Card {
   order             Int
   textColor         String
   backgroundColor   String
-  imageURL          String
-  audioURL          String 
+  imageURL          String @db.Text
+  audioURL          String @db.Text
   text              String 
   speed             Int
 }

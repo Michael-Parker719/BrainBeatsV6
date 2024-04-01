@@ -4,9 +4,10 @@ import imageSlice from './slices/imageSlice'
 import cardArraySlice from './slices/cardArraySlice'
 import deviceSlice from './slices/deviceSlice'
 import currentMidiSlice from './slices/currentMidiSlice'
+import scriptIDSlice from './slices/scriptIDSlice'
 
 export const store = configureStore({
-  reducer: {musicGenerationSettingsSlice, imageSlice, cardArraySlice, deviceSlice, currentMidiSlice},
+  reducer: {musicGenerationSettingsSlice, imageSlice, cardArraySlice, deviceSlice, currentMidiSlice, scriptIDSlice},
 })
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

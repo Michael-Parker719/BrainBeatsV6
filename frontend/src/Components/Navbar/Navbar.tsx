@@ -6,6 +6,8 @@ import { userJWT, userModeState } from "../../JWT";
 import './Navbar.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
+import { unsetScriptIDGlobal } from '../../Redux/slices/scriptIDSlice';
+import { useDispatch } from 'react-redux';
 
 // This component stores both the Navbar and Sidebar.
 const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => {
@@ -14,6 +16,8 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
     const toggle = () => setIsOpen(!isOpen);
     const user = useRecoilValue(userModeState);
     let menuItem;
+
+    const dispatch = useDispatch();
 
     if (user) {
         menuItem = [
@@ -67,9 +71,14 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
                 icon: <FontAwesomeIcon icon={["fas", "search"]} />
             },
             {
+                path: "../script-settings",
+                name: "Create Script",
+                icon: <FontAwesomeIcon icon={["fas", "plus"]} />
+            },
+            {
                 path: "../track-settings",
                 name: "Create Track",
-                icon: <FontAwesomeIcon icon={["fas", "plus"]} />
+                icon: <FontAwesomeIcon icon={["fas", "music"]} />
             },
         ]
     }
@@ -80,6 +89,9 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
     const navigate = useNavigate();
 
     const doNavigate = (route: string) => {
+        if(route==='../script-settings'){
+            dispatch(unsetScriptIDGlobal())
+        }
         navigate(route);
     }
 
@@ -130,7 +142,7 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
                 <div style={{ width: isOpen ? "200px" : "60px" }} className={`sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}>
                     {
                         menuItem.map((item, index) => (
-                            <NavLink to={item.path} key={index} className="link" end>
+                            <NavLink to={item.path} key={index} className="link" onClick={() => dispatch(unsetScriptIDGlobal)} end>
                                 <div className="icon">{item.icon}</div>
                                 <div style={{ display: isOpen ? "block" : "none" }} className="link_text">{item.name}</div>
                             </NavLink>
