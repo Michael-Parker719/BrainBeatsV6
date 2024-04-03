@@ -12,9 +12,7 @@ export const scriptIDSlice = createSlice({
         setScriptIDGlobal: (state, action: PayloadAction<string>) => {
             // Clear the state before we add to it again
             // state = initialState;
-            console.log("what the fuck")
             state = action.payload;
-            console.log("is this")
         },
         unsetScriptIDGlobal: (state) => {
             state = initialState;
