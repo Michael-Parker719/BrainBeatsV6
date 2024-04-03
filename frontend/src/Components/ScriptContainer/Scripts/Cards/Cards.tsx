@@ -203,7 +203,7 @@ function Cards() {
         await convertToBase64(event.target.files[0]).then(res => {
             file64 = res
         })
-        setAudioURL(URL.createObjectURL(file64));
+        setAudioURL(file64);
     }
     const disableAudio = () => {
         return selectedView === "video" && usingVideoAudio;
