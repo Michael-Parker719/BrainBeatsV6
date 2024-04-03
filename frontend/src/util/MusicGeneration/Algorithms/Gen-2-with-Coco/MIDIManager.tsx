@@ -1,9 +1,9 @@
 import { MusicSettings } from "../../../Interfaces";
 // import { getNoteData } from './Playback'
-import {getMillisecondsFromBPM, findNumSamples} from '../.././MusicHelperFunctions';
+import {getMillisecondsFromBPM, findNumSamples} from '../../MusicHelperFunctions';
 import * as Enums from '../../../Enums';
 import * as Constants from '../../../Constants';
-import { instrumentList } from "../.././InstOvertoneDefinitions";
+import { instrumentList } from "../../InstOvertoneDefinitions";
 import * as Tone from 'tone'
 import {SamplerList} from '../../../Samplers';
 import * as SL from "../../../Instruments";
@@ -16,6 +16,8 @@ import { Midi, Track } from '@tonejs/midi';
 import { time } from "console";
 import { NoteConstructorInterface } from "@tonejs/midi/dist/Note";
 import { NoteHandler } from "./NoteGeneration";
+
+import * as mm from '@magenta/music/esm';
 
 export class MIDIManager {
     // Settings
@@ -186,6 +188,10 @@ export class MIDIManager {
         // const url = URL.createObjectURL(blob);
         // return url;
         
+        for(let i = 0; i < this.synthArr.length; i++) {
+            this.synthArr[i].releaseAll();
+        }
+        
         var write = new MidiWriter.Writer(this.MIDIChannels);
         
         var midiBuildFile:Uint8Array = write.buildFile();
@@ -201,7 +207,29 @@ export class MIDIManager {
             return [...acc, ...Array.from(midiFileChunk)];
         }, []));
 
-        return fileString;
+        try {
+            // initializes the coconet model using the bach checkpoint
+            const coco = new mm.Coconet("https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach");
+            await coco.initialize();
+
+            // converts the original midi into a quantized note sequence for coco to iterate on
+            let originalSequence = mm.midiToSequenceProto(fileString);
+            originalSequence = mm.sequences.quantizeNoteSequence(originalSequence, 4);
+            originalSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
+
+            // lets coco iterate then merges so notes sustains
+            let infilledSequence = await coco.infill(originalSequence, {temperature: .25, numIterations: 10}); // temp and iter could be variables selected by user
+            infilledSequence = mm.sequences.mergeConsecutiveNotes(infilledSequence);
+            infilledSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
+
+            // converts infilledsequence to a midi
+            const infilledMidi = mm.sequenceProtoToMidi(infilledSequence);
+
+            return infilledMidi;
+        }
+        catch {
+            return fileString;
+        }
     }
 
     /* This function is a helper in order to return the proper type to assign to the
@@ -287,7 +315,7 @@ export class MIDIManager {
 
                 // if (this.debugOutput) console.log('writing ', noteData.writer.note, noteData.writer.octave, 'on channel:', i);
                 
-                var pitch:MidiWriter.Pitch = this.definePitch(noteData.notes[i].note, noteData.notes[i].octave + noteData.floorOctave);
+                var pitch:MidiWriter.Pitch = this.definePitch(noteData.notes[i].note, noteData.notes[i].octave + noteData.floorOctave - 2);
                 // var temp:NoteConstructorInterface = {
                 //     pitch, duration: noteDuration, octave: octave, time: this.midiWriterTracks[i].duration
                 // }

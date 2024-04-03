@@ -1,4 +1,4 @@
-import { getNoteLengthStringFromInt, getMillisecondsFromBPM, GetFloorOctave, getFrequencyFromNoteOctaveString } from '../.././MusicHelperFunctions';
+import { getNoteLengthStringFromInt, getMillisecondsFromBPM, GetFloorOctave, getFrequencyFromNoteOctaveString } from '../../MusicHelperFunctions';
 
 // import {initMIDIWriter, addNoteToMIDITrack, printTrack, generateMIDIURIAndDownloadFile, generateMIDIURI, generateMIDIFileFromURI} from '../MusicGeneration/MIDIWriting';
 import * as Constants from '../../../Constants';
@@ -25,7 +25,6 @@ export class NoteHandler extends AbstractNoteHandler {
 
     // How many times we've increased or decreased the volume e.g. 3 would mean you increased the volume three times and probably don't need to again
     private relativeVolume: number = 0;
-    private relativeTempo: number = 0;
 
     /* The min and max value arrays store the minimum and maximum EEG data from each channel, the purpose of storing
         these is to determine how weak/strong the input from each channel is, a weak connection can occur if you have an 
@@ -367,8 +366,6 @@ export class NoteHandler extends AbstractNoteHandler {
         else {
             if (this.streaks[i] > 0) {
                 this.strikes[i]++;
-                // This is so that it doesn't change the vol/tempo multiple times by getting a strike
-                this.streaks[i]++;
             }
             // Admitedly 5 is a random number for the strikes, but the idea is that there is a clear deviation from an upward trend. Subject to change.
             if (this.strikes[i] === 5) {
@@ -396,28 +393,22 @@ export class NoteHandler extends AbstractNoteHandler {
         // Tempo up/down
         if (this.eegPerSecond !== undefined && this.streaks[i] === 10 * this.eegPerSecond) {
             if (i === 1) {
-                if (this.relativeTempo > -2) {
-                    console.log("Tempo lowered!");
-                    this.relativeTempo -= 1;
-                    this.BPM -= 30;
-                    this.midiGenerator.adjustTempo(-30, 0);
-                    // Change the music clock cycle to actually change the BPM
-                    this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
-                    clearInterval(this.musicClock);
-                    this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
-                }
+                console.log("Tempo lowered!");
+                this.BPM -= 30;
+                this.midiGenerator.adjustTempo(-30, 0);
+                // Change the music clock cycle to actually change the BPM
+                this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
+                clearInterval(this.musicClock);
+                this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
             }
             else {
-                if (this.relativeTempo < 2) {
-                    console.log("Tempo raised!");
-                    this.relativeTempo += 1;
-                    this.BPM += 30;
-                    this.midiGenerator.adjustTempo(30, 0);
-                    // Change the music clock cycle to actually change the BPM
-                    this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
-                    clearInterval(this.musicClock);
-                    this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
-                }
+                console.log("Tempo raised!");
+                this.BPM += 30;
+                this.midiGenerator.adjustTempo(30, 0);
+                // Change the music clock cycle to actually change the BPM
+                this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
+                clearInterval(this.musicClock);
+                this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
             }
         }
     }
@@ -436,7 +427,6 @@ export class NoteHandler extends AbstractNoteHandler {
         else {
             if (this.streaks[i] > 0) {
                 this.strikes[i]++;
-                this.streaks[i]++;
             }
             // Admitedly 5 is a random number for the strikes, but the idea is that there is a clear deviation from an upward trend. Subject to change.
             if (this.strikes[i] === 5) {
@@ -523,10 +513,6 @@ export class NoteHandler extends AbstractNoteHandler {
             var elapsed: number = endTime - this.startTime;
             var timePerEEG = (elapsed / 10) / 1000;             // div 1000 to convert from milliseconds to seconds
             this.eegPerSecond = Math.round(1 / timePerEEG);
-            if (this.eegPerSecond === 0) {
-                // Go to default if this value wasn't calculated correctly (unstable connection at recording start)
-                this.eegPerSecond = 500;            
-            }
             this.stopWatch = true;
         }
 
@@ -560,9 +546,9 @@ export class NoteHandler extends AbstractNoteHandler {
             }
 
             // Check to see if this is the wave with the most activity
-            if (Math.abs(waveAvg/this.baselines[i]) > maxWave[1]) {
+            if (Math.abs(waveAvg) > maxWave[1]) {
                 maxWave[0] = i;
-                maxWave[1] = Math.abs(waveAvg/this.baselines[i]);
+                maxWave[1] = Math.abs(waveAvg);
             }
 
             let returnedAmpValue = curChannelData; // / Math.pow(10, 7);
@@ -585,6 +571,8 @@ export class NoteHandler extends AbstractNoteHandler {
                     this.firstThousand = true;
                 }
             }
+
+            this.baselines[i] = avg;
 
             this.avgArray[i] = avg;             // OLD: used for calculating intervals
 
@@ -629,7 +617,7 @@ export class NoteHandler extends AbstractNoteHandler {
 
             // If the generated note is not a rest
             if (noteAndOctaves[i].note !== -1) {
-                noteOctaveString = noteAndOctaves[i].note + (noteAndOctaves[i].octave + floorOctave).toString();
+                noteOctaveString = noteAndOctaves[i].note + (noteAndOctaves[i].octave + floorOctave - 2).toString();
                 noteFrequencies.push(getFrequencyFromNoteOctaveString(noteOctaveString));
             }
             else {

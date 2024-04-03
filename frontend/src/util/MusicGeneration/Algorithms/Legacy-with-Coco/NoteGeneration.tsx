@@ -321,7 +321,7 @@ export class NoteHandler extends AbstractNoteHandler{
 
             // If the generated note is not a rest
             if (noteAndOctave.note !== -1) {
-                noteOctaveString = noteAndOctave.note + (noteAndOctave.octave + floorOctave).toString();
+                noteOctaveString = noteAndOctave.note + (noteAndOctave.octave + floorOctave - 1).toString();
                 noteFrequency = getFrequencyFromNoteOctaveString(noteOctaveString);
             }
 

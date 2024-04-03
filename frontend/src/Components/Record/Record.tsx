@@ -19,6 +19,7 @@ import { userModeState } from '../../JWT';
 import algorithmNames from '../../util/MusicGeneration/Algorithms/names.json';
 import enhancerNames from '../../util/MusicGeneration/Enhancers/names.json';
 import Loading from '../Loading/Loading';
+import { Comment } from 'html-react-parser';
 
 function Record() {
     const settings = useAppSelector(state => state.musicGenerationSettingsSlice);
@@ -29,7 +30,7 @@ function Record() {
     const [debugOption2, setDebugOption2] = useState(false);
     const [debugOption3, setDebugOption3] = useState(false);
     const [genOption, setGenOption] = useState('Legacy');
-    const [enhanceOption, setEnhanceOption] = useState('None');
+    // const [enhanceOption, setEnhanceOption] = useState('None'); // original idea was to have separate enhancers that could be be used on any algorithm. Feel free to reimplement
     const [isLoading, setLoading] = useState(false);
 
     const algorithms = algorithmNames.algorithmNames;
@@ -85,10 +86,14 @@ function Record() {
 
         let NoteHandler = await import("../../util/MusicGeneration/Algorithms/" + genOption + "/NoteGeneration");
 
+        //more fragments from having separate enhancers
+        
         let Enhancer = "None";
+        /*
         if (enhanceOption != 'None') {
             Enhancer = await import("../../util/MusicGeneration/Enhancers/" + enhanceOption + "/Enhance");
         }
+        */
 
         switch (deviceName) {
             case "random data":
@@ -289,17 +294,6 @@ function Record() {
                         <label htmlFor="genselect">Select Music Generation Method: </label>
                         <select disabled={isRecording} name="genselect"value={genOption} id="genselect" onChange={(e) => setGenOption(e.target.value)}>
                             {algorithms.map((option, index) => {
-                                return (
-                                    <option key={index} value={option}>
-                                        {option}
-                                    </option>
-                                )
-                            })}
-                        </select>
-                        <p></p>
-                        <label htmlFor="enhanceselect">Select Music Enhancer Method: </label>
-                        <select disabled={isRecording} name="enhanceselect"value={enhanceOption} id="enhanceselect" onChange={(e) => setEnhanceOption(e.target.value)}>
-                            {enhancers.map((option, index) => {
                                 return (
                                     <option key={index} value={option}>
                                         {option}

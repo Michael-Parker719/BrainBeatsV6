@@ -9,6 +9,9 @@ import { useState } from 'react';
 import { unsetScriptIDGlobal } from '../../Redux/slices/scriptIDSlice';
 import { useDispatch } from 'react-redux';
 
+// images
+import logo from '../../images/bbLogo.png';
+
 // This component stores both the Navbar and Sidebar.
 const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => {
 
@@ -103,15 +106,18 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
 
     // TODO: Profile button to have duplicate button with pfp as icon in sidebar 
 
-    return (
-        <div className="page">
-            <header className="header">
-                {/* Navbar Component */}
-                <div className="header-toggle top_section" id='navbar-ID'>
-                    <h1 style={{ display: isOpen ? "block" : "none", color: "white" }} className="logo">BrainBeats</h1>
-                    <div style={{ marginLeft: isOpen ? "35px" : "0px" }} className="bars">
-                        <FontAwesomeIcon style={{ color: "white" }} icon={["fas", "bars"]} onClick={toggle} />
-                    </div>
+
+  return (
+    <div className="page">
+    <header className="header">
+      {/* Navbar Component */}
+      <div className="header-toggle top_section" id='navbar-ID'>
+        <h1 style={{display: isOpen? "block" : "none", color: "white"}} className="logo">BrainBeats</h1> 
+        <img style={{display: isOpen? "block" : "none", color: "white"}} src={logo} className="icon-logo"/>
+        <div style={{marginLeft: isOpen? "35px" : "0px"}} className="bars">
+          <FontAwesomeIcon style={{color: "white"}} icon={["fas", "bars"]} onClick={toggle} />
+        </div>
+
 
                     <div className="collapse navbar-collapse d-flex justify-content-end" id="navbarSupportedContent">
                         {/* If there isn't a user signed in, prompt them to do so */}

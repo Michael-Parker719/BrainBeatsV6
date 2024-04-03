@@ -1,9 +1,9 @@
 import { MusicSettings } from "../../../Interfaces";
 // import { getNoteData } from './Playback'
-import {getMillisecondsFromBPM, findNumSamples} from '../.././MusicHelperFunctions';
+import {getMillisecondsFromBPM, findNumSamples} from '../../MusicHelperFunctions';
 import * as Enums from '../../../Enums';
 import * as Constants from '../../../Constants';
-import { instrumentList } from "../.././InstOvertoneDefinitions";
+import { instrumentList } from "../../InstOvertoneDefinitions";
 import * as Tone from 'tone'
 import {SamplerList} from '../../../Samplers';
 import * as SL from "../../../Instruments";
@@ -15,7 +15,8 @@ import { Midi, Track } from '@tonejs/midi';
 
 import { time } from "console";
 import { NoteConstructorInterface } from "@tonejs/midi/dist/Note";
-import { NoteHandler } from "./NoteGeneration";
+
+import * as mm from '@magenta/music/esm';
 
 export class MIDIManager {
     // Settings
@@ -23,14 +24,11 @@ export class MIDIManager {
     private synthArr:Array<Tone.PolySynth<Tone.Synth<Tone.SynthOptions>>> = [];
     public MIDIChannels:MidiWriter.Track[] = [];
     private timeForEachNoteArray:Array<number>;
-    public settings:MusicSettings;
-    private BPM: number;
+    public settings:MusicSettings
     private debugOutput:boolean;
     public MIDIURI:string;
     private stopFlag;
     private midi;
-    private prevNoteDuration:number;
-    private lastPlayedTime:number;
 
     private midiWriterTracks:Array<Track> = []; 
     private currentVoices:Array<number> = [];
@@ -75,13 +73,10 @@ export class MIDIManager {
 
         }
         this.settings = settings;
-        this.BPM = settings.bpm;
         this.stopFlag = false;
         this.debugOutput = debugOptionsObject.debugOption3;
         this.initializeSettings(settings);
         this.timeForEachNoteArray = timeForEachNoteArray;
-        this.prevNoteDuration = 0;
-        this.lastPlayedTime = Date.now();
         
         this.initializeSynth();
     }
@@ -135,16 +130,6 @@ export class MIDIManager {
         }
     }
 
-    public adjustVolume(amount: number, channel: number) {
-        this.synthArr[channel].volume.value += amount;
-    }
-
-    public adjustTempo(amount: number, channel:number) {
-        this.BPM += amount;
-        this.MIDIChannels[channel].setTempo(this.BPM, 0.1);
-        Tone.getTransport().bpm.value = this.BPM;
-    }
-
     /*  This function exists to help convert the MIDI file into base64, the reason why we're splitting it
         into chunks is because the base64 string is very large, which overflows the buffer and causes
         errors, this is a workaround to that. */
@@ -185,6 +170,12 @@ export class MIDIManager {
         // Create a download link for the Blob object
         // const url = URL.createObjectURL(blob);
         // return url;
+
+        for(let i = 0; i < this.synthArr.length; i++) {
+            this.synthArr[i].releaseAll();
+        }
+
+        this.samplerArr[this.samplerArr.length-1].triggerRelease(this.samplerArr.length-1);
         
         var write = new MidiWriter.Writer(this.MIDIChannels);
         
@@ -201,6 +192,31 @@ export class MIDIManager {
             return [...acc, ...Array.from(midiFileChunk)];
         }, []));
 
+        try {
+            // initializes the coconet model using the bach checkpoint
+            const coco = new mm.Coconet("https://storage.googleapis.com/magentadata/js/checkpoints/coconet/bach");
+            await coco.initialize();
+
+            // converts the original midi into a quantized note sequence for coco to iterate on
+            let originalSequence = mm.midiToSequenceProto(fileString);
+            originalSequence = mm.sequences.quantizeNoteSequence(originalSequence, 4);
+            originalSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
+
+            // lets coco iterate then merges so notes sustains
+            let infilledSequence = await coco.infill(originalSequence, {temperature: .25, numIterations: 10}); // temp and iter could be variables selected by user
+            infilledSequence = mm.sequences.mergeConsecutiveNotes(infilledSequence);
+            infilledSequence.notes.forEach(n => n.velocity = 100); // make sure to do this or notes are silent
+
+            // converts infilledsequence to a midi
+            const infilledMidi = mm.sequenceProtoToMidi(infilledSequence);
+
+            return infilledMidi;
+        }
+        catch {
+            return fileString;
+        }
+
+        //const base64String = await this.convertToBase64(fileString);
         return fileString;
     }
 
@@ -253,51 +269,46 @@ export class MIDIManager {
         return pitch;
     }
 
-    public convertInput(noteData:any) {
-        if (noteData === undefined) {
-            return;
-        }
-        if (this.debugOutput) console.log('beginning to write');
+    public convertInput(noteData:any, i:number) {
+        if (this.debugOutput) console.log('beginning to write on channel: ', i);
+        var writing = noteData.writer.note;
         var noteDuration:MidiWriter.Duration = '1';
 
         /* This code block sets the data from the note manager into usable data for
             the midi-writer-js API. */
-        if (noteData.noteLengthName === "sixteenth") noteDuration = '16';
-        else if (noteData.noteLengthName === "eighth") noteDuration = '8';
-        else if (noteData.noteLengthName === "quarter") noteDuration = '4';
-        else if (noteData.noteLengthName === "half") noteDuration = '2';
-        else if (noteData.noteLengthName === "whole") noteDuration = '1';
+        if (noteData.writer.noteLengthName === "sixteenth") noteDuration = '16';
+        else if (noteData.writer.noteLengthName === "eighth") noteDuration = '8';
+        else if (noteData.writer.noteLengthName === "quarter") noteDuration = '4';
+        else if (noteData.writer.noteLengthName === "half") noteDuration = '2';
+        else if (noteData.writer.noteLengthName === "whole") noteDuration = '1';
         else {
-            if (this.debugOutput) console.log("we fell to default length:", noteData.noteLengthName);
+            if (this.debugOutput) console.log("we fell to default length:", noteData.writer.noteLengthName);
             noteDuration = '4';
         }
         
-        for(var i = 0; i < noteData.notes.length; i++) {
+        var generatedNote:MidiWriter.NoteEvent;
 
-            var generatedNote:MidiWriter.NoteEvent;
+        if (noteData.writer.note === -1)  {// Rest
+            if (this.debugOutput) console.log('writing a rest on channel: ', i);
 
-            if (noteData.notes[i].note === -1)  {// Rest
-                if (this.debugOutput) console.log('writing a rest on channel: ', i);
+            generatedNote = new MidiWriter.NoteEvent({pitch: 'A0', velocity:0, duration: noteDuration});
+            this.MIDIChannels[i].addEvent(generatedNote);
 
-                generatedNote = new MidiWriter.NoteEvent({pitch: 'A0', velocity:0, duration: noteDuration});
-                this.MIDIChannels[0].addEvent(generatedNote);
+            // if (this.debugOutput) console.log('the channel after this write: ', this.MIDIChannels[i]);
+        } else {
 
-                // if (this.debugOutput) console.log('the channel after this write: ', this.MIDIChannels[i]);
-            } else {
+            // if (this.debugOutput) console.log('writing ', noteData.writer.note, noteData.writer.octave, 'on channel:', i);
+            
+            var pitch:MidiWriter.Pitch = this.definePitch(noteData.writer.note, noteData.writer.octave);
+            // var temp:NoteConstructorInterface = {
+            //     pitch, duration: noteDuration, octave: octave, time: this.midiWriterTracks[i].duration
+            // }
 
-                // if (this.debugOutput) console.log('writing ', noteData.writer.note, noteData.writer.octave, 'on channel:', i);
-                
-                var pitch:MidiWriter.Pitch = this.definePitch(noteData.notes[i].note, noteData.notes[i].octave + noteData.floorOctave);
-                // var temp:NoteConstructorInterface = {
-                //     pitch, duration: noteDuration, octave: octave, time: this.midiWriterTracks[i].duration
-                // }
-
-                // this.midiWriterTracks[i].addNote(temp);
-
-                generatedNote = new MidiWriter.NoteEvent({pitch: pitch, duration: noteDuration});
-                this.MIDIChannels[0].addEvent(generatedNote);
-                // if (this.debugOutput) console.log('the channel after this write: ', this.MIDIChannels[i]);
-            }
+            // this.midiWriterTracks[i].addNote(temp);
+            
+            generatedNote = new MidiWriter.NoteEvent({pitch: pitch, duration: noteDuration});
+            this.MIDIChannels[i].addEvent(generatedNote);
+            // if (this.debugOutput) console.log('the channel after this write: ', this.MIDIChannels[i]);
         }
 
         return;
@@ -338,14 +349,12 @@ export class MIDIManager {
     }
 
 
-    public async realtimeGenerate(noteData:any) {
+    public async realtimeGenerate(noteData:any[]) {
        var instruments = this.settings.deviceSettings.instruments;
-       var instrumentsArr:Array<any> = [];
+       var instrumentsArr = [];
 
        var durations = this.settings.deviceSettings.durations;
        var durationsArr:Array<number> = [];
-
-       var notesToPlay:Array<any> = [];
 
        // Convert instruments to array
        let inst: keyof typeof instruments;
@@ -357,125 +366,76 @@ export class MIDIManager {
        for (dur in durations) {
          durationsArr.push(durations[dur]);
        }
-
-       // Convert given notes to a usable form
-       for (var i = 0; i < noteData.writer.notes.length; i++) {
-         if (noteData.writer.notes[i].note !== -1) {
-            notesToPlay.push(this.definePitch(noteData.writer.notes[i].note, noteData.writer.notes[i].octave + noteData.writer.floorOctave));
-         }
-         else {
-            // Rest
-            notesToPlay.push('00');
-         }
-       }
         
-    /*  This is where feedback is actually sent to the speakers of the computer, we're using Tone.js to send
-        a synth as output. The way this is done is through an array of tones for each channel, this is so that we can make
-        sure no channel is going to be overlapped by a new input. This essentially works by checking to see if the channel is
-        playing a sound through the activeVoices value, if it's equal to 1 then it's playing a sound so we only fire the call
-        when it's 0. The triggerAttackRelease function takes in the values of notes, duration, and time. Hence the switch case
-        the frequency we provide it is the note value. */
-        
-        var playerInfo = noteData.player;
+        /*  This for loop is where feedback is actually sent to the speakers of the computer, we're using Tone.js to send
+            a synth as output. The way this is done is through an array of tones for each channel, this is so that we can make
+            sure no channel is going to be overlapped by a new input. This essentially works by checking to see if the channel is
+            playing a sound through the activeVoices value, if it's equal to 1 then it's playing a sound so we only fire the call
+            when it's 0. The triggerAttackRelease function takes in the values of notes, duration, and time. Hence the switch case
+            the frequency we provide it is the note value. */
+            
+        for(let i = 0; i < noteData.length; i++) {
+            var playerInfo = noteData[i].player;
 
-        // Setup for their vars
-        var soundType = instrumentsArr[0];
-        var duration = 2 + (2 - playerInfo.noteLength);         // Durations is reversed in here for some reason    
-        var amplitude = playerInfo.amplitude;
-        var frequencies = playerInfo.noteFrequencies;
+            // Setup for their vars
+            var soundType = instrumentsArr[i];
+            var duration = durationsArr[i];
+            var amplitude = playerInfo.amplitude;
+            var frequency = playerInfo.noteFrequency;
 
-        var instArr = Object.values(this.settings.deviceSettings.instruments)            
+            var instArr = Object.values(this.settings.deviceSettings.instruments)            
+            if(frequency === undefined) continue;
 
-        /*
-        * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
-        * To add more values in the future just reference the above link and add to the enums in '../Enums.tsx'.
-        * If you want to add frequencies, you can define them either in basic terms like 'B3' or use a numeric value,
-        * because we want a more specific sound we are using numerics.
-        * We also attempt to offset the following note by the ms equivalient of the current note len.
-        */
+            /*
+            * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
+            * To add more values in the future just reference the above link and add to the enums in '../Enums.tsx'.
+            * If you want to add frequencies, you can define them either in basic terms like 'B3' or use a numeric value,
+            * because we want a more specific sound we are using numerics.
+            * We also attempt to offset the following note by the ms equivalient of the current note len.
+            */
 
-        var durationString:string = this.convertDurationToString(duration); 
-        
-        var soundTime = this.currentVoices[0] * 1000;
-        var noteDurationMS = this.setTimeForEachNoteArray(this.settings.bpm, duration);
+            var durationString:string = this.convertDurationToString(duration); 
+            
+            var soundTime = this.currentVoices[i] * 1000;
+            var noteDurationMS = this.setTimeForEachNoteArray(this.settings.bpm, duration);
 
-        /* This is the base case, if there is nothing stored in the array then we don't want to check if the currentVoice is undefined */
-        if(instArr[0] === Enums.InstrumentTypes.SINEWAVE) {
-            // if (this.debugOutput) console.log(this.synthArr[i]);
-            //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {
-                this.convertInput(noteData.writer);
-                if (frequencies.length === 1) {
-                    this.synthArr[0].triggerAttackRelease(frequencies, durationString)
-                }       
-                else if (frequencies.length === 2) {
-                    this.synthArr[0].triggerAttackRelease(frequencies[0], durationString)
-                    setTimeout(() => {this.synthArr[0].triggerAttackRelease(frequencies[1], durationString)}, noteDurationMS);
-                }    
-                else {
-                    this.playSixteenthsRecursiveSynth(frequencies, durationString, noteDurationMS, 0);
-                }     
-                this.lastPlayedTime = Date.now();
-                this.prevNoteDuration = noteDurationMS;
-            //}
-        }
-        else {
-            //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {
-                if (this.debugOutput) console.log('playing this note on channel: ', 0);
-                this.convertInput(noteData.writer);
-                if (notesToPlay.length === 1) {
-                    if (notesToPlay[0] !== '00') {
-                        this.samplerArr[0].triggerAttackRelease(notesToPlay[0], durationString)
-                    }
-                }       
-                else if (notesToPlay.length === 2) {
-                    if (notesToPlay[0] !== '00') {
-                        this.samplerArr[0].triggerAttackRelease(notesToPlay[0], durationString)
-                    }
-                    setTimeout(() => { if(notesToPlay[1] !== '00') {this.samplerArr[0].triggerAttackRelease(notesToPlay[1], durationString)}}, noteDurationMS);
-                }    
-                else {
-                    this.playSixteenthsRecursiveSampler(notesToPlay, durationString, noteDurationMS, 0);
+            /* This is the base case, if there is nothing stored in the array then we don't want to check if the currentVoice is undefined */
+            if(instArr[i] === Enums.InstrumentTypes.SINEWAVE) {
+                // if (this.debugOutput) console.log(this.synthArr[i]);
+                if(this.synthArr[i].activeVoices < 1) {
+                    this.convertInput(noteData[i], i);
+                    this.synthArr[i].triggerAttackRelease(frequency, durationString, this.synthArr[i].now())
+                    this.currentVoices[i] = this.synthArr[i].now()
                 }
-                this.lastPlayedTime = Date.now();
-                this.prevNoteDuration = noteDurationMS;
-            //}
-        }
-        // else if (currentVoice.name === 'Sampler') {      
-        //     console.log(this.samplerArr[i].now());  
-        //     if(currentVoice._activeSources.size < 2) {
-        //         if(instArr[i] === Enums.InstrumentTypes.PIANO) {
-        //             this.currentVoices[i] = this.samplerArr[i].triggerAttackRelease(this.definePitch(noteData[i].writer.note, noteData[i].writer.octave), durationString, this.samplerArr[i].now())
-        //         }
-        //         this.convertInput(noteData[i], i);    
-        //     }
-        // }
-        // else if(currentVoice.name === 'PolySynth') {
-        //     if(currentVoice._activeVoices.length < 1) {
-        //         if(instArr[i] === Enums.InstrumentTypes.SINEWAVE) {
-        //             this.currentVoices[i] = this.synthArr[i].triggerAttackRelease(frequency, durationString, this.synthArr[i].now())
+            }
+            else {
+                if(Math.abs((this.samplerArr[i].now() * 1000) - soundTime) >= noteDurationMS) {
+                    if (this.debugOutput) console.log('playing this note on channel: ', i);
+                    this.convertInput(noteData[i], i);
 
-        //         }
-        //         this.convertInput(noteData[i], i);
-        //     }
-        // }   
-    }
-
-    private playSixteenthsRecursiveSynth(frequencies:Array<number>, duration:string, noteDurationMS:number, i:number) {
-        if (i === 4) {
-            return;
-        }
-        this.synthArr[0].triggerAttackRelease(frequencies[i], duration);
-        setTimeout(() => {this.playSixteenthsRecursiveSynth(frequencies, duration, noteDurationMS, i + 1)}, noteDurationMS);
-    }
-
-    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number) {
-        if (i === 4) {
-            return;
-        }
-        if (notesToPlay[i] !== '00') {
-            this.samplerArr[0].triggerAttackRelease(notesToPlay[i], duration);
-        }
-        setTimeout(() => {this.playSixteenthsRecursiveSynth(notesToPlay, duration, noteDurationMS, i + 1)}, noteDurationMS);
+                    this.samplerArr[i].triggerAttackRelease(this.definePitch(noteData[i].writer.note, noteData[i].writer.octave), durationString, this.samplerArr[i].now());
+                    this.currentVoices[i] = this.samplerArr[i].now();
+                }
+            }
+            // else if (currentVoice.name === 'Sampler') {      
+            //     console.log(this.samplerArr[i].now());  
+            //     if(currentVoice._activeSources.size < 2) {
+            //         if(instArr[i] === Enums.InstrumentTypes.PIANO) {
+            //             this.currentVoices[i] = this.samplerArr[i].triggerAttackRelease(this.definePitch(noteData[i].writer.note, noteData[i].writer.octave), durationString, this.samplerArr[i].now())
+            //         }
+            //         this.convertInput(noteData[i], i);    
+            //     }
+            // }
+            // else if(currentVoice.name === 'PolySynth') {
+            //     if(currentVoice._activeVoices.length < 1) {
+            //         if(instArr[i] === Enums.InstrumentTypes.SINEWAVE) {
+            //             this.currentVoices[i] = this.synthArr[i].triggerAttackRelease(frequency, durationString, this.synthArr[i].now())
+ 
+            //         }
+            //         this.convertInput(noteData[i], i);
+            //     }
+            // }
+       }   
     }
 
     public setStopFlag() {
