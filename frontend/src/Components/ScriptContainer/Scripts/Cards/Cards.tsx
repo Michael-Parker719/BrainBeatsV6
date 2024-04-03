@@ -4,15 +4,20 @@ import './Cards.css';
 import { Modal } from 'react-bootstrap';
 import ImageModal from '../../../Modals/ImageModal/ImageModal';
 import { useAppSelector } from '../../../../Redux/hooks';
-import { Card } from '../../../../util/Interfaces'
+import { Card, Script } from '../../../../util/Interfaces'
 import { useDispatch } from 'react-redux';
 import { set, unset } from '../../../../Redux/slices/cardArraySlice'
+import { setScriptIDGlobal, unsetScriptIDGlobal } from '../../../../Redux/slices/scriptIDSlice'
 import { useNavigate } from 'react-router-dom';
 import videojs from 'video.js';
 import VideoJS from '../../../Video/Video';
 import Player from "video.js/dist/types/player";
 import React from 'react';
 import 'video.js/dist/video-js.css';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { userModeState, userJWT } from '../../../../JWT';
+import sendAPI from '../../../../SendAPI';
+import { emptyScript } from '../../../../util/Constants';
 // import "https://cdn..net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css";
 
 
@@ -22,19 +27,19 @@ function Cards() {
     const initialBackground = {
         displayColorPicker: false,
         color: {
-            r: '14',
-            g: '14',
-            b: '14',
-            a: '14',
+            r: 14,
+            g: 14,
+            b: 14,
+            a: 14,
         },
     }
     const initialTextColor = {
         displayColorPicker: false,
         color: {
-            r: '255',
-            g: '255',
-            b: '255',
-            a: '255',
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 255,
         },
     }
 
@@ -50,7 +55,8 @@ function Cards() {
     const dispatch = useDispatch();
 
     // For holding card information
-    const [cards, setCards] = useState<Card[]>([])
+    const globalCard = useAppSelector(state => state.cardArraySlice)
+    const [cards, setCards] = useState<Card[]>([...globalCard])
     const [cardText, setCardTextState] = useState('');
     const [cardDisplayed, setCardDisplayed] = useState(0);
     const [speed, setSpeed] = useState(1000)
@@ -60,6 +66,21 @@ function Cards() {
     const [videoURL, setVideoURL] = useState('');
     const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
+
+    const [scriptTitle, setScriptTitle] = useState('');
+
+    const [scriptID, setScriptID] = useState(useAppSelector(state => state.scriptIDSlice));
+
+    const [started, setStarted] = useState(false);
+
+    // useEffect(() => {
+    //     if (scriptID != '') {
+    //         setCards(useAppSelector(state => state.cardArraySlice))
+    //         
+    //     }
+    // }, [])
+
+
 
 
     const playerRef = React.useRef<Player>();
@@ -109,15 +130,43 @@ function Cards() {
         console.log(usingVideoAudio);
     }
 
-    const uploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-        // console.log(event!.target.files[0]);
+    function convertToBase64(file: File) {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            /* This block of code converts the file's old name into one that includes the user's ID for storing */
+            // var fileName:string = file.name;
+            // var extensionArray:string[] = fileName.split('.');
+            // var fileExtension:string = extensionArray[extensionArray.length - 1]; // in the case that there may be any extra '.' for some reason
+            // var renameStr:string = user.userId + '.' + fileExtension
+            // var renamedFile:File = new File([file], renameStr)
+            fileReader.readAsDataURL(file);
+
+            fileReader.onload = () => {
+                resolve(fileReader.result);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        })
+    }
+
+    const uploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
         // setImageURL(event.target.name); 
         if (!event.target.files) {
             console.log("it's null")
             return
         }
+        if (event.target.files[0].size > 64000) {
+            console.error("File too big! Must be 64KB or less");
+            return;
+        }
 
-        setImageURL(URL.createObjectURL(event.target.files[0]));
+        let file64: any
+        await convertToBase64(event.target.files[0]).then(res => {
+            file64 = res
+        })
+        setImageURL(file64)
+        // setImageURL(URL.createObjectURL(event.target.files[0]));
 
 
     }
@@ -140,13 +189,21 @@ function Cards() {
 
     }
 
-    const uploadAudio = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadAudio = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files) {
-            console.log("Audio URL is null")
+            console.log("it's null")
             return
         }
+        if (event.target.files[0].size > 64000) {
+            console.error("File too big! Must be 64KB or less");
+            return;
+        }
 
-        setAudioURL(URL.createObjectURL(event.target.files[0]));
+        let file64: any
+        await convertToBase64(event.target.files[0]).then(res => {
+            file64 = res
+        })
+        setAudioURL(URL.createObjectURL(file64));
     }
     const disableAudio = () => {
         return selectedView === "video" && usingVideoAudio;
@@ -167,6 +224,7 @@ function Cards() {
     };
     const setColorText = (color: { rgb: any; }) => {
         setTextColor({ displayColorPicker: textColor.displayColorPicker, color: color.rgb });
+        console.log("new text color", textColor)
     };
 
     const changeCard = (cardInd: number) => {
@@ -199,12 +257,9 @@ function Cards() {
         }
         cards.push(newCard);
 
-        changeCard(cards.length-1);
+        changeCard(cards.length - 1);
 
 
-
-        console.log(newCard);
-        console.log(cards);
         // dispatch(set(cards));
     }
     if (cards.length === 0)
@@ -215,6 +270,52 @@ function Cards() {
         dispatch(set(cards));
     }
 
+    const [user, setUser] = useRecoilState(userModeState);
+    const jwt = useRecoilValue(userJWT);
+
+
+
+    const saveScript = () => {
+        console.log("saving script!", cards);
+        changeCard(cardDisplayed);
+
+        if (!user) {
+            console.error("You must be logged in to create a post");
+            navigate('/login');
+            return;
+        }
+
+
+        const info: Script = {
+            id: scriptID,
+            userID: user.id,
+            title: scriptTitle,
+            token: jwt,
+            public: true,
+            cards: cards,
+            likeCount: 0,
+        }
+        if (scriptID.length === 0) {
+            sendAPI('post', '/scripts/createScript', info)
+                .then(res => {
+                    console.log("Save Script!", res);
+                    setScriptID(res.data.id);
+                }).catch(err => {
+                    console.error("error!", err);
+                })
+        }
+        else {
+            sendAPI('post', '/scripts/updateScript', info)
+                .then(res => {
+                    console.log("Save Script!", res);
+                    // setScriptID(res.data.id);
+                }).catch(err => {
+                    console.error("error!", err);
+                })
+        }
+
+    }
+
     const cardSelect = (count: number) => {
         const options = []
         for (let i = 1; i <= count; i++) {
@@ -223,7 +324,7 @@ function Cards() {
 
         }
         return (
-            <select value={cardDisplayed+1} onChange={(e) => changeCard(+e.target.value - 1)}>
+            <select value={cardDisplayed + 1} onChange={(e) => changeCard(+e.target.value - 1)}>
                 {options}
             </select>
         )
@@ -236,12 +337,9 @@ function Cards() {
     }, [image]);
 
     useEffect(() => {
-        console.log(
-            `User requested page number: ${cardDisplayed}`
-        );
         let i = cardDisplayed;
-        setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor});
-        setTextColor({displayColorPicker: false, color: cards[i].textColor});
+        setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor });
+        setTextColor({ displayColorPicker: false, color: cards[i].textColor });
         setCardTextState(cards[i].text);
         setSpeed(cards[i].speed);
         setImageURL(cards[i].imageURL);
@@ -257,7 +355,15 @@ function Cards() {
             </Modal>
             <div className='cards-body-div'>
                 <div id='card-settings-div'>
-                    <button value="reset" onClick={resetVideo} />
+                    <label className='record-heading'>Title:</label>
+                    <div className='record-upload1'>
+                        <input
+                            className="input-card-text"
+                            placeholder="My Script"
+                            onChange={(e) => setScriptTitle(e.target.value)}
+                            value={scriptTitle}
+                        />
+                    </div>
                     <h6 className='record-heading'>Card Settings</h6>
                     <div id='record-uploads-div'>
                         <div>
@@ -351,7 +457,7 @@ function Cards() {
                                 value={cardText}
                             />
                         </div>
-                        <label className='record-heading' htmlFor="file-upload">Card Duration (seconds):</label>
+                        <label className='record-heading' htmlFor="file-upload">Card Duration (milliseconds):</label>
                         <div className='record-upload1'>
                             <input
                                 type="number"
@@ -396,6 +502,7 @@ function Cards() {
                 <div id='record-buttons-div'>
                     <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>
                     <button type="button" className="btn btn-secondary" id='go-record-btn' onClick={() => { doNavigate("/record"); sendCards(); }}>Go to Record</button>
+                    <button type="button" className="btn btn-secondary" id='save-script-btn' onClick={() => { saveScript() }}>Save Script</button>
                 </div>
             </div>
         </div>);

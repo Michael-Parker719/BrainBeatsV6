@@ -212,7 +212,7 @@ const TrackSettings = () => {
         // Apply settings to redux
         dispatch(setSettingsState(generationSettings));
         dispatch(setDeviceState(device));
-        navigate("/script-settings");
+        navigate("/choose-script");
     }
 
     // useEffect(() => {

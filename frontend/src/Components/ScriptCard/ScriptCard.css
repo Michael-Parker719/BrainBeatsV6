@@ -1,0 +1,115 @@
+/* CSS for Music Track Cards */
+.card {
+    background-color: #565656;
+    filter: drop-shadow(0px 4px 4px #181818);
+    width: 18vw;
+    height: fit-content;
+    max-height: 50vh;
+    border-radius: 10px;  
+    margin-bottom: 20px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+}
+
+.card:hover{
+    background-color: #7c7c7c;
+    border-color: rgb(60, 60, 60);
+}
+.card:active{
+    background-color: #7c7c7c;
+    border-color: rgb(60, 60, 60);
+}
+
+.card-body{
+    /* background-color: red; */
+    width: 100%;
+    color: white;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-img-top {
+    width: 15vw;
+    height: 15vw;
+    align-self: center; 
+    border-radius: 10px;
+    padding: 5px;  
+}
+
+.card-title{
+    /* background-color: red; */
+    width: 100%;
+    text-align: left;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card-text{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    font-weight: 350;
+    text-overflow: ellipsis;
+
+}
+
+#card-author{
+    /* background-color: orange; */
+    justify-content: left;
+    text-align: left;
+    overflow-wrap: break-word;
+}
+
+#card-likes{
+    color: rgb(203, 203, 203);
+    justify-content: right;
+    text-align: right;
+}
+
+/* .track-row{
+    //float: left;    
+} */
+
+.track-col{
+    display: flex;
+    justify-content: center;
+}
+
+.btn-primary{
+    --bs-btn-active-bg: #585858;
+    --bs-btn-active-border-color: rgb(44, 44, 44);
+}
+
+#pop-up
+{
+    /* display: none; */
+    background-color: rone;
+    width: 100%;
+    height: 100%;
+
+}
+
+/* CSS for Mobile View */
+@media only screen and (max-width: 450px) {
+    .track-row{
+        width: 100%;    
+    }
+
+    .card {
+        background-color: #565656;
+        width: 80%;
+    }
+    
+    .card-img-top {
+        width: 50vw;
+        height: 50vw;
+        align-self: center; 
+        border-radius: 10px;
+        padding: 5px;  
+    }
+}

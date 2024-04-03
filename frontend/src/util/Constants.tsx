@@ -1,4 +1,4 @@
-import { Track, User } from "./Interfaces";
+import { Track, Script, User } from "./Interfaces";
 
 
 
@@ -97,6 +97,16 @@ export const emptyTrack:Track = {
     "playlistTracks": null,
     "public": false,
     "like": null
+}
+
+export const emptyScript:Script = {
+    "id": "",           
+    "title": "",
+    "user": null,
+    "userID": "",
+    "public": false,
+    "cards": [],
+    "likeCount": 0,
 }
 
 export const emptyUser:User = {

@@ -236,6 +236,31 @@ paths:
           404:
             description: URL Not Found
 
+  # Create user scripts
+    /api/scripts/createScript:
+      post:
+        tags:
+          - Scripts
+        summary: Create script at user profile
+        operationId: createScript
+        description: Create a script for a user by username
+        consumes: Scripts
+         - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Create script
+          required: true
+          description: User Script
+          schema:
+            $ref: '#/definitions/createScript'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
   # Get user tracks by username
     /api/tracks/getUserTracksByUsername/:
       get:
@@ -746,6 +771,25 @@ definitions:
         key:
           type: string
           example: C#
+
+  # ***** Scripts ***** #
+    createScript:
+      required:
+      - userID
+      - title
+      - visibility
+      properties:
+        userID:
+          type: string
+          example: 227d4d04-927b-421e-8d95-6eb91f05af05
+        title:
+          type: string
+          example: Track title
+        visibility:
+          type: boolean
+          example: True
+
+
 
   # ***** User Playlists ***** #
     createPlaylist:

@@ -206,8 +206,8 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
     function PopulateTrackCards() {
         const MAX_COLS:number = 4;
         const MAX_ROWS:number = 4;
-        var gridArray:any[] = [];
-        var currentTrackCounter:number = 0;
+        let gridArray:any[] = [];
+        let currentTrackCounter:number = 0;
         const defaultImage = 'https://cdn.discordapp.com/attachments/1022862908012634172/1028025868175540355/DALLE_2022-10-07_15.27.09_-_A_brain_listening_music_eyes_open_smiling_vector_art.png';
         
         //cardType Search goes outside of the conditional because there is the case where searching has already happened

@@ -89,21 +89,38 @@ export type Picture = {
 
 export type Card = {
     textColor:{
-        r: string,
-        g: string,
-        b: string,
-        a: string,
+        r: number,
+        g: number,
+        b: number,
+        a: number,
     },
     backgroundColor: {
-        r: string,
-        g: string,
-        b: string,
-        a: string,
+        r: number,
+        g: number,
+        b: number,
+        a: number,
     },
     imageURL: string,
     audioURL: string,
     text: string,
     speed: number,
+}
+
+export interface Script {
+    id: string,
+    title: string,
+    cards: Card[],
+    userID: string,
+    public: boolean,
+    likeCount: number,
+    // optional, assigned by mysql reference
+    user?: User | null,
+    
+    // optional
+    createdAt?: Date,
+    token?: any
+    fullname?: string // Used to display a users name above a track
+    thumbnail?: string,
 }
 
 export interface Track {
@@ -157,7 +174,7 @@ export interface PlaylistTracks {
 }
 
 export interface Like {
-    trackID: string,
+    objectID: string,
     userID: string,
     
     // optional, assigned by mysql reference

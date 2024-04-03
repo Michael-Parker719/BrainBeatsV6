@@ -6,6 +6,7 @@ import { userJWT, userModeState } from "../../JWT";
 import sendAPI from '../../SendAPI';
 import react, { useEffect, useState } from 'react';
 import TrackCard from '../TrackCard/TrackCard';
+import ScriptCard from '../ScriptCard/ScriptCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Buffer } from 'buffer';
 import buildPath from '../../util/ImagePath';
@@ -75,8 +76,15 @@ const Profile = () => {
     const [profileLastName, setProfileLastName] = useState(user?.lastName || "");
 
     // Toggle My Tracks and Playlists display
-    const[playlistsOpen, updatePlaylistsOpen] = react.useState(false);
-    const toggleTab = () => updatePlaylistsOpen(!playlistsOpen);
+    enum SelectedTab {
+        TRACKS,
+        LIKES,
+        SCRIPTS,
+    }
+    const [selectedTab, updateSelectedTab] = react.useState(SelectedTab.TRACKS)
+    // const[playlistsOpen, updatePlaylistsOpen] = react.useState(false);
+    // const toggleTab = () => updatePlaylistsOpen(!playlistsOpen);
+    // const toggleTabNew = (tab: SelectedTab) => updatePlaylistsOpen(!playlistsOpen);
 
     // var encodedProfilePic = user.profilePicture;
 
@@ -339,38 +347,52 @@ const Profile = () => {
                 </div>
 
                 <div id='profile-top-tabs-div'>
-                    <button type="button" className="btn btn-secondary" id='tracks-btn' onClick={toggleTab}
-                    style={{backgroundColor: !playlistsOpen? "rgb(83, 83, 83) ": "rgba(100, 100, 100, 1)"}}>
+                    <button type="button" className="btn btn-secondary" id='tracks-btn' onClick={() => updateSelectedTab(SelectedTab.TRACKS)}
+                    style={{backgroundColor: selectedTab===SelectedTab.TRACKS? "rgb(83, 83, 83) ": "rgba(100, 100, 100, 1)"}}>
                         <div id='tracks-btn-text'>
                             <FontAwesomeIcon icon={["fas", "music"]} />
                             <h6>My Tracks</h6>
                         </div>
-                        <div id='tracks-btn-line' style={{display: playlistsOpen? "none" : "block"}}>
+                        <div id='tracks-btn-line' style={{display: selectedTab==SelectedTab.TRACKS? "block" : "none"}}>
                         </div>
                     </button>
-                    <button type="button" className="btn btn-secondary" id='playlists-btn' onClick={() => {toggleTab(); getUserLikes();}} 
-                    style={{backgroundColor: playlistsOpen? "rgb(83, 83, 83)": "rgba(100, 100, 100, 1)"}}>
+                    <button type="button" className="btn btn-secondary" id='playlists-btn' onClick={() => {updateSelectedTab(SelectedTab.LIKES); getUserLikes();}} 
+                    style={{backgroundColor: selectedTab===SelectedTab.LIKES? "rgb(83, 83, 83)": "rgba(100, 100, 100, 1)"}}>
                         <div id='playlists-btn-text'>
                             <FontAwesomeIcon icon={["fas", "list"]} />
                             <h6>My Favorites</h6>
                         </div>
-                        <div id='playlists-btn-line' style={{display: playlistsOpen? "block" : "none"}}>
+                        <div id='playlists-btn-line' style={{display: selectedTab===SelectedTab.LIKES? "block" : "none"}}>
+                        </div>
+                    </button>
+                    <button type="button" className="btn btn-secondary" id='scripts-btn' onClick={() => updateSelectedTab(SelectedTab.SCRIPTS)}
+                    style={{backgroundColor: selectedTab===SelectedTab.SCRIPTS? "rgb(83, 83, 83) ": "rgba(100, 100, 100, 1)"}}>
+                        <div id='tracks-btn-text'>
+                            <FontAwesomeIcon icon={["fas", "music"]} />
+                            <h6>My Scripts</h6>
+                        </div>
+                        <div id='tracks-btn-line' style={{display: selectedTab===SelectedTab.SCRIPTS? "block" : "none"}}>
                         </div>
                     </button>
                 </div>
             </div>
             {/* Displays when My Tracks tab selected */}
-            <div id='profile-bottom-container' style={{display: playlistsOpen? "none" : "block"}}>
+            <div id='profile-bottom-container' style={{display: selectedTab===SelectedTab.TRACKS? "block" : "none"}}>
                 <h1>My Tracks</h1>
                 <hr></hr>
                 {user && <TrackCard cardType={'Profile'} input={user.id} />}
             </div>
 
             {/* Displays when Playlists tab selected */}
-            <div id='profile-bottom-container' style={{display: playlistsOpen? "block" : "none"}}>
+            <div id='profile-bottom-container' style={{display: selectedTab===SelectedTab.LIKES? "block" : "none"}}>
                 <h1>My Likes</h1>
                 <hr></hr>
                 {user && <TrackCard cardType={'Likes'} input={user.id} />}
+            </div>
+            <div id='profile-bottom-container' style={{display: selectedTab===SelectedTab.SCRIPTS? "block" : "none"}}>
+                <h1>My Scripts</h1>
+                <hr></hr>
+                {user && <ScriptCard cardType={'Profile'} input={user.id} />}
             </div>
         </div>
     )

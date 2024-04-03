@@ -12,6 +12,7 @@ import Forgot from './Pages/Forgot';
 import ResetPassword from './Pages/ResetPassword'
 import Verify from './Pages/Verify';
 import Script from './Pages/Script';
+import ScriptChooser from './Pages/ScriptChooser';
 import RecordTrack from './Pages/RecordTrack';
 import Setup from './Pages/Setup';
 
@@ -51,6 +52,7 @@ function App() {
             <Route path='/search' element={<Search />} />
             <Route path='/track-settings' element={<Settings />} />
             <Route path='/script-settings' element={<Script />} />
+            <Route path='/choose-script' element={<ScriptChooser />}/>
             <Route path='/login' element={<Login />} />
             <Route path='/register' element={<SignUp />} />
             <Route path='/forgot' element={<Forgot />} />
