@@ -112,7 +112,7 @@ model Card {
   textColor         String
   backgroundColor   String
   imageURL          String @db.Text
-  audioURL          String @db.Text
+  audioURL          String @db.MediumText
   text              String 
   speed             Int
 }

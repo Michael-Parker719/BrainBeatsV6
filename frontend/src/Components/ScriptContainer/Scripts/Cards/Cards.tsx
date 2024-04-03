@@ -194,8 +194,8 @@ function Cards() {
             console.log("it's null")
             return
         }
-        if (event.target.files[0].size > 64000) {
-            console.error("File too big! Must be 64KB or less");
+        if (event.target.files[0].size > 16777215) {
+            console.error("File too big! Must be 16MB or less");
             return;
         }
 
