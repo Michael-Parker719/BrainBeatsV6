@@ -5,7 +5,7 @@ This repository houses all of the codebase for BrainBeats version 5.
 
 BrainBeats is an open-sourced web application built for converting electroencephalogram (EEG) into Musical Instrument Digital Interface files (MIDI) which can be converted to generic audio files (.mp3, .wav, etc.). Audio files created by users can then be uploaded, edited, shared, and downloaded on BrainBeats’ web platform with a BrainBeats user account.
 
-The functionality of this platform allows you to create a script for your recording session, record your song with an EEG headset utilizing your own unique musical settings, posting your recorded songs, downloading the MIDI equivalent of your song, and creating playlists with music you enjoy. The platform allows you to connect with other users creating music with their own EEG headset, and to interact with their posts.
+The functionality of this platform allows you to create a script for your recording session, record your song with an EEG headset utilizing your own unique musical settings, post your recorded songs, download the MIDI equivalent of your song, and create playlists with music you enjoy. The platform allows you to connect with other users creating music with their own EEG headset, and to interact with their posts.
 
 **Running The Code**
 
@@ -21,6 +21,6 @@ Gain access to the repository on your local device by running the following on t
 Now you can simply run
 `cd BrainBeatsV5`
 
-For information on building the frontend go to [Backend README](https://github.com/BrainBeatsv5/BrainBeatsV5/blob/main/backend/README.md)
+For information on building the backend go to [Backend README](https://github.com/BrainBeatsv5/BrainBeatsV5/blob/main/backend/README.md)
 
 For information on building the frontend go to [Frontend README](https://github.com/BrainBeatsv5/BrainBeatsV5/blob/main/frontend/README.md)
