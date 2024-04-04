@@ -11,6 +11,7 @@ from config import device, model_config as model_config
 from model import PerformanceRNN
 from sequence import EventSeq, Control, ControlSeq
 
+
 # ========================================================================
 # Settings
 # ========================================================================
