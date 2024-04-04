@@ -10,6 +10,8 @@ import buildPath from '../../util/ImagePath';
 import { encode, resize } from '../../util/ImageHelperFunctions';
 import { useNavigate } from 'react-router-dom';
 
+import './ScriptSelect.css'
+
 import { Track, User } from '../../util/Interfaces';
 
 
@@ -44,9 +46,11 @@ const ScriptSelect = () => {
 
     return (
         <div id='profile-bottom-container'>
-            <h1>My Scripts</h1>
-            <hr></hr>
+            <h1 id = 'select-script-header'>Select a Script</h1>
+            <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => navigate("/record")}>Skip This Step</button>
             {user && <ScriptCard cardType={'Profile'} input={user.id} />}
+            <hr></hr>
+
         </div>
 
     )
