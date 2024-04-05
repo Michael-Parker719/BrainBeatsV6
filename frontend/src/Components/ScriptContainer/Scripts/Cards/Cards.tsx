@@ -330,6 +330,32 @@ function Cards() {
         )
     }
 
+    const deleteSlide = () => {
+        if (cards.length === 1) {
+            console.log("Cannot remove only slide!")
+            return
+        }
+        if (cards.length === cardDisplayed + 1) {
+            changeCard(cardDisplayed - 1)
+            cards.pop()
+        }
+        else if (cardDisplayed === 0) {
+            cards.shift()
+            changeCard(cardDisplayed)
+        }
+        else {
+            cards.splice(cardDisplayed, 1)
+            changeCard(cardDisplayed)
+        }
+        console.log(cardDisplayed)
+        console.log(cards)
+
+
+
+
+
+    }
+
 
     useEffect(() => {
         setImageURL(image.urls.regular)
@@ -380,12 +406,12 @@ function Cards() {
                             <label className='check-box' htmlFor="image">Image</label>
                         </div>
 
-                        <div>
+                        {/*<div>
                             <input type="radio" id="video-select" name="card-type" value="video"
                                 checked={selectedView === "video"}
                                 onChange={() => setSelectedView("video")} />
                             <label className='check-box' htmlFor="video">Video</label>
-                        </div>
+                        </div>*/}
 
                         <div id='color-settings' className='area-settings' hidden={selectedView !== "color"}>
                             <label className='record-heading2' htmlFor="file-upload">Select Background Color</label>
@@ -397,13 +423,13 @@ function Cards() {
                         </div>
 
                         <div className='area-settings' hidden={selectedView !== "image"}>
-                            <button type="button" className="btn btn-secondary" id='image-card-btn' onClick={() => setShow(true)}>AI Image</button>
+                            <button type="button" className="btn btn-secondary" id='image-card-btn' onClick={() => setShow(true)}>Stock Image</button>
                             <h6 className='OR-subtitle'>OR</h6>
                             <label className='record-heading2' htmlFor="file-upload">Select Image File:</label>
                             <input type="file" className="btn btn-secondary" onChange={uploadImage} />
                         </div>
 
-                        <div className='area-settings' hidden={selectedView !== "video"}>
+                        {/*<div className='area-settings' hidden={selectedView !== "video"}>
                             <label className='record-heading2' htmlFor="file-upload">Select Video File:</label>
                             <input type="file" className="btn btn-secondary" onChange={uploadVideo} />
 
@@ -423,12 +449,12 @@ function Cards() {
                             <input type="checkbox" id="video-check" checked={usingVideoAudio} onChange={handleVideoAudio}></input>
                             <label className='check-box' htmlFor="video-check">Use video audio</label>
 
-                        </div>
+                        </div>*/}
 
                         <label className='record-heading2' htmlFor="file-upload">Upload Audio File:</label>
                         <input type="file" className="btn btn-secondary" disabled={disableAudio()} onChange={uploadAudio} />
 
-                        <label className='record-heading' htmlFor="file-upload">Audio Start Time:</label>
+                        {/*<label className='record-heading' htmlFor="file-upload">Audio Start Time:</label>
                         <div className='record-upload1'>
                             <input
                                 type="number"
@@ -439,7 +465,7 @@ function Cards() {
                                 value={speed}
                                 disabled={disableAudio()}
                             />
-                        </div>
+                        </div>*/}
 
 
                         <label className='record-heading' htmlFor="file-upload">Text Color:</label>
@@ -470,7 +496,7 @@ function Cards() {
                         </div>
                         <button type="button" className="btn btn-secondary" id='add-card-btn' onClick={addCard}>Add Card</button>
                     </div>
-                    
+
                 </div>
                 <div id='display-card-div'>
                     Card Display:
@@ -496,13 +522,13 @@ function Cards() {
             </div>
             <div>
                 {cardSelect(cards.length)}
+                {/*<button type="button" className="btn btn-secondary" onClick={deleteSlide}>Delete</button>*/}
             </div>
 
             <div className='cards-footer-div'>
                 <div id='record-buttons-div'>
                     <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>
-                    <button type="button" className="btn btn-secondary" id='go-record-btn' onClick={() => { doNavigate("/record"); sendCards(); }}>Go to Record</button>
-                    <button type="button" className="btn btn-secondary" id='save-script-btn' onClick={() => { saveScript() }}>Save Script</button>
+                    <button type="button" className="btn btn-secondary" id='go-record-btn' onClick={() => { saveScript() }}>Save Script</button>
                 </div>
             </div>
         </div>);
