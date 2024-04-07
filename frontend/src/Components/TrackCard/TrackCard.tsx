@@ -9,6 +9,7 @@ import { Track } from '../../util/Interfaces';
 import { emptyTrack } from '../../util/Constants';
 import { useRecoilState } from 'recoil';
 import { userJWT, userModeState } from '../../JWT';
+import DEFAULT_IMAGE from '../../images/bbmascot1.png'
 
 type Props = {
     cardType:string;
@@ -208,7 +209,6 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
         const MAX_ROWS:number = 4;
         let gridArray:any[] = [];
         let currentTrackCounter:number = 0;
-        const defaultImage = 'https://cdn.discordapp.com/attachments/1022862908012634172/1028025868175540355/DALLE_2022-10-07_15.27.09_-_A_brain_listening_music_eyes_open_smiling_vector_art.png';
         
         //cardType Search goes outside of the conditional because there is the case where searching has already happened
         if (cardType === 'Search' && currentSearch !== input) 
@@ -225,7 +225,7 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
                 
                 if(currentTrack == null) break;
                 if(!currentTrack.public && cardType!= 'Profile') continue;
-                currentTrack.thumbnail = currentTrack.thumbnail === "" ? defaultImage : currentTrack.thumbnail;
+                currentTrack.thumbnail = currentTrack.thumbnail === "" ? DEFAULT_IMAGE : currentTrack.thumbnail;
                 //let trackLink = JSON.stringify(currentTrack.trackLink);
                 let title = currentTrack.title;
                 let user = currentTrack.fullname;
