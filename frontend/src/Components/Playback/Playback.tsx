@@ -99,9 +99,9 @@ const Playback: React.FC<Props> = ({ midiString }) => {
                 <FontAwesomeIcon className='modal-track-icons fa-2x' id='modal-track-play-icon' icon={["fas", "pause"]} />
                 <h3>Pause</h3>
             </button>}
-            <input type="range" min = "0" max = {trackLength} onChange={changeTime}>
+            {/*<input type="range" min = "0" max = {trackLength} onChange={changeTime}>
             
-            </input>
+            </input>*/}
         </div>
     )
 }
