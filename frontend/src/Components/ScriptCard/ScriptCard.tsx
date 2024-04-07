@@ -13,6 +13,8 @@ import { emptyTrack, emptyScript } from '../../util/Constants';
 import { useRecoilState } from 'recoil';
 import { userJWT, userModeState } from '../../JWT';
 // import { Script } from 'vm';
+import DEFAULT_IMAGE from '../../images/script_default.png'
+import { current } from '@reduxjs/toolkit';
 
 type Props = {
     cardType: string;
@@ -210,7 +212,6 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
         const MAX_ROWS: number = 4;
         var gridArray: any[] = [];
         var currentScriptCounter: number = 0;
-        const defaultImage = 'https://cdn.discordapp.com/attachments/1022862908012634172/1028025868175540355/DALLE_2022-10-07_15.27.09_-_A_brain_listening_music_eyes_open_smiling_vector_art.png';
 
         //cardType Search goes outside of the conditional because there is the case where searching has already happened
         if (cardType === 'Search' && currentSearch !== input)
@@ -227,7 +228,15 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
                 if (currentScript == null) break;
                 if (!currentScript.public && cardType !== 'Profile') continue;
-                currentScript.thumbnail = currentScript.thumbnail === "" ? defaultImage : currentScript.thumbnail;
+                if (currentScript.thumbnail === "") {
+                    if (currentScript.cards[0].imageURL !== "") {
+                        currentScript.thumbnail = currentScript.cards[0].imageURL;
+                    }
+                    else {
+                        currentScript.thumbnail = DEFAULT_IMAGE
+                    }
+                }
+                
                 //let trackLink = JSON.stringify(currentScript.trackLink);
                 let title = currentScript.title;
                 let user = currentScript.fullname;
