@@ -228,14 +228,15 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
                 if (currentScript == null) break;
                 if (!currentScript.public && cardType !== 'Profile') continue;
-                if (currentScript.thumbnail === "") {
-                    if (currentScript.cards[0].imageURL !== "") {
-                        currentScript.thumbnail = currentScript.cards[0].imageURL;
-                    }
-                    else {
+                // if (currentScript.thumbnail === "") {
+                //     if (currentScript.cards[0].imageURL !== "") {
+                //         currentScript.thumbnail = currentScript.cards[0].imageURL;
+                //     }
+                //     else {
+                //         currentScript.thumbnail = DEFAULT_IMAGE
+                //     }
+                // }
                         currentScript.thumbnail = DEFAULT_IMAGE
-                    }
-                }
                 
                 //let trackLink = JSON.stringify(currentScript.trackLink);
                 let title = currentScript.title;

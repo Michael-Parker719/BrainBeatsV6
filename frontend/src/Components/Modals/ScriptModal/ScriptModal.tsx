@@ -500,7 +500,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                                 </label>
                                 <input id="track-cover-upload" onChange={event => { if (!event.target.files) { return } else { updateDisplayThumbnail(event.target.files[0]) } }} name="image" type="file" accept='.jpeg, .png, .jpg' />
                             </div>}
-                            <img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} />
+                            {/*<img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} />*/}
                             <CardCarousel></CardCarousel>
                         </div>
                         <div id='modal-track-text-div'>
