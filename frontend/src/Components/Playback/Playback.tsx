@@ -45,14 +45,14 @@ const Playback: React.FC<Props> = ({ midiString }) => {
                 //synth playback
                 midi.tracks.forEach(track => {
                     //create a synth for each track
-                    const synth = new Tone.PolySynth(Tone.Synth, {
+                    const synth = new Tone.PolySynth()/*(Tone.Synth, {
                         envelope: {
                             attack: 0.002,
                             decay: 5,
                             sustain: 0.5,
                             release: 0.5
                         }
-                    }).toDestination()
+                    })*/.toDestination()
                     synths.push(synth)
                     //schedule all of the events
                     track.notes.forEach(note => {
@@ -95,7 +95,7 @@ const Playback: React.FC<Props> = ({ midiString }) => {
                 <FontAwesomeIcon className='modal-track-icons fa-2x' id='modal-track-play-icon' icon={["fas", "play"]} />
                 <h3>Play</h3>
             </button>}
-            {trackIsPlaying && <button type="button" className="btn btn-primary" id='pause-btn' onClick={pauseAudio}>
+            {trackIsPlaying && <button type="button" className="btn btn-primary" id='play-btn' onClick={pauseAudio}>
                 <FontAwesomeIcon className='modal-track-icons fa-2x' id='modal-track-play-icon' icon={["fas", "pause"]} />
                 <h3>Pause</h3>
             </button>}

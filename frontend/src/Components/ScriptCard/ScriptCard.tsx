@@ -236,8 +236,8 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
                 //         currentScript.thumbnail = DEFAULT_IMAGE
                 //     }
                 // }
-                        currentScript.thumbnail = DEFAULT_IMAGE
-                
+                currentScript.thumbnail = DEFAULT_IMAGE
+
                 //let trackLink = JSON.stringify(currentScript.trackLink);
                 let title = currentScript.title;
                 let user = currentScript.fullname;
@@ -250,10 +250,10 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
         return gridArray;
     }
 
-    function hexToColor(hex: string){
-        let red = Number("0x" + hex.substring(0,2));
-        let green = Number("0x" + hex.substring(2,4));
-        let blue = Number("0x" + hex.substring(4,6));
+    function hexToColor(hex: string) {
+        let red = Number("0x" + hex.substring(0, 2));
+        let green = Number("0x" + hex.substring(2, 4));
+        let blue = Number("0x" + hex.substring(4, 6));
 
         return {
             r: red,
@@ -261,7 +261,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
             b: blue,
             a: 255,
         }
-        
+
     }
 
     async function setScript(currentScript: Script) {
@@ -278,7 +278,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
                     let currentCard: Card = res.data[i];
                     currentCard.textColor = hexToColor(res.data[i].textColor);
                     currentCard.backgroundColor = hexToColor(res.data[i].backgroundColor);
-                    
+
                     // var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
                     // currentCard = Object.assign({ fullname: fullname }, currentScript);
 
