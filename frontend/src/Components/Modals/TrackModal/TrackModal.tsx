@@ -581,7 +581,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
 
 
                             {<button type="button" className="btn btn-primary" id='download-btn'>
-                                <a style={{ color: "white", textDecoration: "none", display: "flex", justifyContent: "center" }} id='download-midi-btn' download={'myTrack.MID'} href={track.midi}>
+                                <a style={{ color: "white", textDecoration: "none", display: "flex", justifyContent: "center" }} id='download-midi-btn' download={trackName + '.MID'} href={track.midi}>
                                     <FontAwesomeIcon className='modal-track-icons fa-xl' id='modal-track-play-icon' icon={["fas", "download"]} />
                                     <h4>Download</h4>
                                 </a>
