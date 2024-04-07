@@ -299,7 +299,8 @@ function Cards() {
             sendAPI('post', '/scripts/createScript', info)
                 .then(res => {
                     console.log("Save Script!", res);
-                    setScriptID(res.data.id);
+                    // setScriptID(res.data.id);
+                    navigate('/profile')
                 }).catch(err => {
                     console.error("error!", err);
                 })
@@ -527,7 +528,7 @@ function Cards() {
 
             <div className='cards-footer-div'>
                 <div id='record-buttons-div'>
-                    <button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>
+                    {/*<button type="button" className="btn btn-secondary" id='skip-step-btn' onClick={() => doNavigate("/record")}>Skip This Step</button>*/}
                     <button type="button" className="btn btn-secondary" id='go-record-btn' onClick={() => { saveScript() }}>Save Script</button>
                 </div>
             </div>
