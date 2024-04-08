@@ -1,9 +1,10 @@
-import * as fs from "fs";
 import * as math from "mathjs";
 import wt from "discrete-wavelets";
 
 // @ts-ignore
 import SVM from "libsvm-js/asm";
+
+import modelWeightsSVM from "./models/modelWeightsSVM";
 
 interface FeatureStat {
     avg: number;
@@ -20,7 +21,7 @@ class EmotionDecoder {
     private eeg_features_stats: FeatureStat[];
     private emotion_mappings: string[];
 
-    constructor(svm_filename: string = "models/emotion_decoder_svm.model") {
+    constructor(svm_filename: string = modelWeightsSVM) {
         // Initializes the EmotionDecoder with an SVM model loaded from the given file,
         // sets up an array for EEG features statistics used to Z-score (i.e. calibrate) the EEG
         // features of the subject the decoder will decode from, and defines emotion mappings.
@@ -43,12 +44,11 @@ class EmotionDecoder {
         this.emotion_mappings = ["calm", "sad", "anger", "happiness"];
     }
 
-    private loadSVM(filepath: string): any {
-        // Loads an SVM model from a file. filepath is the path to the serialized
-        // SVM model file. Returns the deserialized SVM model.
+    private loadSVM(modelString: string): any {
+        // Loads an SVM model from a string. modelString are the serialized
+        // weights of the SVM model. Returns the deserialized SVM model.
 
-        const serializedModel = fs.readFileSync(filepath, "utf8");
-        return SVM.load(serializedModel);
+        return SVM.load(modelString);
     }
 
     private zScoreEEGFeatures(eeg_features: number[]): number[] {
@@ -175,9 +175,9 @@ class EmotionDecoder {
         // Returns an object with the predicted emotion label and a record of probabilities for each emotion.
         //
         // e.g. predict(raw_eeg_data) -> { prediction: "calm",
-        //                                 probabilities: { calm: 0.2,
+        //                                 probabilities: { calm: 0.4,
         //                                                  sad: 0.3,
-        //                                                  anger: 0.4,
+        //                                                  anger: 0.2,
         //                                                  happiness: 0.1 }}
         //
         // We recommend calling this method every 10-50 timepoints by using the latest 500+ timepoints received
@@ -200,6 +200,23 @@ class EmotionDecoder {
         this.updateStatistics(waveletFeaturesCopy);
 
         return { prediction: predictionLabel, probabilities: probabilities };
+    }
+
+    public printEmotionPredictions(
+        emotionPredictions: { prediction: string; probabilities: Record<string, number> }[]
+    ) {
+        // Prints the emotion predictions to the console.
+        console.log("\n".repeat(8));
+        for (const { prediction, probabilities } of emotionPredictions) {
+            console.log("=".repeat(50));
+            console.log(`Prediction: ${prediction}`);
+            console.log("-".repeat(50));
+            console.log("Probabilities:");
+            for (const [emotion, prob] of Object.entries(probabilities)) {
+                console.log(`  ${emotion.padEnd(10, " ")}: ${"#".repeat(Math.floor(35 * prob))}`);
+            }
+            console.log("-".repeat(50));
+        }
     }
 }
 
@@ -236,22 +253,7 @@ function testEmotionDecoder() {
         const raw_eeg_data = data.map((channelData) =>
             channelData.slice(i, i + raw_eeg_data_segment_length)
         );
-        const { prediction, probabilities } = decoder.predict(raw_eeg_data);
-
-        // Print the prediction and probabilities
-        console.log("=".repeat(80));
-        console.log(`Prediction: ${prediction}`);
-        console.log("-".repeat(80));
-        console.log("Probabilities:");
-        for (const [emotion, prob] of Object.entries(probabilities)) {
-            console.log(`  ${emotion.padEnd(10, " ")}: ${"#".repeat(Math.floor(50 * prob))}`);
-        }
-        console.log("-".repeat(80));
-        console.log(`Values: ${JSON.stringify(probabilities)}`);
-
-        if (timePoints - i < raw_eeg_data_segment_length) {
-            break;
-        }
+        decoder.printEmotionPredictions([decoder.predict(raw_eeg_data)]);
     }
 }
 

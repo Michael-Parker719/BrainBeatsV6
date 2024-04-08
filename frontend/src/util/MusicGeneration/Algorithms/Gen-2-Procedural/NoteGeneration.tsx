@@ -1,15 +1,26 @@
-import { getNoteLengthStringFromInt, getMillisecondsFromBPM, GetFloorOctave, getFrequencyFromNoteOctaveString } from '../.././MusicHelperFunctions';
+import {
+    getNoteLengthStringFromInt,
+    getMillisecondsFromBPM,
+    GetFloorOctave,
+    getFrequencyFromNoteOctaveString,
+} from "../.././MusicHelperFunctions";
 
 // import {initMIDIWriter, addNoteToMIDITrack, printTrack, generateMIDIURIAndDownloadFile, generateMIDIURI, generateMIDIFileFromURI} from '../MusicGeneration/MIDIWriting';
-import * as Constants from '../../../Constants';
-import { CytonSettings, GanglionSettings, MusicSettings, DataStream8Ch, DataStream4Ch } from '../../../Interfaces';
-import { KeyGroups, Keys } from '../../../Enums';
-import { MIDIManager } from './MIDIManager';
-import { TDebugOptionsObject } from '../../../Types';
-import { AbstractNoteHandler } from '../AbstractNoteHandler';
+import * as Constants from "../../../Constants";
+import {
+    CytonSettings,
+    GanglionSettings,
+    MusicSettings,
+    DataStream8Ch,
+    DataStream4Ch,
+} from "../../../Interfaces";
+import { KeyGroups, Keys } from "../../../Enums";
+import { MIDIManager } from "./MIDIManager";
+import { TDebugOptionsObject } from "../../../Types";
+import { AbstractNoteHandler } from "../AbstractNoteHandler";
+import { EmotionDecoder } from "../Emotional-Decoder/EmotionDecoder";
 
 export class NoteHandler extends AbstractNoteHandler {
-
     /*  debugOutput functions in the same way as the other classes which have this boolean, if we are in dev then
         checkboxes will display on the record page that allow us to select if we want console logs for data, if you
         want to implement logs that will show up on dev but not production, simply add an if conditional with this
@@ -20,7 +31,7 @@ export class NoteHandler extends AbstractNoteHandler {
     private BPM: number;
     private keyGroup: number;
     private scale: number;
-    private octaves: number
+    private octaves: number;
     private keySignature;
 
     // How many times we've increased or decreased the volume e.g. 3 would mean you increased the volume three times and probably don't need to again
@@ -43,54 +54,54 @@ export class NoteHandler extends AbstractNoteHandler {
     private previousThousandEEG: Array<Array<number>> = [[]];
 
     // Used to calculate the EEG per second so we have a sense of timing when looking for fluctuations
-    private startTime: number;               // this needs to be a field to persist through iterations of origNG
-    private eegPerSecond:any;
-    private stopWatch: boolean = false;      // once true, stop running the time calculation
+    private startTime: number; // this needs to be a field to persist through iterations of origNG
+    private eegPerSecond: any;
+    private stopWatch: boolean = false; // once true, stop running the time calculation
 
     // Used to detect fluctuations in EEG waves
     private baselines: Array<number> = [];
-    private firstThousand: boolean = false;              // once true, we have read in our first thousand EEG values which we can use for the baseline
+    private firstThousand: boolean = false; // once true, we have read in our first thousand EEG values which we can use for the baseline
     private streaks: Array<number> = [];
     private strikes: Array<number> = [];
     private firstNoteConfirmed: boolean = false;
 
     private prevBeat: number;
-    private sleeping: boolean = false;               // If true, we've already declared our next beat and have to wait until it is sent out
-    private firstCycle: boolean = true;              // If true, this is the first cycle and we have to set the interval
+    private sleeping: boolean = false; // If true, we've already declared our next beat and have to wait until it is sent out
+    private firstCycle: boolean = true; // If true, this is the first cycle and we have to set the interval
 
     private instrumentNoteSettings: CytonSettings | GanglionSettings;
 
-    private currentNoteData:any;
-    private nextPause:number = 0;
-    private pauseCounter:number = 0;
+    private currentNoteData: any;
+    private nextPause: number = 0;
+    private pauseCounter: number = 0;
 
     private midiGenerator;
 
     musicClock: number;
 
+    private emotionDecoder: EmotionDecoder;
+
     public override setStopFlag() {
-        console.log('stopped');
+        console.log("stopped");
         clearInterval(this.musicClock);
         this.midiGenerator.setStopFlag();
         this.stopFlag = true;
     }
 
-
-    /* An array of size numNotes is used to store the cutoff values for each increment. 
-    * 
-    * The MIN_MAX_AMPLITUDE_DIFFERENCE is divided by numNotes to create evenly spaced sections in the array. 
-    * 
-    * incrementArr[0] is always 0 and incrementArr[numNotes - 1] is always Constants.MAX_AMPLITUDE + AMPLITUDE_OFFSET. 
-    * Each subsequent value in the array is calculated by multiplying the previous value by the result of the division. 
-    * 
-    * In runtime, the headset data is compared to the array to determine which note it corresponds to. 
-    * The note is determined by taking the floor of the two values in the array the data falls between.
-    */
-    private incrementArr: Array<number> = [];    // NOT Important
+    /* An array of size numNotes is used to store the cutoff values for each increment.
+     *
+     * The MIN_MAX_AMPLITUDE_DIFFERENCE is divided by numNotes to create evenly spaced sections in the array.
+     *
+     * incrementArr[0] is always 0 and incrementArr[numNotes - 1] is always Constants.MAX_AMPLITUDE + AMPLITUDE_OFFSET.
+     * Each subsequent value in the array is calculated by multiplying the previous value by the result of the division.
+     *
+     * In runtime, the headset data is compared to the array to determine which note it corresponds to.
+     * The note is determined by taking the floor of the two values in the array the data falls between.
+     */
+    private incrementArr: Array<number> = []; // NOT Important
 
     // The amount of time (in milliseconds) that each of the supported notes would take at the specified BPM
     private timeForEachNoteArray: Array<number>;
-
 
     constructor(settings: MusicSettings, debugOptionsObject: TDebugOptionsObject) {
         super(settings, debugOptionsObject);
@@ -112,17 +123,23 @@ export class NoteHandler extends AbstractNoteHandler {
 
         this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
 
-        this.keyGroup = KeyGroups[settings.keyGroup as keyof typeof KeyGroups];     // Example: Major
-        this.scale = Keys[settings.scale as keyof typeof Keys];                     // Example: C#, full example: C# Major
+        this.keyGroup = KeyGroups[settings.keyGroup as keyof typeof KeyGroups]; // Example: Major
+        this.scale = Keys[settings.scale as keyof typeof Keys]; // Example: C#, full example: C# Major
 
         this.keySignature = Constants.KEY_SIGNATURES[this.keyGroup][this.scale];
         this.instrumentNoteSettings = settings.deviceSettings;
 
-        this.midiGenerator = new MIDIManager(settings, this.timeForEachNoteArray, debugOptionsObject);
+        this.midiGenerator = new MIDIManager(
+            settings,
+            this.timeForEachNoteArray,
+            debugOptionsObject
+        );
         this.stopFlag = false;
 
         // This has to be assigned in the constructor or else it cannot be cancelled
-        this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
+        this.musicClock = window.setInterval(() => {
+            this.playNextBeat();
+        }, this.timeForEachNoteArray[2]);
 
         // Initialize streaks and strikes to 0s (otherwise you get NaNs)
         this.streaks = Array(8).fill(0);
@@ -145,14 +162,15 @@ export class NoteHandler extends AbstractNoteHandler {
             this.InitIncrementArr(0);
         }
         /* Set this to true to enable real-time playback related output during recording.
-         * Ex: 
-         * Channel 1: At Rest 
+         * Ex:
+         * Channel 1: At Rest
          * ... f
-         * Channel k: Playing G#  
+         * Channel k: Playing G#
          */
         this.midiGenerator.setDebugOutput(debugOptionsObject.debugOption3); // debug
-    }
 
+        this.emotionDecoder = new EmotionDecoder();
+    }
 
     /* setTimeForEachNoteArray does simple logic to return the values of each note in milliseconds as an array. 
        BPM affects the amount of time for each note, and the math logic can be explained on this website if you
@@ -164,8 +182,8 @@ export class NoteHandler extends AbstractNoteHandler {
             getMillisecondsFromBPM(BPM) / 2, // Index 1: Eighth Note
             getMillisecondsFromBPM(BPM), // Index 2: Quarter Note
             getMillisecondsFromBPM(BPM) * 2, // Index 3: Half Note
-            getMillisecondsFromBPM(BPM) * 4 // Index 4: Whole Note
-        ]
+            getMillisecondsFromBPM(BPM) * 4, // Index 4: Whole Note
+        ];
     }
 
     // Return the previousThousandEEG
@@ -173,7 +191,7 @@ export class NoteHandler extends AbstractNoteHandler {
         return this.previousThousandEEG;
     }
 
-    // This creates the array in which different "increments" for notes are housed. 
+    // This creates the array in which different "increments" for notes are housed.
     // For more info see the comment for "var incrementArr"
     private InitIncrementArr(ampVal: number) {
         /*  The number for maximum will always be greater than 0 assuming there is a valid
@@ -192,10 +210,8 @@ export class NoteHandler extends AbstractNoteHandler {
         if (ampVal > 0) {
             for (let i = 0; i < 8; i++) {
                 var tempAvg = this.average(this.previousThousandEEG[i]);
-                if (tempAvg < minAvg)
-                    minAvg = tempAvg;
-                if (tempAvg > maxAvg)
-                    maxAvg = tempAvg;
+                if (tempAvg < minAvg) minAvg = tempAvg;
+                if (tempAvg > maxAvg) maxAvg = tempAvg;
             }
         }
         var range = maxAvg - minAvg;
@@ -220,8 +236,8 @@ export class NoteHandler extends AbstractNoteHandler {
             we would like to allow for a tiny amount of randomness as we cannot always predict the exact root cause of low connectivity
             with the device. */
         for (var i = 1; i < this.numNotes - 1; i++) {
-            var offset = (Math.random() - 0.5) * incrementAmount / 2;
-            this.incrementArr[i] = p25 + (incrementAmount * i) + offset;
+            var offset = ((Math.random() - 0.5) * incrementAmount) / 2;
+            this.incrementArr[i] = p25 + incrementAmount * i + offset;
         }
     }
 
@@ -266,11 +282,11 @@ export class NoteHandler extends AbstractNoteHandler {
                 if (this.prevBeat % 2 === 1) {
                     // Ensure you don't go out of bounds (you should technically also do this for else)
                     if (this.prevBeat >= this.numNotes - 2) {
-                        this.prevBeat = this.prevBeat % 19 + 14;
+                        this.prevBeat = (this.prevBeat % 19) + 14;
                     }
                     beats = {
                         notes: [this.prevBeat + 1, this.prevBeat + 2],
-                        duration: 1
+                        duration: 1,
                     };
                     this.prevBeat += 3;
                     this.firstNoteConfirmed = true;
@@ -279,22 +295,21 @@ export class NoteHandler extends AbstractNoteHandler {
                 }
                 // Otherwise, go to a nearby chord tone
                 else {
-                    this.prevBeat += (Math.random() < 0.5) ? -1 : 1;
+                    this.prevBeat += Math.random() < 0.5 ? -1 : 1;
                     this.firstNoteConfirmed = true;
                     console.log("First note confirmed");
                     beats = {
                         notes: [this.prevBeat],
-                        duration: 2
+                        duration: 2,
                     };
                     return beats;
                 }
-            }
-            else {
+            } else {
                 this.firstNoteConfirmed = true;
                 console.log("First note confirmed");
                 beats = {
                     notes: [this.prevBeat],
-                    duration: 2
+                    duration: 2,
                 };
                 return beats;
             }
@@ -304,14 +319,13 @@ export class NoteHandler extends AbstractNoteHandler {
                 this.prevBeat = Math.round(Math.random() * this.numNotes);
                 beats = {
                     notes: [this.prevBeat],
-                    duration: 2
+                    duration: 2,
                 };
                 return beats;
-            }
-            else {
+            } else {
                 beats = {
                     notes: [-1],
-                    duration: 2
+                    duration: 2,
                 };
                 return beats;
             }
@@ -353,7 +367,7 @@ export class NoteHandler extends AbstractNoteHandler {
         }
     }
 
-    // Checks for streaks of anonmalous activity and adjusts the volume/tempo as necessary 
+    // Checks for streaks of anonmalous activity and adjusts the volume/tempo as necessary
     private volumeTempoAdjustor(i: number, amplitude: number) {
         var baselineAvg = (this.baselines[i] + this.baselines[i - 1]) / 2;
 
@@ -363,8 +377,7 @@ export class NoteHandler extends AbstractNoteHandler {
         if (Math.abs(amplitude) > 1.25 * Math.abs(baselineAvg)) {
             this.streaks[i]++;
             this.strikes[i] = 0;
-        }
-        else {
+        } else {
             if (this.streaks[i] > 0) {
                 this.strikes[i]++;
                 // This is so that it doesn't change the vol/tempo multiple times by getting a strike
@@ -384,8 +397,7 @@ export class NoteHandler extends AbstractNoteHandler {
                     this.midiGenerator.adjustVolume(-4, 0);
                     this.relativeVolume--;
                 }
-            }
-            else {
+            } else {
                 if (this.relativeVolume < 3) {
                     console.log("Volume raised!");
                     this.midiGenerator.adjustVolume(4, 0);
@@ -404,10 +416,11 @@ export class NoteHandler extends AbstractNoteHandler {
                     // Change the music clock cycle to actually change the BPM
                     this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
                     clearInterval(this.musicClock);
-                    this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
+                    this.musicClock = window.setInterval(() => {
+                        this.playNextBeat();
+                    }, this.timeForEachNoteArray[2]);
                 }
-            }
-            else {
+            } else {
                 if (this.relativeTempo < 2) {
                     console.log("Tempo raised!");
                     this.relativeTempo += 1;
@@ -416,7 +429,9 @@ export class NoteHandler extends AbstractNoteHandler {
                     // Change the music clock cycle to actually change the BPM
                     this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
                     clearInterval(this.musicClock);
-                    this.musicClock = window.setInterval(() => {this.playNextBeat()}, this.timeForEachNoteArray[2]);
+                    this.musicClock = window.setInterval(() => {
+                        this.playNextBeat();
+                    }, this.timeForEachNoteArray[2]);
                 }
             }
         }
@@ -432,8 +447,7 @@ export class NoteHandler extends AbstractNoteHandler {
         if (amplitude > 1.25 * baselineAvg) {
             this.streaks[i]++;
             this.strikes[i] = 0;
-        }
-        else {
+        } else {
             if (this.streaks[i] > 0) {
                 this.strikes[i]++;
                 this.streaks[i]++;
@@ -457,8 +471,7 @@ export class NoteHandler extends AbstractNoteHandler {
                 if (this.keyGroup === 1) {
                     this.keySignature = Constants.KEY_SIGNATURES[this.keyGroup - 1][this.scale];
                     this.keyGroup--;
-                }
-                else {
+                } else {
                     this.keySignature = Constants.KEY_SIGNATURES[this.keyGroup + 1][this.scale];
                     this.keyGroup++;
                 }
@@ -466,7 +479,12 @@ export class NoteHandler extends AbstractNoteHandler {
                 this.streaks[7] = 0;
             }
             // Beta Gamma Theta (Up a minor third)
-            else if (s3 >= es6 && s5 >= es6 && s7 >= es6 && (s3 === es6 || s5 === es6 || s7 === es6)) {
+            else if (
+                s3 >= es6 &&
+                s5 >= es6 &&
+                s7 >= es6 &&
+                (s3 === es6 || s5 === es6 || s7 === es6)
+            ) {
                 this.scale += 3;
                 if (this.scale >= 12) {
                     this.scale = this.scale % 12;
@@ -476,7 +494,12 @@ export class NoteHandler extends AbstractNoteHandler {
                 this.streaks[7] = 0;
             }
             // Alpha Beta Gamma (Up a 4th)
-            else if (s1 >= es6 && s3 >= es6 && s5 >= es6 && (s1 === es6 || s3 === es6 || s5 === es6)) {
+            else if (
+                s1 >= es6 &&
+                s3 >= es6 &&
+                s5 >= es6 &&
+                (s1 === es6 || s3 === es6 || s5 === es6)
+            ) {
                 this.scale += 5;
                 if (this.scale >= 12) {
                     this.scale = this.scale % 12;
@@ -486,7 +509,12 @@ export class NoteHandler extends AbstractNoteHandler {
                 this.streaks[7] = 0;
             }
             // Alpha Beta Theta (Up a 5th)
-            else if (s1 >= es6 && s3 >= es6 && s7 >= es6 && (s1 === es6 || s3 === es6 || s7 === es6)) {
+            else if (
+                s1 >= es6 &&
+                s3 >= es6 &&
+                s7 >= es6 &&
+                (s1 === es6 || s3 === es6 || s7 === es6)
+            ) {
                 this.scale += 7;
                 if (this.scale >= 12) {
                     this.scale = this.scale % 12;
@@ -498,11 +526,15 @@ export class NoteHandler extends AbstractNoteHandler {
         }
     }
 
-    // This is the function that handles all of the note generation. 
+    // This is the function that handles all of the note generation.
     // It has various supporting functions that it calls, but it all stems from here.
-    public originalNoteGeneration = async (EEGdataObj: DataStream8Ch | DataStream4Ch, /*instrument:number, noteType:number, noteVolume:number, numNotes:number*/) => {
+    public originalNoteGeneration = async (
+        EEGdataObj:
+            | DataStream8Ch
+            | DataStream4Ch /*instrument:number, noteType:number, noteVolume:number, numNotes:number*/
+    ) => {
         if (this.stopFlag) {
-            console.log('stopped');
+            console.log("stopped");
             clearInterval(this.musicClock);
             this.midiGenerator.setStopFlag();
             return;
@@ -512,7 +544,7 @@ export class NoteHandler extends AbstractNoteHandler {
         if (this.previousThousandEEG[0][0] === 0 && !this.stopWatch) {
             // We have to artificially change prevThouEEG because oftentimes the first value is actually just a 0 and we need to differentiate it
             this.previousThousandEEG[0][0] = 1;
-            if(this.startTime === 0) {
+            if (this.startTime === 0) {
                 this.startTime = Date.now();
             }
         }
@@ -521,11 +553,11 @@ export class NoteHandler extends AbstractNoteHandler {
         if (this.previousThousandEEG[0][9] !== undefined && !this.stopWatch) {
             var endTime: number = Date.now();
             var elapsed: number = endTime - this.startTime;
-            var timePerEEG = (elapsed / 10) / 1000;             // div 1000 to convert from milliseconds to seconds
+            var timePerEEG = elapsed / 10 / 1000; // div 1000 to convert from milliseconds to seconds
             this.eegPerSecond = Math.round(1 / timePerEEG);
             if (this.eegPerSecond === 0) {
                 // Go to default if this value wasn't calculated correctly (unstable connection at recording start)
-                this.eegPerSecond = 500;            
+                this.eegPerSecond = 500;
             }
             this.stopWatch = true;
         }
@@ -536,7 +568,7 @@ export class NoteHandler extends AbstractNoteHandler {
         // The brainwave with the most activity
         var maxWave = [0, 0];
 
-        // Grab values as arrays for easy looping    
+        // Grab values as arrays for easy looping
         var dataArray = Object.values(EEGdataObj) as number[];
 
         // Loop through each EEG channel
@@ -560,9 +592,9 @@ export class NoteHandler extends AbstractNoteHandler {
             }
 
             // Check to see if this is the wave with the most activity
-            if (Math.abs(waveAvg/this.baselines[i]) > maxWave[1]) {
+            if (Math.abs(waveAvg / this.baselines[i]) > maxWave[1]) {
                 maxWave[0] = i;
-                maxWave[1] = Math.abs(waveAvg/this.baselines[i]);
+                maxWave[1] = Math.abs(waveAvg / this.baselines[i]);
             }
 
             let returnedAmpValue = curChannelData; // / Math.pow(10, 7);
@@ -586,8 +618,7 @@ export class NoteHandler extends AbstractNoteHandler {
                 }
             }
 
-            this.avgArray[i] = avg;             // OLD: used for calculating intervals
-
+            this.avgArray[i] = avg; // OLD: used for calculating intervals
         }
 
         if (this.sleeping) {
@@ -605,22 +636,19 @@ export class NoteHandler extends AbstractNoteHandler {
         if (this.firstCycle) {
             this.firstCycle = false;
         }
-
     };
 
     private async generateBeat(declaredBeat: any) {
-
         var noteLength: number = declaredBeat.duration;
-        var noteFrequencies:Array<number> = [];
-        var noteAndOctaves:any = [];
+        var noteFrequencies: Array<number> = [];
+        var noteAndOctaves: any = [];
 
         var noteLengthName = getNoteLengthStringFromInt(noteLength);
 
         // Get the lowest octave that will be used in the song
         var floorOctave = GetFloorOctave(this.numNotes);
 
-        for(var i = 0; i < declaredBeat.notes.length; i++) {
-
+        for (var i = 0; i < declaredBeat.notes.length; i++) {
             // Get the actual note and its octave
             noteAndOctaves.push(this.GetNoteWRTKey(declaredBeat.notes[i]));
 
@@ -629,15 +657,16 @@ export class NoteHandler extends AbstractNoteHandler {
 
             // If the generated note is not a rest
             if (noteAndOctaves[i].note !== -1) {
-                noteOctaveString = noteAndOctaves[i].note + (noteAndOctaves[i].octave + floorOctave).toString();
+                noteOctaveString =
+                    noteAndOctaves[i].note + (noteAndOctaves[i].octave + floorOctave).toString();
                 noteFrequencies.push(getFrequencyFromNoteOctaveString(noteOctaveString));
-            }
-            else {
+            } else {
                 noteFrequencies.push(0);
             }
 
-                // Debug -----------------------------------------              OLD
-            if (this.debugOutput) {  // Test frequency of notes 
+            // Debug -----------------------------------------              OLD
+            if (this.debugOutput) {
+                // Test frequency of notes
                 let num = i + 1;
                 var frequencyArray: number[] = [];
                 frequencyArray.fill(-1);
@@ -646,82 +675,85 @@ export class NoteHandler extends AbstractNoteHandler {
                     frequencyArray[i] = Number(noteAndOctaves[i].note);
 
                     console.log("Channel " + num + ": Playing " + noteAndOctaves[i].note);
-
                 } else if (this.debugOutput) {
                     console.log("Channel " + num + ": At Rest");
-                } else { }
+                } else {
+                }
                 frequencyArray.forEach((n: any) => console.log(n));
             }
             // ------------------------------------- End Debug
         }
 
-        
-
         this.currentNoteData = {
-            player: { noteFrequencies, noteLength, timeForEachNoteArray: this.timeForEachNoteArray, amplitude: 100 },
-            writer: { noteLengthName, notes: noteAndOctaves, floorOctave: floorOctave }
+            player: {
+                noteFrequencies,
+                noteLength,
+                timeForEachNoteArray: this.timeForEachNoteArray,
+                amplitude: 100,
+            },
+            writer: { noteLengthName, notes: noteAndOctaves, floorOctave: floorOctave },
         };
-        
+
+        if (this.previousThousandEEG[0].length > 500) {
+            this.emotionDecoder.printEmotionPredictions([
+                this.emotionDecoder.predict(this.getPreviousThousandEEG()),
+            ]);
+        }
     }
 
     // Given an index which represents the channel of brainwave that has the strongest activity...
     // ... take a random musical pattern from the corresponding list and return it with the duration of each note
     private getBeatFromIndex(index: number) {
         var beat;
-        var pattern:any = [];
+        var pattern: any = [];
         var patternNumber;
         var duration;
         var wave;
         var i;
 
         if (index === 1) {
-            wave = 'Alpha';
+            wave = "Alpha";
             patternNumber = Math.floor(Math.random() * Constants.alphaPatterns.length);
-            for(i = 0; i < Constants.alphaPatterns[patternNumber].length; i++) {
+            for (i = 0; i < Constants.alphaPatterns[patternNumber].length; i++) {
                 pattern.push(Constants.alphaPatterns[patternNumber][i]);
             }
             duration = pattern.pop();
-        }
-        else if (index === 3) {
-            wave = 'Beta';
+        } else if (index === 3) {
+            wave = "Beta";
             patternNumber = Math.floor(Math.random() * Constants.betaPatterns.length);
-            for(i = 0; i < Constants.betaPatterns[patternNumber].length; i++) {
+            for (i = 0; i < Constants.betaPatterns[patternNumber].length; i++) {
                 pattern.push(Constants.betaPatterns[patternNumber][i]);
             }
             duration = pattern.pop();
-        }
-        else if (index === 5) {
-            wave = 'Gamma';
+        } else if (index === 5) {
+            wave = "Gamma";
             patternNumber = Math.floor(Math.random() * Constants.gammaPatterns.length);
-            for(i = 0; i < Constants.gammaPatterns[patternNumber].length; i++) {
+            for (i = 0; i < Constants.gammaPatterns[patternNumber].length; i++) {
                 pattern.push(Constants.gammaPatterns[patternNumber][i]);
             }
             duration = pattern.pop();
-        }
-        else {
-            wave = 'Theta';
+        } else {
+            wave = "Theta";
             patternNumber = Math.floor(Math.random() * Constants.thetaPatterns.length);
-            for(i = 0; i < Constants.thetaPatterns[patternNumber].length; i++) {
+            for (i = 0; i < Constants.thetaPatterns[patternNumber].length; i++) {
                 pattern.push(Constants.thetaPatterns[patternNumber][i]);
             }
             duration = pattern.pop();
         }
 
-        console.log("Wave: " + wave + "  Pattern number: " + patternNumber);
+        // console.log("Wave: " + wave + "  Pattern number: " + patternNumber);
         // Notes in the patterns are relative to the last note played, so we adjust them to match
         for (i = 0; i < pattern.length; i++) {
             if (pattern[i] === 0) {
                 pattern[i] = -1;
-            }
-            else if (pattern[i] > 0) {
+            } else if (pattern[i] > 0) {
                 pattern[i] = this.prevBeat + (pattern[i] - 1);
                 // Make sure you don't go out of bounds
                 if (pattern[i] >= this.numNotes) {
-                    pattern[i] = pattern[i] % this.numNotes + this.numNotes - 7;
+                    pattern[i] = (pattern[i] % this.numNotes) + this.numNotes - 7;
                 }
                 this.prevBeat = pattern[i];
-            }
-            else {
+            } else {
                 pattern[i] = this.prevBeat + pattern[i];
                 // Don't go out of bounds
                 if (pattern[i] < 0) {
@@ -732,7 +764,7 @@ export class NoteHandler extends AbstractNoteHandler {
         }
         beat = {
             notes: pattern,
-            duration: duration
+            duration: duration,
         };
         return beat;
     }
@@ -740,17 +772,21 @@ export class NoteHandler extends AbstractNoteHandler {
     // This function gets called every beat to either play the next prepared beat, or wait until a half/whole note finishes playing
     // This.currentNoteData should be prepared while the previous note is playing
     private playNextBeat() {
-        if(this.firstCycle) {
+        if (this.firstCycle) {
             return;
         }
-        
+
         if (this.pauseCounter >= this.nextPause) {
             this.midiGenerator.realtimeGenerate(this.currentNoteData);
             this.pauseCounter = 0;
-            this.nextPause = this.currentNoteData.player.noteLength === 3 ? 1 : this.currentNoteData.player.noteLength === 4 ? 3 : 0;   // 1 wait for half notes, 3 for whole notes
+            this.nextPause =
+                this.currentNoteData.player.noteLength === 3
+                    ? 1
+                    : this.currentNoteData.player.noteLength === 4
+                    ? 3
+                    : 0; // 1 wait for half notes, 3 for whole notes
             this.sleeping = false;
-        }
-        else {
+        } else {
             this.pauseCounter++;
         }
     }
@@ -760,6 +796,4 @@ export class NoteHandler extends AbstractNoteHandler {
         let res;
         return res;
     }
-
-
 }
