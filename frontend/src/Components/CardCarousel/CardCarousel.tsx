@@ -92,8 +92,8 @@ const CardCarousel = () => {
                 })}
 
             </Caro>
-            {!isPlaying && <button id="play-pause-button" className="btn btn-secondary" onClick={startPlaying}>Play</button>}
-            {isPlaying && <button id="play-pause-button" className="btn btn-secondary" onClick={stopPlaying}>Pause</button>}
+            {!isPlaying && <button id="play-pause-button" className="btn btn-secondary" onClick={startPlaying}>Unmute</button>}
+            {isPlaying && <button id="play-pause-button" className="btn btn-secondary" onClick={stopPlaying}>Mute</button>}
         </div>
 
     )
