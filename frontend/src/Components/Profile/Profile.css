@@ -1,0 +1,362 @@
+/* CSS for Profile page */
+
+.sticky{
+    position: sticky;
+    top: 20%;
+}
+
+.user-profile {
+    /* background-color: #252525; */
+    border-radius: 10px;
+    height: 100%;
+    width: 75%;
+    color: #fff;
+    margin: auto;
+    padding-top: 2%;
+}
+
+#profile-container{
+    /* background-color: red; */
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
+
+#profile-top-container {
+    /* background-color: red; */
+    border-radius: 10px;
+    position: relative;
+}
+
+#select-profile-image-div{
+    /* background-color: orange; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    z-index: 3;
+    height: 100%;
+    width: 30%;
+    padding-left: 3%;
+    /* height: 70vh; */
+}
+
+#profile-image-div {
+    /* background-color: red; */
+    border-color: rgb(255, 255, 255);
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    border-radius: 50%;
+    border-width: 3px;
+    width: 16vw;
+    height: 16vw;
+    margin-top: 5%;
+}
+
+#profile-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: darkgray;
+    border-color: white;
+    border-radius: 50%;
+    border-width: 5px;
+    width: 100%;
+    height: 100%;
+}
+
+#profile-file-upload-div{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.522);
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+#profile-file-upload-label{
+    /* background-color: red; */
+    margin-top: 35%;
+    margin-left: 5%;
+    width: 90%;
+}
+
+#profile-file-upload{
+    width: 90%;
+   margin-left: 5%;
+}
+
+#profile-top-name-div {
+    background: url('../../images/bgSearch.png')/*linear-gradient(270deg, #40BBCE 0%, #008BA0 100%);*/;
+    
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px 10px 0px 0px;
+    height: 25vh;
+    position: relative;
+}
+
+#edit-profile-div{
+    /* background-color: red; */
+    padding: 1%;
+    display: flex;
+    justify-content: end;
+}
+
+#save-cancel-profile-div{
+    /* background-color: red; */
+    display: flex;
+    flex-direction: row;
+    column-gap: 5px;
+}
+
+#edit-profile-btn{
+    background-color: white;
+    width: fit-content;
+    border-style: none;
+    color: #00798B;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 5px;
+}
+
+#edit-profile-btn:hover{
+    background-color: #00798B;
+    width: fit-content;
+    border-style: none;
+    color: #ffffff;
+}
+
+#user-info-div{
+    /* background-color: red; */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    margin-left: 32%;
+    padding-left: 2%;
+}
+
+#user-profile-name-div{
+    display: flex;
+    column-gap: 1%;
+}
+
+#profile-name {
+    /* background-color: orange; */
+    color: #fff;
+    display: flex;
+    width: 50%;
+    height: fit-content;
+}
+
+#user-name {
+    /* background-color: green; */
+    color: #ffffff;
+    display: flex;
+    width: 50%;
+    height: fit-content;
+    font-weight: 350;
+}
+
+#profile-top-follower-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    background-color: rgba(123, 123, 123, 1);
+    height: fit-content;
+}
+
+#count-all-div {
+    /* background-color: orange; */
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding-left: auto;
+    padding-right: auto;
+    /* background-color: red; */
+}
+
+.count-div {
+    /* background-color: orange; */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2%;
+    width: 33%;
+    text-align: center;
+}
+
+#profile-top-tabs-div {
+    background-color: rgba(100, 100, 100, 1);
+    border-radius: 0px 0px 10px 10px;
+    display: flex;
+    justify-content: flex-end;
+    height: 15%;
+    width: 100%;
+}
+
+#tracks-btn-line{
+    display: block;
+    background-color: #00798B;
+    border-color: #00798B;
+    width: 100%;
+    height: 50%;
+    border-radius: 0px 0px 10px 10px;
+}
+
+#tracks-btn {
+    background-color: rgba(100, 100, 100, 1);
+    color: white;
+    border-style: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0px 0px 10px 10px;
+    width: 33%;
+    min-width: fit-content;
+    column-gap: 10px;
+    padding: 0;
+}
+
+#tracks-btn:hover{
+    color: white !important;
+    font-weight: 600 !important;
+    background-color: #00798B !important;
+    border-color: #00798B !important;
+    text-decoration: underline;
+}
+
+#tracks-btn-text{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0px;
+    width: 33%;
+    min-width: fit-content;
+    margin: 5px;
+    column-gap: 10px;
+    height: 50%;
+}
+
+#playlists-btn-line{
+    display: none;
+    background-color: #00798B;
+    border-color: #F8607C;
+    width: 100%;
+    height: 50%;
+    border-radius: 0px 0px 10px 10px;
+}
+
+#playlists-btn {
+    background-color: rgba(100, 100, 100, 1);
+    color: white;
+    border-style: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0px 0px 10px 10px;
+    width: 33%;
+    min-width: fit-content;
+    column-gap: 10px;
+    padding: 0;
+}
+
+#playlists-btn:hover{
+    color: white !important;
+    font-weight: 600 !important;
+    background-color: #00798B !important;
+    border-color: #00798B !important;
+    text-decoration: underline;
+}
+
+#playlists-btn-text{
+    /* background-color: #00798B; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0px;
+    width: 33%;
+    min-width: fit-content;
+    margin: 5px;
+    column-gap: 10px;
+    height: 50%;
+}
+
+#profile-bottom-container {
+    /* background-color: #10101032; */
+    padding-top: 2%;
+    padding-left: 1%;
+    margin-top: 2%;
+    border-radius: 10px;
+}
+
+/* CSS for Mobile View */
+@media only screen and (max-width: 700px) {
+    #profile-container{
+        width: 95%;
+    }
+
+    #count-all-div {
+        justify-content: space-between;
+        padding-left: 5%;
+        padding-right: 5%;
+    }
+
+    #tracks-btn, #playlists-btn{
+        width: 50%;
+    }
+
+    #profile-name, #user-name{
+        width: 100%;
+    }
+
+    #select-profile-image-div{
+        /* background-color: orange; */
+        width: 100%;
+        padding-left: 50%;
+        padding-right: 50%;
+        margin-top: 13%;
+        height: 30vh;
+    }
+
+    #profile-image-div {
+        width: 45vw;
+        height: 45vw;
+    }
+
+    #profile-top-name-div {
+        height: fit-content;
+    }
+
+    #user-profile-name-div {
+        width: 100%;
+    }
+
+    #user-info-div{
+        /* background-color: red; */
+        margin-top: 60%;
+        margin-left: 0px;
+        padding-left: 5%;
+        padding-bottom: 2%;
+        width: 100%;
+    }
+
+    #user-firstName, #user-lastName{
+        width: 48%;
+    }
+
+}

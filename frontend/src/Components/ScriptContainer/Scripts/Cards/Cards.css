@@ -1,0 +1,269 @@
+.record-heading, .record-heading2{
+    color:white;
+    align-self: self-start;
+}
+
+.record-heading2{
+    border-radius: 3px 3px 0px 0px;
+    color: #cdcdcd;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: small;
+}
+
+.input-card-text{
+    border: solid;
+    border-color: white;
+    border-radius: 1px;
+}
+
+.cards-body-div{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+
+#record-container{
+    /* background-color: aqua; */
+    display: flex;
+    flex-direction: column;
+    width: 70vw;
+    height: fit-content;
+}
+
+#record-card-info-div{
+    /* background-color: purple; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding-bottom: 3%;
+}
+
+#card-settings-div{
+    /* background-color: red; */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    height: fit-content;
+    padding: 10px;
+
+}
+
+#record-uploads-div{
+    background-color: rgb(94, 94, 94);
+    display: flex;
+    flex-direction: column;
+    height: 85%;
+    width: fit-content;
+    padding: 3%;
+    border-color: #0e0e0e;
+    border-radius: 10px;
+    filter: drop-shadow(0px 4px 4px #272727);
+
+}
+
+#background-settings{
+    background-color: rgb(56, 56, 56);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 10px ;
+    width: fit-content;
+    height: fit-content;
+    padding: 8px;
+}
+.area-settings{
+    background-color: rgb(56, 56, 56);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 10px ;
+    width: 100%;
+    height: fit-content;
+    padding: 8px;
+}
+
+.OR-subtitle{
+    color: #ffffff;
+    text-align: center;
+    font-weight: 400;
+}
+
+.record-upload {
+    /* background-color: rgb(176, 176, 176); */
+    width: 100%;
+    margin-top: 3%;
+    margin-bottom: 3%;
+    padding: 1%;
+
+}
+.record-upload1 {
+    width: 90%;
+    margin-bottom: 3%;
+}
+
+.check-box {
+    width: 90%;
+    margin-bottom: 3%;
+    color: #ffffff;
+}
+
+.record-upload-background{
+    /* background-color: blue; */
+    height: 100%;
+}
+
+#image-card-btn {
+    background-color: white;
+    color: #259FB1;
+    border-color: rgb(209, 209, 209);
+    border-width: 2px;
+    border-style: line;
+    border-radius: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: fit-content;
+    font-weight: 550;
+}
+#image-card-btn:hover{
+    background-color: #259FB1;
+    border-color: #259FB1;
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+#add-card-btn {
+    background-color: #259FB1;
+    border-color: #259FB1;
+    border-radius: 0px;
+    margin-top: 5%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 5vh;
+    border-radius: 4px;
+}
+#add-card-btn:hover{
+    background-color: #0c7b8b;
+    border-color: #0c7b8b;
+    text-decoration: underline;
+}
+
+#display-card-div{
+    /* background-color: green; */
+    color: rgb(190, 190, 190);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 2%;
+    /* margin-top: 4%; */
+    width: 75%;
+    height: 70vh;
+}
+
+#card-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0e0e0e;
+    background-image: url('');
+    background-size: 100% 150% !important;
+    background-position: center center !important;
+    background-repeat: no-repeat;
+    color: white;
+    width: 80%;
+    height: 100%;
+    word-wrap: break-word;
+}
+
+#card-text{
+    /* background-color: red; */
+    max-width: 100%;
+    max-height: 100%;
+    word-wrap: break-word;
+    text-align: center;
+    padding: 4%;
+}
+
+#record-buttons-div{
+    /* background-color: orange; */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    column-gap: 3%;
+    width: 100%;
+    margin-top: 2%;
+}
+
+#skip-step-btn {
+    background-color: #979797;
+    border-color: #686868;
+    border-radius: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 5vh;
+    border-radius: 4px;
+}
+#skip-step-btn:hover{
+    background-color: #7a7a7a;
+    border-color: #7a7a7a;
+    text-decoration: underline;
+}
+
+#go-record-btn {
+    background-color: #e33051;
+    border-color: #e33051;
+    border-radius: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 5vh;
+    border-radius: 4px;
+}
+#go-record-btn:hover{
+    background-color:#a3253c;
+    border-color: #8b1f33;
+    text-decoration: underline;
+}
+
+/* CSS for Mobile View */
+@media only screen and (max-width: 600px) {
+
+    .cards-body-div{
+        flex-direction: column;
+        align-items: center;
+        height: fit-content;
+    }
+
+    #display-card-div{
+        width: 100%;
+        height: 30vh;
+        margin-top: 10%;
+        margin-bottom: 2%;
+    }
+
+    #card-display {
+        width: 100%;
+        height: 100%;
+    }
+
+    .record-heading, .record-heading2{
+        color:white;
+        align-self: center;
+    }
+
+    .video {
+        height: 200px;
+        width: auto;
+    }
+}
+
+

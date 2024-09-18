@@ -1,0 +1,274 @@
+p{
+    white-space: pre-wrap;
+}
+
+#about-container{
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    height: fit-content;
+    margin: 0;
+}
+
+#about-header-div{
+    background-color: #575757;
+    color:white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 22vh;
+}
+
+#about-header-title{
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 2%;
+    margin-bottom: 0.5%;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#about-links-div{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    column-gap: 1%;
+}
+
+.about-link{
+    font-weight: 350;
+    color: rgb(255, 255, 255);
+    font-size: larger;
+}
+.about-link:hover{
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: underline;
+    color: white;
+}
+
+.about-linebreak{
+    color: white;
+    margin-left: auto;
+    margin-right: auto;
+    width: 98%;
+    margin-top: 3%;
+}
+
+#about-body-div{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    height: fit-content;
+    width: 100%;
+}
+
+.about-body-titles{
+    color: white;
+    margin-top: 1%;
+    margin-left: 3%;
+}
+
+#about-brainbeats, #about-tech{
+    background: linear-gradient(270deg, #40BBCE 0%, #008BA0 100%);
+    display: flex;
+    flex-direction: row;
+    padding-left: 3%;
+    padding-right: 3%;
+    color: black;
+    width: 100%;
+    height: fit-content;
+    margin-top: 1%;
+    border-radius: 10px;
+}
+
+#about-bb-image{
+    margin: 2%;
+    /* background-color: rgb(182, 182, 182); */
+    border-radius: 50%;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 40%;
+    height: 70%;
+}
+
+#mascot {
+    width: 100%;     
+}
+
+#about-bb-text{
+    margin: 2%;
+    background-color: rgb(255, 255, 255);
+    border-radius: 10px;
+    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    min-width: 40%;
+    height: 70%;
+}
+
+.about-bb-subtitle{
+    color: #005663;
+    padding-top: 3%;
+    padding-bottom: 2%;
+    font-weight: 600;
+}
+
+#about-teams{
+    background: #333333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: black;
+    width: 100%;
+    height: fit-content;
+    margin-top: 1%;
+    border-radius: 10px;
+}
+
+#about-teams-header{
+    background: linear-gradient(270deg, #40BBCE 0%, #008BA0 100%);
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    min-height: 10vh;
+    height: fit-content;
+    border-radius: 10px;
+}
+
+.about-team-btn{
+    background-color: #259FB1;
+    border-style: none;
+    width: 100%;
+    font-weight: 600;
+    font-size: x-large;
+    border-radius: 0px;
+}
+.about-team-btn:hover{
+    background-color: #007183 !important;
+    font-weight: 650;
+    border-radius: 0px 0px 17px 17px;
+}
+
+.about-team-btn-subtitle{
+    font-weight: 400;
+}
+
+.about-teams-body{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    column-gap: 2%;
+    width: 100%;
+    padding-left: 2%;
+    padding-right: 2%;
+}
+
+.about-team-info {
+    background-color: white;
+    border-radius: 10px;
+    min-width: 49%;
+    height: fit-content;
+    padding: 2%;
+    margin: 2%;
+}
+
+.about-team-members{
+    min-width: 49%;
+    padding: 2%;
+    height: fit-content;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#version4-team-photo{
+    width: 100%;
+}
+
+/* #member-card-body{
+    cursor: default;
+    background-color: #818181;
+    border-style: none;
+    max-height: 100%;
+} */
+
+.about-team-title{
+    color: #00a5be;
+    font-weight: 600;
+}
+
+.about-team-year{
+    color: #00a5be;
+    font-weight: 600;
+}
+
+.about-team-subtitle{
+    color: #005663;
+    padding-top: 3%;
+    font-weight: 600;
+}
+
+#about-tech-image{
+    margin: 2%;
+    background-color: rgb(182, 182, 182);
+    color: white;
+    font-weight: 500;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 10px;
+    min-width: 40%;
+    height: 70%;
+    border-radius: 10px;
+}
+
+#about-tech-text{
+    margin: 2%;
+    background-color: rgb(255, 255, 255);
+    border-radius: 10px;
+    padding: 2%;
+    display: flex;
+    flex-direction: column;
+    min-width: 40%;
+    height: 70%;
+    word-wrap: break-word;
+}
+
+.about-tech-subtitle{
+    color: #005663;
+    padding-top: 3%;
+    padding-bottom: 2%;
+    font-weight: 600;
+}
+
+/* CSS for Mobile View */
+@media only screen and (max-width: 600px) {
+
+    #about-header-div{
+        background-color: #575757;
+        color:white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 15vh;
+    }
+
+    .about-link {
+        font-size: 14px;
+    }
+
+    #about-brainbeats, #about-tech, .about-teams-body{
+        flex-direction: column;
+        font-size: small;
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@types/dom-serial": "^1.0.3",
+    "discrete-wavelets": "^5.0.15",
+    "fs": "^0.0.1-security",
+    "libsvm-js": "^0.2.1",
+    "mathjs": "^12.4.1",
+    "tonejs-instrument-flute-mp3": "^1.1.2"
+  }
+}

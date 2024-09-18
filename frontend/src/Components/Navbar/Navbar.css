@@ -1,0 +1,159 @@
+/* CSS for Navigation Page*/
+*{
+  margin: 0;
+  padding-left: 0;
+  text-decoration: none;
+}
+  
+.container{
+  height: fit-content;
+  margin: auto;
+  width: 100%
+}
+
+main{
+  align-content: center;
+  width: 100%;
+}
+
+/* CSS for Navbar */
+.header {
+    background-color: rgb(0, 0, 0);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+
+  }
+  
+.top_section{
+  display: flex;
+  align-items: center;
+  padding: 20px 15px;
+}
+
+.logo {
+  font-size: 25px;
+  width: auto;
+}
+
+.icon-logo{
+  width: 2%; /* Set the width to 300 pixels */
+  height: auto; /* Maintain the aspect ratio */
+  margin-left:10px;
+}
+
+.bars{
+  display: flex;
+  font-size: 25px;
+  margin-left: 30px;
+}
+
+/* CSS For Navbar buttons */
+.nav-btns-div {
+  display: flex;
+  flex-direction: column;
+  /* background-color: green; */
+  width: 40%;
+}
+
+.nav-btns{
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  /* background-color: purple; */
+}
+
+#signUpBtn, #signOutBtn, #loginBtn, #profileBtn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border-radius: 15px;
+  width: 25%;
+  min-width: fit-content;
+}
+
+#signUpBtn, #signOutBtn {
+    
+    color: white;
+}
+
+#signUpBtn:hover, #signOutBtn:hover {
+    background-color: #323232;
+    border-color: #323232;
+    text-decoration: underline;
+}
+
+#loginBtn, #profileBtn {
+    color: white;
+}
+
+#loginBtn:hover, #profileBtn:hover {
+    background-color:#e33051;
+    border-color: #e33051;
+    text-decoration: underline;
+}
+
+#profile-icon {
+  margin-right: 8%;
+}
+
+/* CSS for Sidebar */
+
+.sidebar-container{
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  min-height: 100vh;
+}
+
+.sidebar{
+  background: #000000;
+  color:white;
+  width: 300px;
+  transition: all 0.2s;
+  z-index: 2;
+  opacity:80%;
+  /* height: 100vh; */
+}
+
+.link{
+  display: flex;
+  color: white;
+  padding: 10px 15px;
+  gap: 15px;
+  transition: all 0.5s;
+  text-decoration: none;
+}
+.link:hover{
+  background: #b1c3ff;
+  color:black;
+  transition: all 0.5s;
+  text-decoration: underline;
+  cursor: pointer;
+  opacity:50%;
+}
+
+.active{
+  background-color: #282a7e;
+  color: black;
+}
+
+.icon, .link_text{
+  font-size: 20px;
+} 
+
+/* CSS for Mobile View */
+@media only screen and (max-width: 600px) {
+  .sidebar-open{
+    display: block;
+  }
+
+  .sidebar-closed{
+    display: none;
+  }
+
+  #signUpBtn, #signOutBtn, #loginBtn, #profileBtn {
+    min-width: 100%;
+  }
+}

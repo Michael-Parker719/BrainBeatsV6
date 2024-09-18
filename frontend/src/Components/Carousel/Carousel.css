@@ -1,0 +1,16 @@
+#card {
+    position: relative;
+    bottom: 20%;
+    height: 10%;
+}
+
+#card-container {
+    position: absolute;
+    height: 10%;
+    width: 10%
+}
+
+#carousel-container{
+    height: 10% !important;
+}
+

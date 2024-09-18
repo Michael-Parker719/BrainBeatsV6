@@ -1,0 +1,866 @@
+swagger: "2.0"
+info:
+  title: BrainBeatsWeb API 
+  description: This is a BrainBeatsWeb API documentation form
+  version: 1.0
+  licenses:
+    name: Apache 2.0
+    url: "http://www.apache.org/liscences/LIS"
+  servers:
+    -url: http://api.brainbeatz.xyz #https://api.brainbeats.dev
+    description: Local server
+schemes: [http] #[https]
+
+# Path to API
+paths:
+
+  # ***** User Information ***** #
+
+  # Returns all of list of users
+    /api/users/getAllUsers:
+      get:
+        tags:
+          - Users
+        summary: Returns a list of all users.
+        responses:
+          200:    # status code
+            description: Successful Response
+            schema: 
+              type: array
+              items: 
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+
+  # Create a new user
+    /api/users/createUser:
+      post:
+        tags:
+          - Users
+        summary: Create a user
+        operationId: createUser
+        description: Create a new user in the database
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Create
+          required: true
+          description: User Creation
+          schema:
+            $ref: '#/definitions/createUser'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Find user by userID
+    /api/users/getUserByID/:
+      get:
+        tags:
+          - Users
+        summary: Search a user by with their username
+        operationId: getUserByID
+        description: Search a user in the database
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: Enter a user UUID
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Find user by username
+    /api/users/getUserByUsername/:
+      get:
+        tags:
+          - Users
+        summary: Search a user by with their username
+        operationId: getUserByUsername
+        description: Search a user in the database
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          description: Enter a user username
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+      # Find user by reset password token
+    /api/users/getUserByResetPasswordToken/:
+      get:
+        tags:
+          - Users
+        summary: Search a user by with their reset password token
+        operationId: getUserByResetPasswordToken
+        description: Search a user in the database
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: resetPasswordToken
+          schema:
+            type: string
+          description: Enter a reset password token
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Update user information
+    /api/users/updateUser:
+      put:
+        tags:
+          - Users
+        summary: Update user
+        operationId: updateUser
+        description: Update user information
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Update
+          required: true
+          description: UpdateUser
+          schema:
+            $ref: '#/definitions/updateUser'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Delete a user by ID
+    /api/users/deleteUser:
+      delete:
+        tags:
+          - Users
+        summary: Delete user by username
+        operationId: deleteUser
+        description: Delete a user from the database
+        consumes:
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Delete User
+          required: true
+          description: Delete
+          schema:
+            $ref: '#/definitions/deleteUser'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+
+
+  # ***** User Tracks ***** #
+
+  # Returns an array of all user tracks
+    /api/tracks/getAllTracks:
+      get:
+        tags:
+          - Tracks
+        summary: Returns a list of all users.
+        responses:
+          200:    # status code
+            description: Successful Response
+            schema: 
+              type: array
+              items: 
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+
+  # Create user tracks
+    /api/tracks/createTrack:
+      post:
+        tags:
+          - Tracks
+        summary: Create track at user profile
+        operationId: createTrack
+        description: Create a track for a user by username
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Create track
+          required: true
+          description: User Track
+          schema:
+            $ref: '#/definitions/createTrack'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Create user scripts
+    /api/scripts/createScript:
+      post:
+        tags:
+          - Scripts
+        summary: Create script at user profile
+        operationId: createScript
+        description: Create a script for a user by username
+        consumes: Scripts
+         - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Create script
+          required: true
+          description: User Script
+          schema:
+            $ref: '#/definitions/createScript'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Get user tracks by username
+    /api/tracks/getUserTracksByUsername/:
+      get:
+        tags:
+          - Tracks
+        summary: Search a users tracks by username
+        operationId: getUserTracksByUsername
+        description: Get tracks from user profile
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          description: Enter a user username
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Get user tracks by author ID
+    /api/tracks/getUsersTracksByID/:
+      post:
+        tags:
+          - Tracks
+        summary: Search a users tracks by user ID
+        operationId: getUsersTracksByID
+        description: Get tracks from user profile
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: userID
+          schema:
+            type: string
+          description: Enter a user UUID
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Update user track information
+    /api/tracks/updateTrack:
+      put:
+        tags:
+          - Tracks
+        summary: Update user track
+        operationId: updateTrack
+        description: Update user track information
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Update
+          required: true
+          description: Updated information
+          schema:
+            $ref: '#/definitions/updateTrack'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Delete a user track by ID
+    /api/tracks/deleteTrack:
+      delete:
+        tags:
+          - Tracks
+        summary: Delete user by username
+        operationId: deleteTrack
+        description: Delete a user from the database
+        consumes:
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: id
+          required: true
+          description: Delete
+          schema:
+            $ref: '#/definitions/deleteTrack'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+
+
+  # ***** User Playlist ***** #
+
+  # Returns all of playlists in db
+    /api/playlists/getAllPlaylists:
+      get:
+        tags:
+          - Playlists
+        summary: Returns a list of playlists in db.
+        responses:
+          200:    # status code
+            description: Successful Response
+            schema: 
+              type: array
+              items: 
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+
+  # Create user playlist
+    /api/playlists/createPlaylist:
+      post:
+        tags:
+          - Playlists
+        summary: Create user playlist
+        operationId: createPlaylist
+        description: Create user a playlist
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Create
+          required: true
+          description: Create playlist information
+          schema:
+            $ref: '#/definitions/createPlaylist'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Add a track to the playlist 
+    /api/playlists/addTrackToPlaylist:
+      post:
+        tags:
+          - Playlists
+        summary: Add a track to the playlist
+        operationId: addTrackToPlaylist
+        description: Add a track to the playlist
+        consumes:
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: id
+          required: true
+          description: Add a track to the playlist
+          schema:
+            $ref: '#/definitions/addTrackToPlaylist'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Get user tracks by author ID
+    /api/playlists/getPlaylistByID/:
+      get:
+        tags:
+          - Playlists
+        summary: Search a users tracks by user ID
+        operationId: getPlaylistByID
+        description: Get tracks from user profile
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: Enter a user UUID
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Get user tracks by author ID
+    /api/playlists/getPlaylistsByTrackID/:
+      get:
+        tags:
+          - Playlists
+        summary: Search a users tracks by user ID
+        operationId: getPlaylistsByTrackID
+        description: Get tracks from user profile
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: Enter a user playlist ID
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Get user tracks by author ID
+    /api/playlists/getTracksByPlaylistID/:
+      get:
+        tags:
+          - Playlists
+        summary: Search a users tracks by user ID
+        operationId: getTracksByPlaylistID
+        description: Get playlist from user profile
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          description: Enter a user playlist ID
+          schema:
+            type: string
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Update user playlist
+    /api/playlists/updatePlaylist:
+      put:
+        tags:
+          - Playlists
+        summary: Update user playlist
+        operationId: updatePlaylist
+        description: Update user playlist
+        consumes: 
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Update
+          required: true
+          description: Update playlist information
+          schema:
+            $ref: '#/definitions/updatePlaylist'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+  # Delete a user playlist by playlist id
+    /api/playlists/deletePlaylist:
+      delete:
+        tags:
+          - Playlists
+        summary: Delete user by username
+        operationId: deletePlaylist
+        description: Delete a user playlist from the database
+        consumes:
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: id
+          required: true
+          description: Delete
+          schema:
+            $ref: '#/definitions/deletePlaylist'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+
+
+  # *** User Verification *** #
+
+  # Check login credentials
+    /api/authentication/loginUser:
+      post:
+        tags:
+        - Authentication
+        summary: Checks if a user related to their password for login
+        description: |
+          Authenticates a user
+        consumes:
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: loginUser
+          required: true
+          schema:
+            $ref: '#/definitions/loginUser'
+        responses:
+          200:
+            description: User logged in successfully
+          401:
+            description: bad input parameter
+
+  # Send a verification email to a user
+    /api/authentication/sendVerificationEmail:
+      post:
+        tags:
+          - Authentication
+        summary: Send a user a verification email
+        operationId: sendVerificationEmail
+        description: Sends a user a verification email to their account's email address
+        consumes:
+        - application/json
+        produces:
+        - application/json
+        parameters:
+        - in: body
+          name: Email
+          required: true
+          type: string
+          schema:
+            $ref: '#/definitions/sendVerificationEmail'
+        responses:
+          200:
+            description: OK
+          404:
+            description: URL Not Found
+
+
+# Definitions components
+definitions:
+
+  # ***** User ***** #
+
+    createUser:
+      required: 
+      - firstName
+      - lastName
+      # - dob
+      - email
+      - username
+      - password
+      properties:
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        # dob: 
+        #   type: date 
+        #   example: 1995-03-25
+        email:
+          type: string
+          example: JohnDoe@gmail.com
+        username:
+          type: string
+          example: JohnDoe96
+        password:
+          type: string
+          example: JohnDoePassword
+
+    updateUser:
+      required: 
+      - id
+      - firstName
+      - lastName
+      - email
+      - username
+      properties:
+        id:
+          type: string
+          example: 632961af-29ae-4c3a-8f3f-426763a4cf00
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        # dob: 
+        #   type: date
+        #   exmaple: 1997-07-13T00:00:00.000Z
+        email:
+          type: string
+          example: JohnDoe@gmail.com
+        username:
+          type: string
+          example: JohnDoe96
+
+    deleteUser:
+      required:
+      - id
+      properties:
+        id:
+          type: string
+          exmaple: 632961af-29ae-4c3a-8f3f-426763a4cf00
+
+  # ***** User Tracks ***** #
+    updateTrack:
+      required: 
+      - id
+      - firstName
+      - lastName
+      - email
+      - username
+      properties:
+        id:
+          type: int
+          example: 5
+        title:
+          type: string
+          example: New Track title
+        bpm:
+          type: int
+          example: 50
+        key:
+          type: string
+          example: C#
+        visibility:
+          type: boolean
+          example: True
+        # profilePicture:
+        #   type: string
+        #   example: https://www.google.com/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwj_q7q_o_7jAhXDxVAKHWXxD-AQjRx6BAgBEAU&url=https%3A%2F%2Fwww.pexels.com%2Fphoto%2Fwoman-in-black-and-white-dressed-in-white-clothes-812093%2F&psig=AOvVaw0_X_X_X_X_X_X_X&ust=1560984100879087
+
+    deleteTrack:
+      required:
+      - id
+      properties:
+        id:
+          type: int
+          exmaple: 5
+
+  # key to represent Major, Minor, while scale to represent C#, E, D, etc
+  # sometimes key may be referenced as "keyGroup", like in the redux slice: musicGenerationSettingsSlice.tsx
+    createTrack:
+      required: 
+      - userID
+      - title
+      - bpm
+      - key
+      - scale
+      - visibility
+      properties:
+        userID:
+          type: string
+          example: 227d4d04-927b-421e-8d95-6eb91f05af05
+        title:
+          type: string
+          example: Track title
+        bpm:
+          type: int
+          example: 50
+        key:
+          type: string
+          example: Major
+        scale:
+          type: string
+          example: C#
+        visibility:
+          type: boolean
+          example: True
+
+    newTrack:
+      required: 
+      - username
+      - title
+      - bpm
+      - key
+      properties:
+        username:
+          type: string
+          example: JohnDoe96
+        title:
+          type: string
+          example: New Track title
+        bpm:
+          type: int
+          example: 50
+        key:
+          type: string
+          example: C#
+
+  # ***** Scripts ***** #
+    createScript:
+      required:
+      - userID
+      - title
+      - visibility
+      properties:
+        userID:
+          type: string
+          example: 227d4d04-927b-421e-8d95-6eb91f05af05
+        title:
+          type: string
+          example: Track title
+        visibility:
+          type: boolean
+          example: True
+
+
+
+  # ***** User Playlists ***** #
+    createPlaylist:
+      required: 
+      - userID
+      - name
+      properties:
+        userID:
+          type: string
+          example: abb3973d-29ee-4221-aee1-639836c91be0
+        name:
+          type: string
+          example: Playlist title
+
+    updatePlaylist:
+      required: 
+      - id
+      - name
+      properties:
+        id:
+          type: int
+          example: 1
+        name:
+          type: string
+          example: Playlist title
+
+    deletePlaylist:
+      required: 
+      - id
+      properties:
+        id:
+          type: int
+          example: 1
+
+    addTrackToPlaylist:
+      required: 
+      - userID
+      - name
+      properties:
+        id:
+          type: string
+          example: 632961af-29ae-4c3a-8f3f-426763a4cf00
+        name:
+        type: string
+        example: PLaylist name
+
+  # ***** User Verification ***** #
+    loginUser:
+      required: 
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          example: JohnDoe@gmail.com
+        password:
+          type: string
+          example: JohnDoePassword
+          
+    sendVerificationEmail:
+      required:
+      - email
+      - subject
+      - text
+      properties:
+        email:
+          type: string
+          example: JohnDoe@gmail.com
+        subject:
+          type: string
+          example: Verification Email Alert
+        text:
+          type: string
+          example: Sending you a message in an e-mail!
