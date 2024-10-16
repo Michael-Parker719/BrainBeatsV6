@@ -6,5 +6,12 @@
     "libsvm-js": "^0.2.1",
     "mathjs": "^12.4.1",
     "tonejs-instrument-flute-mp3": "^1.1.2"
-  }
+  },
+  "scripts": {
+  "start": "react-app-rewired start",
+  "build": "react-app-rewired build",
+  "test": "react-app-rewired test",
+  "eject": "react-scripts eject"
+}
+
 }
