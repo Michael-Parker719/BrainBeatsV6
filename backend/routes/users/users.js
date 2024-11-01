@@ -4,6 +4,7 @@ const router = require("express").Router();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { user, post } = new PrismaClient();
+const { pool } = require('../../connect/connect');
 // const { JSON } = require("express");
 const { createJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getIsTokenExpired } = require("../../utils/database");
@@ -125,6 +126,7 @@ router.post('/loginUser', async (req, res) => {
 // Get all users in the database
 router.get('/getAllUsers', async (req, res) => {
     try {
+        /*
         const users = await prisma.User.findMany({
             select: {
                 id: true,  
@@ -138,7 +140,16 @@ router.get('/getAllUsers', async (req, res) => {
                 createdAt: true,
             }
         });
-        res.json(users);
+        */
+        pool.query(
+            'SELECT id, firstName, LastName, email, username, password, bio, createdAt FROM User', 
+            (error, users) => {
+            if (error) throw error;
+    
+            res.json(users);
+        });
+
+        //res.json(users);
     } catch (err) {
         console.log(err);
         res.status(500).send({ msg: err });

@@ -6,6 +6,7 @@ const { user, post } = new PrismaClient();
 // const { JSON } = require("express");
 const { getJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists, getLikeExists } = require("../../utils/database");
+const { pool } = require("../../connect/connect");
 
 // Create a user like
 router.post('/createUserLike', async (req, res) => {
@@ -150,13 +151,13 @@ router.get('/getUserLike', async (req, res) => {
 
 // Get all user likes
 router.get('/getAllUserLikes', async (req, res) => {
+
     try {
         const allLikes = await prisma.Like.findMany({
             where: { userID: req.query.userID },
-            // data: {
-            //     public: true
-            // }
+            
         });
+
         console.log(allLikes);
         res.status(200).json(allLikes);
     } catch (err) {

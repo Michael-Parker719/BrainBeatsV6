@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
-const { join } = require("@prisma/client/runtime");
+//const { join } = require("@prisma/client/runtime");
+const pool = require('../connect/connect')
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');
 
@@ -46,6 +47,7 @@ async function getUserExists(searchVal, searchType) {
     return result;
 }
 
+
 async function getIsTokenExpired(searchVal) {
     let data = await prisma.User.findUnique({
         where: { resetPasswordToken: searchVal },
@@ -64,6 +66,27 @@ async function getTrackExists(searchVal, searchType) {
         case 'id':
             result = await prisma.Track.findUnique({
                 where: { id: searchVal }
+            });
+
+            break;
+    }
+
+    if (!result) result = false;
+    return result;
+}
+
+async function getTrackExists1(searchVal, searchType) {
+    let result;
+    switch (searchType) {
+        case 'id':
+            // result = await prisma.Track.findUnique({
+            //     where: { id: searchVal }
+            // });
+
+            pool.query(`SELECT * FROM User WHERE id = ${searchVal}`, (error, rows) => {
+                if (error) throw error;
+        
+                result = res.json(rows);
             });
 
             break;
@@ -130,6 +153,7 @@ async function getScriptExists(searchVal, searchType) {
 module.exports = {
     getUserExists: getUserExists,
     getTrackExists: getTrackExists,
+    getTrackExists1: getTrackExists1,
     getPlaylistExists: getPlaylistExists,
     getLikeExists: getLikeExists,
     getScriptExists: getScriptExists,

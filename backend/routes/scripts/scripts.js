@@ -3,6 +3,7 @@ const router = require("express").Router();
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { user, track } = new PrismaClient();
+const { pool } = require('../../connect/connect');
 // const { JSON } = require("express");
 const { getJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists, getScriptExists } = require("../../utils/database");
