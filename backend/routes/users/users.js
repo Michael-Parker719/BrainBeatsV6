@@ -159,8 +159,8 @@ router.get('/getAllUsers', async (req, res) => {
 // Get user by username
 router.get('/getUserByUsername', async (req, res) => {
     try {
-        const userExists = await getUserExists(req.query.username, "username");
-
+        let userExists = await getUserExists(req.body.username, "username");
+        //console.log(userExists);
         if (!userExists) {
             return res.status(400).json({
                 msg: "Username does not exist"
@@ -184,15 +184,7 @@ router.get('/getUserByID', async (req, res) => {
                 msg: "User does not exist"
             });
         }
-        else {
-            const getUser = await prisma.User.findUnique({
-                where: {
-                  id: userID,
-                },
-            });
-            console.log("userExists", userExists);
-            return res.status(200).json(getUser);
-        } 
+        res.json(userExists);
     } catch (err) {
         console.log(err);
         res.status(500).send({msg:err});
@@ -259,7 +251,7 @@ router.put('/updateUser', async (req, res) => {
             }
         });
         res.status(200).send({msg: "User updated"}); //.send(updateUser);
-        
+          
     } catch (err) {
         console.log(err);
         res.status(500).send(err);

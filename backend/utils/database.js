@@ -1,50 +1,89 @@
 const { PrismaClient } = require("@prisma/client");
 //const { join } = require("@prisma/client/runtime");
-const pool = require('../connect/connect')
+const { pool } = require('../connect/connect');
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');
 
 
 // Gets whether a user exists or not based on the field leading the query.
+// async function getUserExists(searchVal, searchType) {
+//     if (!searchType) return false;
+//     if (!searchVal) return false;
+
+//     let result;
+//     switch (searchType) {
+//         case 'email':
+//             result = await prisma.User.findUnique({
+//                 where: { email: searchVal },
+//                 select: {
+//                     email: true,
+//                     password: true,
+//                     firstName: true,
+//                     username: true,
+//                     lastName: true,
+//                     bio: true,
+//                     profilePicture: true,
+//                     id: true,
+//                     likes: true,
+//                     playlists: true,
+//                     tracks: true,
+//                     verified: true
+//                 }
+//             });
+//             break;
+//         case 'id':
+//             result = await prisma.User.findUnique({
+//                 where: { id: searchVal }
+//             });
+//             break;
+//         case 'username':
+//             result = await prisma.User.findUnique({
+//                 where: { username: searchVal }
+//             });
+//             break;
+//     }
+
+//     if (!result) result = false;
+//     return result;
+// }
+
 async function getUserExists(searchVal, searchType) {
     if (!searchType) return false;
     if (!searchVal) return false;
 
-    let result;
-    switch (searchType) {
-        case 'email':
-            result = await prisma.User.findUnique({
-                where: { email: searchVal },
-                select: {
-                    email: true,
-                    password: true,
-                    firstName: true,
-                    username: true,
-                    lastName: true,
-                    bio: true,
-                    profilePicture: true,
-                    id: true,
-                    likes: true,
-                    playlists: true,
-                    tracks: true,
-                    verified: true
-                }
-            });
-            break;
-        case 'id':
-            result = await prisma.User.findUnique({
-                where: { id: searchVal }
-            });
-            break;
-        case 'username':
-            result = await prisma.User.findUnique({
-                where: { username: searchVal }
-            });
-            break;
+    let promise;
+    if (searchType === "username") {
+
+        promise = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM User WHERE `username` = ?', searchVal, (error, rows) => {
+                if (error) throw error;
+                
+                resolve(rows[0]);
+            })
+        });
+    } else if (searchType === "id") {
+        promise = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM User WHERE `id` = ?', searchVal, (error, rows) => {
+                if (error) throw error;
+                
+                resolve(rows[0]);
+            })
+        });
+    } else if (searchType === "email") {
+        promise = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM User WHERE `email` = ?', searchVal, (error, rows) => {
+                if (error) throw error;
+                
+                resolve(rows[0]);
+            })
+        });
     }
 
-    if (!result) result = false;
-    return result;
+    if (!promise) promise = false;
+    console.log("Testing...");
+    console.log(promise);
+
+    return promise;
 }
 
 
@@ -66,27 +105,6 @@ async function getTrackExists(searchVal, searchType) {
         case 'id':
             result = await prisma.Track.findUnique({
                 where: { id: searchVal }
-            });
-
-            break;
-    }
-
-    if (!result) result = false;
-    return result;
-}
-
-async function getTrackExists1(searchVal, searchType) {
-    let result;
-    switch (searchType) {
-        case 'id':
-            // result = await prisma.Track.findUnique({
-            //     where: { id: searchVal }
-            // });
-
-            pool.query(`SELECT * FROM User WHERE id = ${searchVal}`, (error, rows) => {
-                if (error) throw error;
-        
-                result = res.json(rows);
             });
 
             break;
@@ -153,7 +171,7 @@ async function getScriptExists(searchVal, searchType) {
 module.exports = {
     getUserExists: getUserExists,
     getTrackExists: getTrackExists,
-    getTrackExists1: getTrackExists1,
+//    getTrackExists1: getTrackExists1,
     getPlaylistExists: getPlaylistExists,
     getLikeExists: getLikeExists,
     getScriptExists: getScriptExists,
