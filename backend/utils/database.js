@@ -47,6 +47,7 @@ const bcrypt = require('bcryptjs');
 //     return result;
 // }
 
+
 async function getUserExists(searchVal, searchType) {
     if (!searchType) return false;
     if (!searchVal) return false;
