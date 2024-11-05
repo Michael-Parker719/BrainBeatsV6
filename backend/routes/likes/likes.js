@@ -22,7 +22,6 @@ router.post('/createUserLike', async (req, res) => {
         }
 
         const userExists = await getUserExists(userID, "id");
-
         const trackExists = await getTrackExists(trackID, "id");
 
         if (!userExists) {
@@ -43,6 +42,7 @@ router.post('/createUserLike', async (req, res) => {
             }
 
             // Create a like
+            /*
             const newLike = await prisma.Like.create({
                 data: { userID, trackID }
             });
@@ -53,6 +53,18 @@ router.post('/createUserLike', async (req, res) => {
                     likeCount: trackExists.likeCount + 1
                 }
             });
+            */
+
+            // 11/5/2025 - my refactor of Create a like
+            await pool.query('BEGIN');
+            const newLike = await pool.query(
+                'INSERT INTO Likes (userID, trackID) VALUES ($1, $2) RETURNING *', [userID, trackID]
+            );
+
+            await pool.query(
+                'UPDATE Tracks SET likeCount = likeCount + 1 WHERE id = $1', [trackID]
+            );
+            await pool.query('COMMIT');
 
             // const newUser = await prisma.User.update({
             //     where: { id: userID },
@@ -61,9 +73,10 @@ router.post('/createUserLike', async (req, res) => {
             //     }
             // });
             
-            res.status(201).json(newLike);
+            res.status(201).json(newLike.rows[0]);
         }
     } catch (err) {
+        await pool.query('ROLLBACK');
         console.error("from createUserLike: ", err);
         res.status(500).send({ msg: err });
     }
