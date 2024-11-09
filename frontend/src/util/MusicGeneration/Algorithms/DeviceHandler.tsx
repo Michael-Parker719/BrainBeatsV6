@@ -2,24 +2,18 @@
  as a single line array. It makes use of the johnny-five npm library, which can 
  be found here: https://johnny-five.io/api/ */
 
-import {Board, Sensor } from "johnny-five"; // IoT library for micro-controllers
+import { upload, boards } from 'web-arduino-uploader'
 
-const board = new Board();
-const EEG_Sensor = new Sensor("A0");
-
-// On board connection
-board.on("connect", () => {
-    // emit successful connection message
-    console.log("Connected on port %s", board.port);
-    board.info("Board", "Successful board connection");
-});
-
-// On board ready
-board.on("ready", () => {
-    console.log("Ready");
-
-    EEG_Sensor.on("change", function(){
-        console.log(this.scaleTo(0, 255));
-    });
-});
+document.addEventListener('button', async () => {
+  const onProgress = (percentage) => {
+    console.log(percentage + '%')
+  }
+ 
+  //const verify = false // optional
+  //const portFilters = {} // optional, e.g. [{"usbProductId":46388,"usbVendorId":1241}]
+  console.log('starting')
+  //https://brainbeatz.xyz/frontend/src/util/MusicGeneration/Algorithms/FILENAME
+  await upload(boards.nanoOldBootloader, 'http://your-site.com/hex-file.hex', onProgress, verify, portFilters)
+  console.log('done!')
+})
 
