@@ -1,6 +1,5 @@
 /* This code will obtain data from the device and pass it off to the music generation
- as a single line array. It makes use of the johnny-five npm library, which can 
- be found here: https://johnny-five.io/api/ */
+ as a single line array. Link: https://github.com/dbuezas/arduino-web-uploader */
 
 import { upload, boards } from 'web-arduino-uploader'
 
