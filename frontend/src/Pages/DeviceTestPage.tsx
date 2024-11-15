@@ -6,3 +6,4 @@ const DeviceTestPage = () => {
     </body>)
 
 }
+export default DeviceTestPage;
