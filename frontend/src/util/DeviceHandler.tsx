@@ -10,11 +10,16 @@ import { SerialPort } from 'w3c-web-serial'
 export class DeviceHandler
 {
  private hex_file_path: string;
+ private stop_signal: boolean = false;
 
  // Set path to hex file to read
  public setHexFilePath(file: string){
   this.hex_file_path = file;
   return true;
+ }
+
+ public stop(){
+  this.stop_signal = true;
  }
 
  // change below to a public function
@@ -47,7 +52,7 @@ export class DeviceHandler
     while (true) {
       const { value, done } = await reader.read();
       console.log(value)
-      if (done) {
+      if (done || stop) {
        // |reader| has been canceled.
        break;
       }
