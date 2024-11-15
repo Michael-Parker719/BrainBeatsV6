@@ -11,7 +11,7 @@ export class DeviceHandler
 {
 
  // change below to a public function
- function upload(): void {
+ public upload(): void {
   const onProgress = (percentage) => {
     console.log(percentage + '%');
   }
@@ -27,7 +27,7 @@ export class DeviceHandler
  }
 
 // Listen to the serial port
- function listen(): void {
+ public listen(): void {
   // read setup
   const filter = {};
   const port = await navigator.serial.requestPort({ filters: [filter] });
