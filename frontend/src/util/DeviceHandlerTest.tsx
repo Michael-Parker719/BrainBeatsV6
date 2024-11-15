@@ -1,3 +1,8 @@
+// Code to test DeciveHandler
+/* run with code below in the browser console
+import {testRun} from "DeviceHandlerTester";
+testRun();
+*/
 import { DeviceHandler } from './DeviceHandler';
 
 const device = new DeviceHandler();
