@@ -5,7 +5,7 @@
  */
 
 import { upload, boards } from 'web-arduino-uploader'
-import { SerialPort } from 'w3c-web-serial'
+// import { SerialPort } from 'w3c-web-serial'
 
 export class DeviceHandler
 {
