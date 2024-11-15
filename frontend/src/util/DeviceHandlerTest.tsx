@@ -12,7 +12,7 @@ export async function testRun(){
   device.setHexFilePath("./MindControl3/build/arduino.avr.uno/MindControl3.ino.hex");
 
   // upload arduino code
-  await device.upload();
+  await device.uploadToArduino();
 
   // listen to serial output
   await device.listen();
