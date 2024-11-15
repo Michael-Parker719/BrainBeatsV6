@@ -9,7 +9,7 @@ import { SerialPort } from 'w3c-web-serial'
 
 export class DeviceHandler
 {
- private hex_file_path: string;
+ private hex_file_path: string = ' ';
  private stop_signal: boolean = false;
 
  // Set path to hex file to read
