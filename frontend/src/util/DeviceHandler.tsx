@@ -57,7 +57,7 @@ export class DeviceHandler
     while (true) {
       const { value, done } = await reader.read();
       console.log(value)
-      if (done || stop_signal) {
+      if (done || this.stop_signal) {
        // |reader| has been canceled.
        break;
       }
