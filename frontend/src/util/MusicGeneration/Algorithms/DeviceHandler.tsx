@@ -9,6 +9,13 @@ import { SerialPort } from 'w3c-web-serial'
 
 export class DeviceHandler
 {
+ private hex_file_path: string;
+
+ // Set path to hex file to read
+ public setHexFilePath(file: string){
+  this.hex_file_path = file;
+  return true;
+ }
 
  // change below to a public function
  public upload(): void {
@@ -21,7 +28,7 @@ export class DeviceHandler
   console.log('starting');
  
   // https://brainbeatz.xyz/frontend/src/util/MusicGeneration/Algorithms/FILENAME
-  await upload(boards.nanoOldBootloader, 'http://your-site.com/hex-file.hex', onProgress, verify, portFilters);
+  await upload(boards.nanoOldBootloader, hex_file_path, onProgress, verify, portFilters);
   
   console.log('done!');
  }
