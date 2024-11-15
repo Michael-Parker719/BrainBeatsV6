@@ -7,27 +7,27 @@
 import { upload, boards } from 'web-arduino-uploader'
 import { SerialPort } from 'w3c-web-serial'
 
-export abstract class DeviceHandler
+export class DeviceHandler
 {
 
  // change below to a public function
-document.addEventListener('button', async () => {
+ function upload(): void {
   const onProgress = (percentage) => {
-    console.log(percentage + '%')
+    console.log(percentage + '%');
   }
  
-  const verify = false // optional
-  const portFilters = {} // optional, e.g. [{"usbProductId":46388,"usbVendorId":1241}]
-  console.log('starting')
+  const verify = false; // optional
+  const portFilters = {}; // optional, e.g. [{"usbProductId":46388,"usbVendorId":1241}]
+  console.log('starting');
  
   // https://brainbeatz.xyz/frontend/src/util/MusicGeneration/Algorithms/FILENAME
-  await upload(boards.nanoOldBootloader, 'http://your-site.com/hex-file.hex', onProgress, verify, portFilters)
+  await upload(boards.nanoOldBootloader, 'http://your-site.com/hex-file.hex', onProgress, verify, portFilters);
   
-  console.log('done!')
-})
+  console.log('done!');
+ }
 
 // Listen to the serial port
- public async listen(){
+ function listen(): void {
   // read setup
   const filter = {};
   const port = await navigator.serial.requestPort({ filters: [filter] });
@@ -37,23 +37,22 @@ document.addEventListener('button', async () => {
   while (port.readable) {
    const reader = port.readable.getReader();
    try {
-     while (true) {
-       const { value, done } = await reader.read();
+    while (true) {
+      const { value, done } = await reader.read();
       console.log(value)
-       if (done) {
-         // |reader| has been canceled.
-         break;
-       }
+      if (done) {
+       // |reader| has been canceled.
+       break;
+      }
        // Do something with |value|...
-     }
+    }
    } catch (error) {
      // Handle |error|...
      console.log("error")
    } finally {
      reader.releaseLock();
    }
-}
-
   }
+}
  
 }
