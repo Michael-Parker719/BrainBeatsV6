@@ -24,7 +24,7 @@ export class DeviceHandler
 
  // change below to a public function
  public async uploadToArduino() : Promise<boolean> {
-  const onProgress = (percentage:any) => {
+  const onProgress = (percentage:number) => {
     console.log(percentage + '%');
   }
  
