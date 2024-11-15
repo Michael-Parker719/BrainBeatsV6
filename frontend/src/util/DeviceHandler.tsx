@@ -46,7 +46,7 @@ export class DeviceHandler
 // Listen to the serial port
  public async listen() {
   // read setup
-  const filter = {};
+  const filter = {usbVendorId: 0x2341};
   const port = await navigator.serial.requestPort({ filters: [filter] });
   await port.open({baudRate: 9600})
   
