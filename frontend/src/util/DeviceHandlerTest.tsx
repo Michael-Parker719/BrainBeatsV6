@@ -7,10 +7,11 @@ export async function testRun(){
   device.setHexFilePath("path");
 
   // upload arduino code
-  await device.upload()
+  await device.upload();
 
   // listen to serial output
-  device.listen()
+  await device.listen();
+  console.log("fin");
 } 
 
 
