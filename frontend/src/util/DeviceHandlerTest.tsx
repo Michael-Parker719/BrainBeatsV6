@@ -9,7 +9,7 @@ const device = new DeviceHandler();
 
 export async function testRun(){
   // setting file path for hex
-  device.setHexFilePath("path");
+  device.setHexFilePath("./MindControl3/build/arduino.avr.uno/MindControl3.ino.hex");
 
   // upload arduino code
   await device.upload();
