@@ -24,7 +24,7 @@ export class DeviceHandler
 
  // change below to a public function
  public async upload() : Promise<boolean> {
-  const onProgress = (percentage) => {
+  const onProgress = (percentage:any) => {
     console.log(percentage + '%');
   }
  
@@ -33,7 +33,7 @@ export class DeviceHandler
   console.log('starting');
  
   try{
-   await upload(boards.nanoOldBootloader, hex_file_path, onProgress, verify, portFilters);
+   await upload(boards.nanoOldBootloader, this.hex_file_path, onProgress, verify, portFilters);
   } catch (e){
    console.log(e)
    return false;
