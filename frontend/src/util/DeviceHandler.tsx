@@ -24,7 +24,7 @@ export class DeviceHandler
 
  // change below to a public function
  public async uploadToArduino() : Promise<boolean> {
-  const onProgress = (percentage:any) => {
+  const onProgress = (percentage:number) => {
     console.log(percentage + '%');
   }
  
@@ -33,7 +33,7 @@ export class DeviceHandler
   console.log('starting');
  
   try{
-   await upload(boards.nanoOldBootloader, this.hex_file_path, onProgress, verify, portFilters);
+   await upload(boards.uno, this.hex_file_path, onProgress, verify, portFilters);
   } catch (e){
    console.log(e)
    return false;
