@@ -23,7 +23,7 @@ export class DeviceHandler
  }
 
  // change below to a public function
- public async upload(): void {
+ public async upload() : Promise<boolean> {
   const onProgress = (percentage) => {
     console.log(percentage + '%');
   }
@@ -32,14 +32,19 @@ export class DeviceHandler
   const portFilters = {}; // optional, e.g. [{"usbProductId":46388,"usbVendorId":1241}]
   console.log('starting');
  
-  // https://brainbeatz.xyz/frontend/src/util/MusicGeneration/Algorithms/FILENAME
-  await upload(boards.nanoOldBootloader, hex_file_path, onProgress, verify, portFilters);
+  try{
+   await upload(boards.nanoOldBootloader, hex_file_path, onProgress, verify, portFilters);
+  } catch (e){
+   console.log(e)
+   return false;
+  }
   
   console.log('done!');
+  return true;
  }
 
 // Listen to the serial port
- public async listen(): void {
+ public async listen() {
   // read setup
   const filter = {};
   const port = await navigator.serial.requestPort({ filters: [filter] });
