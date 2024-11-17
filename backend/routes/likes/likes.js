@@ -149,23 +149,35 @@ router.delete('/removeUserLike', async (req, res) => {
         const decoded = verifyJWT(token);
 
         if (!decoded) {
-            return res.status(401).json({
-                msg: "Invalid token"
-            });
+            return res.status(401).json({ msg: "Invalid token" });
         }
 
-        const userExists = await getUserExists(userID, "id");
-        const trackExists = await getTrackExists(trackID, "id");
+        //const userExists = await getUserExists(userID, "id");
+        //const trackExists = await getTrackExists(trackID, "id");
+
+        //check if the user exists
+        const userExists = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM User WHERE id = ?', [userID], (error, rows) => {
+                if (error) return reject(error);
+                resolve(rows[0]);
+            });
+        });
+
+        // Check if the track exists
+        const trackExists = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM Tracks WHERE id = ?', [trackID], (error, rows) => {
+                if (error) return reject(error);
+                resolve(rows[0]);
+            });
+        });
 
         if (!userExists) {
-            return res.status(404).json({
-                msg: "User not found"
-            });
+            return res.status(404).json({ msg: "User not found" });
         } else if (!trackExists) { 
-            return res.status(404).json({
-                msg: "Post not found"
-            });
-        } else {
+            return res.status(404).json({ msg: "Post not found" });
+        } 
+        
+        /*else {
             const deleteLike = await prisma.Like.delete({
                 where: { 
                     trackID_userID: {
@@ -188,11 +200,67 @@ router.delete('/removeUserLike', async (req, res) => {
                 }
             });
     
-            res.status(200).send({ msg: "Deleted a user like" });
+            res.status(200).send({ msg: "Deleted a user like" });*/
+
+        // Check if the like exists
+        const likeExists = await new Promise((resolve, reject) => {
+            pool.query(
+                'SELECT * FROM Likes WHERE userID = ? AND trackID = ?',
+                [userID, trackID],
+                (error, rows) => {
+                    if (error) return reject(error);
+                    resolve(rows[0]);
+                }
+            );
+        });
+
+        if (!likeExists) {
+            return res.status(404).json({ msg: "Like not found" });
         }
+
+        // Delete the like and update the track's like count in a transaction
+        await new Promise(async (resolve, reject) => {
+            pool.query('BEGIN', (error) => {
+                if (error) return reject(error);
+            });
+
+            try {
+                await new Promise((resolve, reject) => {
+                    pool.query(
+                        'DELETE FROM Likes WHERE userID = ? AND trackID = ?',
+                        [userID, trackID],
+                        (error) => {
+                            if (error) return reject(error);
+                            resolve();
+                        }
+                    );
+                });
+
+                await new Promise((resolve, reject) => {
+                    pool.query(
+                        'UPDATE Tracks SET likeCount = likeCount - 1 WHERE id = ?',
+                        [trackID],
+                        (error) => {
+                            if (error) return reject(error);
+                            resolve();
+                        }
+                    );
+                });
+
+                pool.query('COMMIT', (error) => {
+                    if (error) return reject(error);
+                    resolve();
+                });
+            } catch (err) {
+                pool.query('ROLLBACK', () => {});
+                reject(err);
+            }
+        });
+        res.status(200).json({ msg: "Like removed successfully" });
+
     } catch (err) {
-        console.error(err);
-        res.status(500).send(err);
+        console.error("Error in removeUserLike:", err);
+        res.status(500).json({ msg: "Internal server error", error: err });
     }
 });
 
