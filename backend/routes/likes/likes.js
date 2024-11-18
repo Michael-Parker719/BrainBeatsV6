@@ -266,7 +266,8 @@ router.delete('/removeUserLike', async (req, res) => {
 
 // Get user like status
 router.get('/getUserLike', async (req, res) => {
-    try {
+    
+    /*try {
         const likeStatus = await prisma.Like.findUnique({
             where: {
                 trackID_userID: {
@@ -284,13 +285,36 @@ router.get('/getUserLike', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send(err);
+    }*/
+    
+    try {
+        const { userID, trackID } = req.query;
+        const likeStatus = await new Promise((resolve, reject) => {
+            pool.query(
+                'SELECT * FROM Likes WHERE userID = ? AND trackID = ?',
+                [userID, trackID],
+                (error, rows) => {
+                    if (error) return reject(error);
+                    resolve(rows[0]);
+                }
+            );
+        });
+
+        if (!likeStatus) {
+            return res.status(404).json({ msg: "Like not found" });
+        }
+
+        res.status(200).json(likeStatus);
+    } catch (err) {
+        console.error("Error in getUserLike:", err);
+        res.status(500).json({ msg: "Internal server error", error: err });
     }
 });
 
 // Get all user likes
 router.get('/getAllUserLikes', async (req, res) => {
 
-    try {
+    /*try {
         const allLikes = await prisma.Like.findMany({
             where: { userID: req.query.userID },
             
@@ -301,7 +325,31 @@ router.get('/getAllUserLikes', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send(err);
-    }
+    }*/
+
+    try {
+        const { userID } = req.query;
+    
+        const allLikes = await new Promise((resolve, reject) => {
+            pool.query(
+                'SELECT * FROM Likes WHERE userID = ?',
+                [userID],
+                (error, rows) => {
+                    if (error) return reject(error);
+                    resolve(rows);
+                }
+            );
+        });
+    
+        if (!allLikes || allLikes.length === 0) {
+            return res.status(404).json({ msg: "No likes found for this user" });
+        }
+    
+        res.status(200).json(allLikes);
+    } catch (err) {
+        console.error("Error in getAllUserLikes:", err);
+        res.status(500).json({ msg: "Internal server error", error: err });
+    }    
 });
 
 module.exports = router;
