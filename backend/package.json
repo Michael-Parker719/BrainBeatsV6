@@ -33,6 +33,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "prisma": "^4.8.1"
+    "prisma": "^4.8.1",
+    "react-app-rewired": "^2.2.1"
   }
 }

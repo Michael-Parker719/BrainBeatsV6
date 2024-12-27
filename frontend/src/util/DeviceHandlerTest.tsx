@@ -7,7 +7,7 @@ import { DeviceHandler } from './DeviceHandler';
 
 const device = new DeviceHandler();
 
-/*export async function testRun(){
+export async function testRun(){
   // setting file path for hex
   device.setHexFilePath("./MindControl3/build/arduino.avr.uno/MindControl3.ino.hex");
 
@@ -17,9 +17,9 @@ const device = new DeviceHandler();
   // listen to serial output
   await device.listen();
   console.log("fin");
-} */
+}
 
-document.addEventListener('click', async () = > {
+document.addEventListener('click', async () => {
   // setting file path for hex
   device.setHexFilePath("./MindControl3/build/arduino.avr.uno/MindControl3.ino.hex");
 
