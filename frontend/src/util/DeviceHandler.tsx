@@ -4,7 +4,7 @@
  Web Serial Port Library: https://github.com/WICG/serial
  */
 
-import { upload, boards } from 'web-arduino-uploader'
+import { upload, boards } from 'web-arduino-uploader/dist/index.js';
 // import { SerialPort } from 'w3c-web-serial'
 
 export class DeviceHandler
