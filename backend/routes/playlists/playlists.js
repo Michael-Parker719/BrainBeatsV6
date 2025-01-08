@@ -1,6 +1,7 @@
 require("dotenv").config();
 const router = require("express").Router();
 const { PrismaClient } = require("@prisma/client");
+const { pool } = require('../../connect/connect');
 const prisma = new PrismaClient();
   
 const { user, post } = new PrismaClient();
@@ -47,7 +48,16 @@ router.post('/createPlaylist', async (req, res) => {
 // Get all playlists
 router.get('/getAllPlaylists', async (req, res) => {
     try {
-        const playlists = await prisma.Playlist.findMany();
+
+        let playlists = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM Playlist', (error, rows) => {
+                if (error) throw error;
+                
+                resolve(rows);
+            })
+        });
+
+        //const playlists = await prisma.Playlist.findMany();
         return res.json(playlists);
     } catch (err) {
         console.error(err);
@@ -60,11 +70,19 @@ router.get('/getUserPlaylists', async (req, res) => {
     const userID = req.query.userID;
 
     try {
-        const playlists = await prisma.Playlist.findMany({
-            where: {
-                userID: userID
-            }
+        let playlists = await new Promise((resolve, reject) => {
+            pool.query('SELECT * FROM Playlist WHERE `userID` = ?', userID, (error, rows) => {
+                if (error) throw error;
+                
+                resolve(rows);
+            })
         });
+
+        // const playlists = await prisma.Playlist.findMany({
+        //     where: {
+        //         userID: userID
+        //     }
+        // });
         return res.json(playlists);
     } catch (err) {
         console.error(err);

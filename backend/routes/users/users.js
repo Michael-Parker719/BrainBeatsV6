@@ -14,7 +14,7 @@ var nodemailer = require("nodemailer");
 const fs = require('fs');
 const crypto = require('crypto');
 
-// Create a new user
+// Create a new user 
 router.post('/createUser', async (req, res) => {
     try {
         const { firstName, lastName, email, username, password, profilePicture } = req.body;
@@ -29,17 +29,23 @@ router.post('/createUser', async (req, res) => {
             encryptedPassword = await bcrypt.hash(password, 10);
 
             //Create a single record
-
-            const newUser = await prisma.user.create({
-                data: {
-                    firstName,
-                    lastName,
-                    email,
-                    username,
-                    password: encryptedPassword,
-                    profilePicture
-                }
+            await new Promise((resolve, reject) => {
+                pool.query("INSERT INTO User (firstName, lastName, email, username, password, profilePicture) VALUES (?, ?, ?, ?, ?, ?)", 
+                    [firstName, lastName, email, username, encryptedPassword, profilePicture], (error, rows) => {
+                        if (error) throw error;
+                        resolve(rows[0]);
+                    });
             });
+            
+            let newUser = await new Promise((resolve, reject) => {
+                pool.query('SELECT * FROM User WHERE `email` = ?', email, (error, rows) => {
+                    if (error) throw error;
+                    resolve(rows[0]);
+                })
+            });
+            
+            // console.log(newUser.email);
+            // console.log(newUser);
             // Create JWT
             const token = createJWT(newUser.id, newUser.email);
             const data = {
@@ -66,11 +72,12 @@ router.post('/logoutUser', async (req, res) => {
 
         // Validate if user exists in our database
         const userExists = await getUserExists(email, "email");
-        console.log(userExists);
-
+        // console.log(userExists);
+        // console.log("This user exists");
         // If password is related to the email console log a successful login
         if (userExists && verifyJWT(jwt)) {
-            res.status(200);
+            console.log("this works!!!");
+            return res.status(200);
         } else {
             return res.status(400).json({
                 msg: "Logout failed"
@@ -111,6 +118,8 @@ router.post('/loginUser', async (req, res) => {
                 },
                 token: token
             }
+
+
             res.json(data);
         } else {
             return res.status(400).json({
@@ -176,7 +185,7 @@ router.get('/getUserByUsername', async (req, res) => {
 // Get user by user ID
 router.get('/getUserByID', async (req, res) => {
     try {
-        const userID = req.query.userID;
+        const userID = req.body.id;
         const userExists = await getUserExists(userID, "id");
 
         if (!userExists) {
@@ -194,7 +203,7 @@ router.get('/getUserByID', async (req, res) => {
 // Get user profilePictures by id
 router.get('/getUserImages', async (req, res) => {
     try {
-        const userExists = await getUserExists(req.query.id, "id", {
+        const userExists = await getUserExists(req.body.id, "id", {
             include: {
                 profilePicture: true,
             }
