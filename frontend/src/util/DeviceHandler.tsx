@@ -5,7 +5,6 @@
  */
 
 import { upload, boards } from 'web-arduino-uploader/dist/index.js';
-import Avrgirl from 'avrgirl-arduino';
 // import { SerialPort } from 'w3c-web-serial'
 
 export class DeviceHandler
