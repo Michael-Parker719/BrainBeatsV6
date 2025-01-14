@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 // async function getUserExists(searchVal, searchType) {
 //     if (!searchType) return false;
 //     if (!searchVal) return false;
+
 //     let result;
 //     switch (searchType) {
 //         case 'email':
@@ -41,6 +42,7 @@ const bcrypt = require('bcryptjs');
 //             });
 //             break;
 //     }
+
 //     if (!result) result = false;
 //     return result;
 // }
@@ -85,6 +87,7 @@ async function getUserExists(searchVal, searchType) {
     return promise;
 }
 
+
 async function getIsTokenExpired(searchVal) {
     let data = await prisma.User.findUnique({
         where: { resetPasswordToken: searchVal },
@@ -98,111 +101,63 @@ async function getIsTokenExpired(searchVal) {
 
 // Gets whether a post exists or not based on the field leading the query.
 async function getTrackExists(searchVal, searchType) {
-    //let result;
+    let result;
+    switch (searchType) {
+        case 'id':
+            result = await prisma.Track.findUnique({
+                where: { id: searchVal }
+            });
 
-    let promise;
-    if (searchType === "id") {
-
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Track WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
+            break;
     }
 
-    // switch (searchType) {
-    //     case 'id':
-    //         result = await prisma.Track.findUnique({
-    //             where: { id: searchVal }
-    //         });
-
-    //         break;
-    // }
-
-    if (!promise) promise = false;
-    return promise;
+    if (!result) result = false;
+    return result;
 }
 
 // Gets whether a playlist exists or not based on the field leading the query.
 async function getPlaylistExists(searchVal, searchType) {
-    //let result;
+    let result;
+    switch (searchType) {
+        case 'id':
+            result = await prisma.Playlist.findUnique({
+                where: { id: searchVal }
+            });
 
-    let promise;
-    if (searchType === "id") {
-
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Playlist WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
+            break;
     }
 
-    // switch (searchType) {
-    //     case 'id':
-    //         result = await prisma.Playlist.findUnique({
-    //             where: { id: searchVal }
-    //         });
-
-    //         break;
-    // }
-
-    if (!promise) promise = false;
-    return promise;
+    if (!result) result = false;
+    return result;
 }
 
 async function getLikeExists(trackID, userID) {
-
-    let promise = await new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM `Like` WHERE `trackID` = ? AND `userID` = ?', trackID, userID, (error, rows) => {
-            if (error) throw error;
-            
-            resolve(rows[0]);
-        })
+    let result = await prisma.Like.findUnique({
+        where: {
+            trackID_userID:{
+                trackID: trackID,
+                userID: userID
+            }
+        }
     });
 
-    // let result = await prisma.Like.findUnique({
-    //     where: {
-    //         trackID_userID:{
-    //             trackID: trackID,
-    //             userID: userID
-    //         }
-    //     }
-    // });
-
-    if (!promise) promise = false;
-    return promise;
+    if (!result) result = false;
+    return result;
 }
 
 async function getScriptExists(searchVal, searchType) {
+    let result;
+    switch (searchType) {
+        case 'id':
+            result = await prisma.script.findUnique({
+                where: { id: searchVal }
+            });
 
-    let promise;
-    if (searchType === "id") {
-
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Script WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
+            break;
     }
 
-    // let result;
-    // switch (searchType) {
-    //     case 'id':
-    //         result = await prisma.script.findUnique({
-    //             where: { id: searchVal }
-    //         });
-
-    //         break;
-    // }
-
-    if (!promise) promise = false;
-    return promise;
+    if (!result) result = false;
+    return result;
 }
 
 // async function getUserLIkes(userID) {

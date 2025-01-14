@@ -27,43 +27,26 @@ router.post('/createTrack', async (req, res) => {
         } else {
             // Create a single record
             console.log(req)
-
-            
-            // const newTrack = await prisma.track.create({
-            //     data: {
-            //         user: {
-            //             connect: {
-            //                 id: userID
-            //             }
-            //         },
-            //         title: title,
-            //         bpm: bpm,
-            //         key: key,
-            //         scale: scale,
-            //         instruments: instruments,
-            //         noteTypes: noteTypes,
-            //         thumbnail: thumbnail,
-            //         midi: midi,
-            //         likeCount: likeCount,
-            //         public: true,
-            //     }
-            // });
-
-            let sqlQuery = "INSERT INTO Track (title, bpm, key, scale, instruments, noteTypes, thumbnail, midi, likeCount, public, userID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            await new Promise((resolve, reject) => {
-                pool.query(sqlQuery, 
-                    [title, bpm, key, scale, instruments, noteTypes, thumbnail, midi, likeCount, public, userID], (error, rows) => {
-                        if (error) throw error;
-                        resolve(rows[0]);
-                    });
+            const newTrack = await prisma.track.create({
+                data: {
+                    user: {
+                        connect: {
+                            id: userID
+                        }
+                    },
+                    title: title,
+                    bpm: bpm,
+                    key: key,
+                    scale: scale,
+                    instruments: instruments,
+                    noteTypes: noteTypes,
+                    thumbnail: thumbnail,
+                    midi: midi,
+                    likeCount: likeCount,
+                    public: true,
+                }
             });
-            
-            let newTrack = await new Promise((resolve, reject) => {
-                pool.query('SELECT * FROM Track WHERE `midi` = ?', midi, (error, rows) => {
-                    if (error) throw error;
-                    resolve(rows[0]);
-                })
-            });
+
           return res.status(201).json(newTrack);
         }
     } catch (err) {
@@ -77,15 +60,8 @@ router.get('/getUserTracksByUsername', async (req, res) => {
     try {
         const username = req.query.username;
         if (username === "") {
-            // const allTracks = await prisma.Track.findMany({
-            //     include: {user : true}
-            // });
-
-            let allTracks = await new Promise((resolve, reject) => {
-                pool.query('SELECT * FROM Track', (error, rows) => {
-                    if (error) throw error;
-                    resolve(rows);
-                })
+            const allTracks = await prisma.Track.findMany({
+                include: {user : true}
             });
 
             return res.json(allTracks);
@@ -99,16 +75,9 @@ router.get('/getUserTracksByUsername', async (req, res) => {
             });
         } else {
             // Find the records
-            // const userTracks = await prisma.Track.findMany({
-            //     where: { userID: userExists.id },
-            //     include: {user: true}
-            // });
-
-            let userTracks = await new Promise((resolve, reject) => {
-                pool.query('SELECT * FROM Track WHERE `userID` = ?', userExists.id, (error, rows) => {
-                    if (error) throw error;
-                    resolve(rows);
-                })
+            const userTracks = await prisma.Track.findMany({
+                where: { userID: userExists.id },
+                include: {user: true}
             });
 
             if (!userTracks) {
@@ -130,34 +99,22 @@ router.get('/getTracksByTitle', async (req, res) => {
     try {
         const title = req.query.title;
         if (title === "") {
-            // const allTracks = await prisma.Track.findMany({
-            //     include: {user : true}
-            // });
-
-            let allTracks = await new Promise((resolve, reject) => {
-                pool.query('SELECT * FROM Track', (error, rows) => {
-                    if (error) throw error;
-                    resolve(rows);
-                })
+            const allTracks = await prisma.Track.findMany({
+                include: {user : true}
             });
+
             return res.json(allTracks);
+            return;
         }
         
         // Find the records
-        // const tracks = await prisma.Track.findMany({
-        //     where: { title: 
-        //         {
-        //             contains: title 
-        //         },
-        //     },
-        //     include: {user: true}
-        // });
-
-        let tracks = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Track WHERE `title` = ?', title, (error, rows) => {
-                if (error) throw error;
-                resolve(rows[0]);
-            })
+        const tracks = await prisma.Track.findMany({
+            where: { title: 
+                {
+                    contains: title 
+                },
+            },
+            include: {user: true}
         });
 
         if (!tracks) {
@@ -185,16 +142,9 @@ router.get('/getUserTracksByID', async (req, res) => {
                 msg: "User not found"
             });
         } else {
-            // const userTracks = await prisma.Track.findMany({
-            //     where: { userID: req.query.userID },
-            //     include: {user: true}
-            // });
-
-            let userTracks = await new Promise((resolve, reject) => {
-                pool.query('SELECT * FROM Track WHERE `userID` = ?', userExists.id, (error, rows) => {
-                    if (error) throw error;
-                    resolve(rows);
-                })
+            const userTracks = await prisma.Track.findMany({
+                where: { userID: req.query.userID },
+                include: {user: true}
             });
 
             if (!userTracks) {
@@ -212,8 +162,6 @@ router.get('/getUserTracksByID', async (req, res) => {
 });
 
 router.get('/getTrackByID', async (req, res) => {
-
-    const trackID = req.query.id;
     try {
         // const decoded = verifyJWT(req.body.token);
 
@@ -223,16 +171,9 @@ router.get('/getTrackByID', async (req, res) => {
         //     });
         // }
 
-        // const track = await prisma.Track.findUnique({
-        //     where: { id: req.query.id },
-        //     include: {user: true}
-        // });
-
-        let track = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Track WHERE `id` = ?', trackID, (error, rows) => {
-                if (error) throw error;
-                resolve(rows[0]);
-            })
+        const track = await prisma.Track.findUnique({
+            where: { id: req.query.id },
+            include: {user: true}
         });
         if (!track) {
             return res.status(404).json({
@@ -251,15 +192,8 @@ router.get('/getTrackByID', async (req, res) => {
 // Get all tracks
 router.get('/getAllTracks', async (req, res) => {
     try {
-        // const tracks = await prisma.Track.findMany({
-        //     include: {user: true}
-        // });
-
-        let tracks = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Track', (error, rows) => {
-                if (error) throw error;
-                resolve(rows);
-            })
+        const tracks = await prisma.Track.findMany({
+            include: {user: true}
         });
 
         return res.status(200).json(tracks);
@@ -271,8 +205,6 @@ router.get('/getAllTracks', async (req, res) => {
 
 // Delete a track
 router.delete('/deleteTrack', async (req, res) => {
-
-    const trackID = req.body.id;
     try {
         const decoded = verifyJWT(req.body.token);
         console.log("JWT: " + req.body.token);
@@ -283,15 +215,8 @@ router.delete('/deleteTrack', async (req, res) => {
                 });
         }
 
-        // await prisma.Track.delete({
-        //     where: { id: req.body.id }
-        // });
-
-        await new Promise((resolve, reject) => {
-            pool.query('DELETE FROM Track WHERE `id` = ?', trackID, (error, rows) => {
-                if (error) throw error;
-                resolve(rows[0]);
-            })
+        await prisma.Track.delete({
+            where: { id: req.body.id }
         });
 
         return res.status(200).send({ msg: "Deleted a user track" });
