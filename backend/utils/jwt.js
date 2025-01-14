@@ -22,6 +22,8 @@ function verifyJWT(jwtToken) {
 
                 if (!userExists) return false;
 
+                // console.log("In the verify function...");
+                // console.log(decoded);
                 return decoded;
             }
         }

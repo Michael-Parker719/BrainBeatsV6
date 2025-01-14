@@ -58,8 +58,8 @@ async function updateScript(scriptID, token, cards) {
         console.log(queries);
         let newCards = await prisma.card.createMany({
             data: queries,
-        }
-        );
+        });
+        
         return newCards;
     } catch (err) {
         throw err;
