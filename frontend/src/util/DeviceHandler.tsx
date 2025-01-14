@@ -35,7 +35,7 @@ export class DeviceHandler
   try{
    await upload(boards.uno, this.hex_file_path, onProgress, verify);
   } catch (e){
-   console.log(e)
+   console.log(e);
    return false;
   }
   
