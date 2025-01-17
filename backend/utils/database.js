@@ -216,7 +216,6 @@ async function getScriptExists(searchVal, searchType) {
 module.exports = {
     getUserExists: getUserExists,
     getTrackExists: getTrackExists,
-//    getTrackExists1: getTrackExists1,
     getPlaylistExists: getPlaylistExists,
     getLikeExists: getLikeExists,
     getScriptExists: getScriptExists,

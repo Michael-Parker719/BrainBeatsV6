@@ -1,13 +1,8 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { user, post } = new PrismaClient();
 var nodemailer = require("nodemailer");
 const { getUserExists } = require("../../utils/database");
-const { getJWT, verifyJWT, createJWT, removeJWT } = require("../../utils/jwt");
-// const { JSON } = require("express");
-const dbUtil = require("../../utils/database");
+const { verifyJWT } = require("../../utils/jwt");
 
 // TODO Check env for if dev, set url to localhost:3000 else, dev url
 

@@ -35,6 +35,7 @@ router.post('/createPlaylist', async (req, res) => {
             data: { name, userID, thumbnail }
         });
       
+        
         // console.log(profilePicture);
         return res.json(newPlaylist);
 
@@ -70,7 +71,7 @@ router.get('/getUserPlaylists', async (req, res) => {
     const userID = req.query.userID;
 
     try {
-        let playlists = await new Promise((resolve, reject) => {
+        let playlists = await new Promise((resolve) => {
             pool.query('SELECT * FROM Playlist WHERE `userID` = ?', userID, (error, rows) => {
                 if (error) throw error;
                 
