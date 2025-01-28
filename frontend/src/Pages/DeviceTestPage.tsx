@@ -9,18 +9,18 @@ const DeviceTestPage = () => {
 
   // Handles button (source: https://felixgerschau.com/react-typescript-onclick-event-type/)
   // Performs a function onClick
-  const onClickFunc = (e:MouseEvent<HTMLButtonElement>) => {
+  const onClickFunc = async (e:MouseEvent<HTMLButtonElement>) => {
     // setting file path for hex
     console.log('Setting Hex Path');
     device.setHexFilePath(hexFilePath);
 
     // upload arduino code
     console.log('Uploading Script');
-    device.uploadToArduino();
+    await device.uploadToArduino();
 
     // listen to serial output
-    // alert('Listening to Serial Port')
-    // device.listen();
+    console.log('Listening to Serial Port')
+    device.listen();
     console.log("fin");
   }
 
