@@ -5,8 +5,9 @@
  */
 
 import { upload, boards } from "web-arduino-uploader/dist/index.js";
-import EEGProcessor from "../Components/EEGProcessor";
-// import MusicGeneration TODO: Import Music Generation
+import EEGProcessor from "./EEGProcessor";
+//Alex Update Import
+// import V6NoteHandler from "../MusicAlgorithms/V6NoteHandler";
 
 export class DeviceHandler {
   private hex_file_path: string = " ";
@@ -14,6 +15,7 @@ export class DeviceHandler {
   private buffer: number[] = [];
   private bufferSize = 64; // Must match FFT size
   private eegProcessor = new EEGProcessor();
+  public V6NoteHandler: any;
 
   // Set path to hex file to read
   public setHexFilePath(file: string) {
@@ -75,7 +77,8 @@ export class DeviceHandler {
             let brainWaves = this.eegProcessor.processEEG(this.buffer); // Send last value to update rolling buffer
             this.buffer = []; // Reset buffer after processing
             console.log(brainWaves);
-            // Call to MA
+            // this.V6NoteHandler.originalNoteGeneration(brainWaves);
+            // Might need to add configuration for the music generation (From DeviceAbstractFactory) to define V6NoteHandler
           }
         }
       } catch (error) {
