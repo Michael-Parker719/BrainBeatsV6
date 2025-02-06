@@ -18,16 +18,6 @@ export interface DataStream4Ch {
     timeStamp:number;
 }
 
-// Rename the wave names when figured out
-export interface DataStream5Waves {
-    waveAlpha: number;
-    waveBeta: number;
-    waveTheta: number;
-    waveDelta: number;
-    waveGamma: number;
-    timeStamp: number;
-}
-
 export interface MusicSettings {
     // Defines the Beats per Minute (BPM) of the output track
     octaves: number;

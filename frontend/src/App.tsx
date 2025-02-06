@@ -15,7 +15,6 @@ import Script from './Pages/Script';
 import ScriptChooser from './Pages/ScriptChooser';
 import RecordTrack from './Pages/RecordTrack';
 import Setup from './Pages/Setup';
-import DeviceTestPage from './Pages/DeviceTestPage';
 
 // import SliceProvider from './Redux/SliceProvider';
 import { userJWT } from './JWT'
@@ -61,7 +60,6 @@ function App() {
             <Route path='/reset-password' element={<ResetPassword />} />
             <Route path='/record' element={<RecordTrack />} />
             <Route path='/setup' element={<Setup />} />
-		<Route path='/device-test' element={<DeviceTestPage />} />
 
             <Route path='/profile' element={<Profile />} 
               loader={() => {
