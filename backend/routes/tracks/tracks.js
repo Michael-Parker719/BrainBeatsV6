@@ -90,11 +90,6 @@ router.get("/getUserTracksByUsername", async (req, res) => {
         msg: "Username not found",
       });
     } else {
-      // Find the records
-      // const userTracks = await prisma.Track.findMany({
-      //     where: { userID: userExists.id },
-      //     include: {user: true}
-      // });
 
       const sqlQuery2 = "SELECT * FROM Track WHERE `userID` = ?";
       let [userTracks] = await promiseConnection.query(sqlQuery2, [
@@ -284,19 +279,6 @@ router.put("/updateTrack", async (req, res) => {
         WHERE 
             id = ?;
     `;
-    // Get the updated track
-    /*
-    const updateTrack = await prisma.Track.update({
-      where: { id },
-      data: {
-        title: title,
-        likeCount: likeCount,
-        midi: midi,
-        public: public,
-        thumbnail: thumbnail,
-      },
-    });
-*/
 
     let [tracks] = await promiseConnection.query(sqlQuery, [
       title,
@@ -308,7 +290,7 @@ router.put("/updateTrack", async (req, res) => {
     ]);
     
 
-    return res.status(200).json(updateTrack);
+    return res.status(200).json(tracks);
   } catch (err) {
     console.log(err);
     return res.status(500).send({ msg: err });

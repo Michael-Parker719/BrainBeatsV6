@@ -1,17 +1,12 @@
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { user, post } = new PrismaClient();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
-// const { JSON } = require("express");
 const { createJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getIsTokenExpired } = require("../../utils/database");
 var nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const { tr } = require("framer-motion/client");
 
 // Create a new user
 router.post("/createUser", async (req, res) => {
@@ -288,18 +283,8 @@ router.delete("/deleteUser", async (req, res) => {
     const sqlQuery = `DELETE FROM User WHERE id = ?`;
     const id = req.body.id;
 
-    // const deleteUser = await prisma.User.delete({
-    //     where: { id: req.body.id }
-    // });
-
-    const [ rows ] = await promiseConnection.query(sqlQuery, [id]);
+    const [rows] = await promiseConnection.query(sqlQuery, [id]);
     let deleteUser = rows[0];
-    // let deleteUser = await new Promise((resolve) => {
-    //   pool.query(query, id, (error, rows) => {
-    //     if (error) throw error;
-    //     resolve(rows[0]);
-    //   });
-    // });
 
     res.status(200).send({ deleteUser });
   } catch (err) {
@@ -324,13 +309,15 @@ router.post("/forgotPassword", async (req, res) => {
       const token = crypto.randomBytes(48).toString("hex");
 
       // Update user in database with token and expiry date
-      const updateUser = await prisma.User.update({
-        where: { email },
-        data: {
-          resetPasswordToken: token,
-          resetPasswordExpires: new Date(Date.now() + 1400000), // 30 mins exp
-        },
-      });
+      const resetPasswordExpires = new Date(Date.now() + 1400000);
+      const sqlQuery1 =
+        "UPDATE User SET resetPasswordToken = ?, resetPasswordExpires = ? WHERE email = ?;";
+
+      const [updateUser] = await promiseConnection.query(sqlQuery1, [
+        token,
+        resetPasswordExpires,
+        email,
+      ]);
 
       // Set up transporter for email
       const transporter = nodemailer.createTransport({
@@ -396,17 +383,15 @@ router.put("/reset", async (req, res) => {
     encryptedPassword = await bcrypt.hash(newPassword, 10);
 
     // Select the user by reset token and update their password
-    const user = await prisma.User.update({
-      where: { resetPasswordToken },
-      // resetPasswordExpires: {
-      //     $gt: Date.now(),
-      // },
-      data: {
-        password: encryptedPassword,
-        resetPasswordExpires: null,
-        resetPasswordToken: null,
-      },
-    });
+
+    const sqlQuery2 = `UPDATE User
+SET password = ?, resetPasswordExpires = NULL, resetPasswordToken = NULL
+WHERE resetPasswordToken = ?;`;
+
+    const [user] = await promiseConnection.query(sqlQuery2, [
+      encryptedPassword,
+      resetPasswordToken,
+    ]);
 
     res.status(200).send({ msg: "Password was successfully changed" });
   } catch (err) {

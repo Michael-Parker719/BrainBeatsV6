@@ -1,223 +1,99 @@
-const { PrismaClient } = require("@prisma/client");
-//const { join } = require("@prisma/client/runtime");
-const { pool } = require('../connect/connect');
-const prisma = new PrismaClient();
-const bcrypt = require('bcryptjs');
-
+const { pool } = require("../../connect/connect");
+const promiseConnection = pool.promise();
 
 // Gets whether a user exists or not based on the field leading the query.
-// async function getUserExists(searchVal, searchType) {
-//     if (!searchType) return false;
-//     if (!searchVal) return false;
-//     let result;
-//     switch (searchType) {
-//         case 'email':
-//             result = await prisma.User.findUnique({
-//                 where: { email: searchVal },
-//                 select: {
-//                     email: true,
-//                     password: true,
-//                     firstName: true,
-//                     username: true,
-//                     lastName: true,
-//                     bio: true,
-//                     profilePicture: true,
-//                     id: true,
-//                     likes: true,
-//                     playlists: true,
-//                     tracks: true,
-//                     verified: true
-//                 }
-//             });
-//             break;
-//         case 'id':
-//             result = await prisma.User.findUnique({
-//                 where: { id: searchVal }
-//             });
-//             break;
-//         case 'username':
-//             result = await prisma.User.findUnique({
-//                 where: { username: searchVal }
-//             });
-//             break;
-//     }
-//     if (!result) result = false;
-//     return result;
-// }
-
 async function getUserExists(searchVal, searchType) {
-    if (!searchType) return false;
-    if (!searchVal) return false;
+  if (!searchType) return false;
+  if (!searchVal) return false;
 
-    let promise;
-    if (searchType === "username") {
+  let promise;
+  if (searchType === "username") {
+    const sqlQuery = "SELECT * FROM User WHERE `username` = ?;";
+    let [rows] = await promiseConnection.query(sqlQuery, [searchVal]);
+    promise = rows[0];
+  } else if (searchType === "id") {
+    const sqlQuery = "SELECT * FROM User WHERE `id` = ?;";
+    let [rows] = await promiseConnection.query(sqlQuery, [searchVal]);
+    promise = rows[0];
+  } else if (searchType === "email") {
+    const sqlQuery = "SELECT * FROM User WHERE `email` = ?;";
+    let [rows] = await promiseConnection.query(sqlQuery, [searchVal]);
+    promise = rows[0];
+  }
 
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM User WHERE `username` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
-    } else if (searchType === "id") {
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM User WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
-    } else if (searchType === "email") {
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM User WHERE `email` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
-    }
+  if (!promise) promise = false;
+  console.log("Testing...");
+  console.log(promise);
 
-    if (!promise) promise = false;
-    console.log("Testing...");
-    console.log(promise);
-
-    return promise;
+  return promise;
 }
 
 async function getIsTokenExpired(searchVal) {
-    let data = await prisma.User.findUnique({
-        where: { resetPasswordToken: searchVal },
-        select: {
-            resetPasswordExpires: true,
-        }
-    });
+  const sqlQuery = `SELECT resetPasswordExpires
+FROM User
+WHERE resetPasswordToken = ?;`;
 
-    return data == null ? false : data.resetPasswordExpires < Date.now();
+  let [data] = await promiseConnection.query(sqlQuery, [true]);
+
+  return data == null ? false : data.resetPasswordExpires < Date.now();
 }
 
 // Gets whether a post exists or not based on the field leading the query.
 async function getTrackExists(searchVal, searchType) {
-    //let result;
+  //let result;
 
-    let promise;
-    if (searchType === "id") {
+  let promise;
+  if (searchType === "id") {
+    const sqlQuery = "SELECT * FROM Track WHERE `id` = ?;";
+    let [rows] = await promiseConnection.query(sqlQuery, [searchVal]);
+    promise = rows[0];
+  }
 
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Track WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
-    }
-
-    // switch (searchType) {
-    //     case 'id':
-    //         result = await prisma.Track.findUnique({
-    //             where: { id: searchVal }
-    //         });
-
-    //         break;
-    // }
-
-    if (!promise) promise = false;
-    return promise;
+  if (!promise) promise = false;
+  return promise;
 }
 
 // Gets whether a playlist exists or not based on the field leading the query.
 async function getPlaylistExists(searchVal, searchType) {
-    //let result;
+  //let result;
 
-    let promise;
-    if (searchType === "id") {
+  let promise;
+  if (searchType === "id") {
+    const sqlQuery = "SELECT * FROM Playlist WHERE `id` = ?;";
+    let [rows] = await promiseConnection.query(sqlQuery, [searchVal]);
+    promise = rows[0];
+  }
 
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Playlist WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
-    }
-
-    // switch (searchType) {
-    //     case 'id':
-    //         result = await prisma.Playlist.findUnique({
-    //             where: { id: searchVal }
-    //         });
-
-    //         break;
-    // }
-
-    if (!promise) promise = false;
-    return promise;
+  if (!promise) promise = false;
+  return promise;
 }
 
 async function getLikeExists(trackID, userID) {
+  const sqlQuery = "SELECT * FROM `Like` WHERE `trackID` = ? AND `userID` = ?;";
+  let [rows] = await promiseConnection.query(sqlQuery, [trackID, userID]);
+  let promise = rows[0];
 
-    let promise = await new Promise((resolve, reject) => {
-        pool.query('SELECT * FROM `Like` WHERE `trackID` = ? AND `userID` = ?', trackID, userID, (error, rows) => {
-            if (error) throw error;
-            
-            resolve(rows[0]);
-        })
-    });
-
-    // let result = await prisma.Like.findUnique({
-    //     where: {
-    //         trackID_userID:{
-    //             trackID: trackID,
-    //             userID: userID
-    //         }
-    //     }
-    // });
-
-    if (!promise) promise = false;
-    return promise;
+  if (!promise) promise = false;
+  return promise;
 }
 
 async function getScriptExists(searchVal, searchType) {
+  let promise;
+  if (searchType === "id") {
+    const sqlQuery = "SELECT * FROM Script WHERE `id` = ?;";
+    let [rows] = await promiseConnection.query(sqlQuery, [searchVal]);
+    promise = rows[0];
+  }
 
-    let promise;
-    if (searchType === "id") {
-
-        promise = await new Promise((resolve, reject) => {
-            pool.query('SELECT * FROM Script WHERE `id` = ?', searchVal, (error, rows) => {
-                if (error) throw error;
-                
-                resolve(rows[0]);
-            })
-        });
-    }
-
-    // let result;
-    // switch (searchType) {
-    //     case 'id':
-    //         result = await prisma.script.findUnique({
-    //             where: { id: searchVal }
-    //         });
-
-    //         break;
-    // }
-
-    if (!promise) promise = false;
-    return promise;
+  if (!promise) promise = false;
+  return promise;
 }
-
-// async function getUserLIkes(userID) {
-//     let res = await prisma.Like.findUnique({
-//         where: {
-//             userID
-//         }
-//     })
-//     return res;
-// }
 
 module.exports = {
-    getUserExists: getUserExists,
-    getTrackExists: getTrackExists,
-    getPlaylistExists: getPlaylistExists,
-    getLikeExists: getLikeExists,
-    getScriptExists: getScriptExists,
-    getIsTokenExpired: getIsTokenExpired
-}
+  getUserExists: getUserExists,
+  getTrackExists: getTrackExists,
+  getPlaylistExists: getPlaylistExists,
+  getLikeExists: getLikeExists,
+  getScriptExists: getScriptExists,
+  getIsTokenExpired: getIsTokenExpired,
+};

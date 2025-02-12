@@ -1,7 +1,5 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
 const { getBPMValues } = require("../../utils/music");
@@ -19,10 +17,10 @@ router.get("/findMidi", async (req, res) => {
     });
   } else {
     const sqlQuery = `
-        SELECT posts.midi, posts.data
-        FROM users
-        JOIN posts ON posts.user_id = users.id
-        WHERE users.username = ?;`;
+        SELECT Track.midi
+        FROM User
+        JOIN Track ON Track.userID = users.id
+        WHERE User.username = ?;`;
 
         let [ posts ] = await promiseConnection.query(sqlQuery, [username]);
     /*

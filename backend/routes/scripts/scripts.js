@@ -1,7 +1,5 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
 const { verifyJWT } = require("../../utils/jwt");
@@ -28,7 +26,7 @@ async function updateScript(scriptID, token, cards) {
     const sqlQuery1 = `
     DELETE FROM Card
     WHERE scriptID = ?;`;
-    
+
     await promiseConnection.query(sqlQuery1, [scriptID]);
 
     for (let i = 0; i < cards.length; i++) {
@@ -52,7 +50,7 @@ async function updateScript(scriptID, token, cards) {
         VALUES ?;
     `;
 
-    let [ newCards ] = await promiseConnection.query(sqlQuery2, [queries]);
+    let [newCards] = await promiseConnection.query(sqlQuery2, [queries]);
 
     return newCards;
   } catch (err) {
@@ -80,25 +78,16 @@ router.post("/createScript", async (req, res) => {
     // Create a single record
     console.log(req);
 
-    // const newScript = await prisma.script.create({
-    //   data: {
-    //     user: {
-    //       connect: {
-    //         id: userID,
-    //       },
-    //     },
-    //     title: title,
-    //     thumbnail: thumbnail,
-    //     public: true,
-    //   },
-    // });
-
     const sqlQuery = `
         INSERT INTO Script (userID, title, thumbnail, public)
         VALUES (?, ?, ?, TRUE);
     `;
 
-    let [ rows ] = await promiseConnection.query(sqlQuery, [userID, title, thumbnail] );
+    let [rows] = await promiseConnection.query(sqlQuery, [
+      userID,
+      title,
+      thumbnail,
+    ]);
     let newScript = rows[0];
     let newCards = updateScript(newScript.id, token, cards);
 
@@ -131,30 +120,23 @@ router.post("/updateScript", async (req, res) => {
     // Create a single record
     console.log(req);
 
-    const sqlQuery = `UPDATE Script
+    const sqlQuery1 = `UPDATE Script
 SET 
     user_id = ?,
     title = ?,
     thumbnail = ?,
     public = true
 WHERE id = ?;`;
-    
-let [ rows ] = await promiseConnection.query(sqlQuery, [])
-    // const newScript = await prisma.script.update({
-    //   where: {
-    //     id: scriptID,
-    //   },
-    //   data: {
-    //     user: {
-    //       connect: {
-    //         id: userID,
-    //       },
-    //     },
-    //     title: title,
-    //     thumbnail: thumbnail,
-    //     public: true,
-    //   },
-    // });
+
+    await promiseConnection.query(sqlQuery1, [
+      userID,
+      title,
+      thumbnail,
+      scriptID,
+    ]);
+
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?;`;
+    let [ newScript ] = await promiseConnection.query(sqlQuery2, [scriptID]);
 
     let newCards = updateScript(newScript.id, token, cards);
 
@@ -172,9 +154,9 @@ router.get("/getUserScriptsByUsername", async (req, res) => {
   try {
     const username = req.query.username;
     if (username === "") {
-      const allTracks = await prisma.script.findMany({
-        include: { user: true },
-      });
+
+      const sqlQuery1 = 'SELECT * FROM Script;';
+      const [allTracks] = await promiseConnection.query(sqlQuery1, []);
 
       return res.json(allTracks);
     }
@@ -187,10 +169,12 @@ router.get("/getUserScriptsByUsername", async (req, res) => {
       });
     } else {
       // Find the records
-      const userScripts = await prisma.script.findMany({
-        where: { userID: userExists.id },
-        include: { user: true },
-      });
+      const sqlQuery2 = `SELECT * 
+FROM Script
+JOIN user ON Script.userID = User.userID
+WHERE Script.userID = ?;`;
+
+      const [userScripts] = await promiseConnection.query(sqlQuery2, [userExists.id]);
 
       if (!userScripts) {
         return res.status(404).json({
@@ -206,14 +190,13 @@ router.get("/getUserScriptsByUsername", async (req, res) => {
   }
 });
 
-// Get all tracks based on a username
+// Get all tracks based on a ID
 router.get("/getUserScriptsByID", async (req, res) => {
   try {
     const userID = req.query.userID;
     if (userID === "") {
-      const allTracks = await prisma.script.findMany({
-        include: { user: true },
-      });
+      const sqlQuery1 = 'SELECT * FROM Script;';
+      const [allTracks] = await promiseConnection.query(sqlQuery1, []);
 
       return res.json(allTracks);
     }
@@ -226,10 +209,13 @@ router.get("/getUserScriptsByID", async (req, res) => {
       });
     } else {
       // Find the records
-      const userScripts = await prisma.script.findMany({
-        where: { userID: userExists.id },
-        include: { user: true },
-      });
+
+      const sqlQuery2 = `SELECT * 
+FROM Script
+JOIN user ON Script.userID = User.userID
+WHERE Script.userID = ?;`;
+
+      const [userScripts] = await promiseConnection.query(sqlQuery2, [userExists.id]);
 
       if (!userScripts) {
         return res.status(404).json({
@@ -249,9 +235,9 @@ router.get("/getCardsByScriptID", async (req, res) => {
   try {
     const scriptID = req.query.id;
     if (scriptID === "") {
-      const allTracks = await prisma.card.findMany({
-        include: { script: true },
-      });
+
+      const sqlQuery1 = 'SELECT * FROM Card;';
+      const [allTracks] = await promiseConnection.query(sqlQuery1, []);
 
       return res.json(allTracks);
     }
@@ -264,20 +250,14 @@ router.get("/getCardsByScriptID", async (req, res) => {
       });
     } else {
       // Find the records
-      const scriptCards = await prisma.card.findMany({
-        where: { scriptID: scriptExists.id },
-        // include: { user: true }
-      });
+      const sqlQuery2 = 'SELECT * FROM Card WHERE scriptID = ?;';
+      const [scriptCards] = await promiseConnection.query(sqlQuery2, [scriptID]);
 
       if (!scriptCards) {
         return res.status(404).json({
           msg: "Cards not found",
         });
       }
-      // function compareCards(card1, card2){
-      //     return card1.order - card2.order
-      // }
-      // scriptCards.sort(compareCards)
 
       return res.status(200).json(scriptCards);
     }

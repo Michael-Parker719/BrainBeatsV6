@@ -80,7 +80,12 @@ router.put("/updateTrackPic", async (req, res) => {
     } else {
 
 
-        const sqlQuery = 'UPDATE Track SET thumbnail = ? WHERE id = ?';
+      const sqlQuery1 = 'SELECT * FROM Track WHERE id = ?;';
+      let [rows] = await promiseConnection.query(sqlQuery1, [id]);
+      let oldThumbnail = rows[0];
+
+      
+      const sqlQuery2 = 'UPDATE Track SET thumbnail = ? WHERE id = ?';
 
       const updateTrack = await prisma.Post.update({
         where: { id },
