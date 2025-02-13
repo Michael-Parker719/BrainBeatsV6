@@ -23,19 +23,6 @@ router.get("/findMidi", async (req, res) => {
         WHERE User.username = ?;`;
 
         let [ posts ] = await promiseConnection.query(sqlQuery, [username]);
-    /*
-        const posts = await prisma.User.findUnique({
-      where: { username: username },
-      select: {
-        posts: {
-          select: {
-            midi: true,
-            data: true,
-          },
-        },
-      },
-    });
-    */
     res.json(posts);
   }
 });

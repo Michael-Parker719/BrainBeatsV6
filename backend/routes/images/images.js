@@ -1,12 +1,10 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
 const { deleteFile } = require("../../fileReader/fileReader");
 const { verifyJWT } = require("../../utils/jwt");
-const { getUserExists, getPostExists } = require("../../utils/database");
+const { getUserExists } = require("../../utils/database");
 
 router.put("/updateUserProfilePic", async (req, res) => {
   try {
@@ -41,15 +39,13 @@ router.put("/updateUserProfilePic", async (req, res) => {
       }
     });
 
-    const sqlQuery = `
-        UPDATE users SET profile_picture = ? WHERE id = ?`;
+    const sqlQuery1 = `
+        UPDATE User SET profilePicture = ? WHERE id = ?`;
 
-    let [rows] = await promiseConnection.query(sqlQuery, [filePath, id]);
+    const sqlQuery2 = "SELECT * FROM User WHERE id = ?";
+    await promiseConnection.query(sqlQuery1, [filePath, id]);
+    let [rows] = await promiseConnection.query(sqlQuery2, [id]);
     let updateUser = rows[0];
-    // const updateUser = await prisma.User.update({
-    //   where: { id },
-    //   data: { profilePicture },
-    // });
 
     return res.status(200).json({ updateUser });
   } catch (err) {
@@ -57,6 +53,9 @@ router.put("/updateUserProfilePic", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+
+
+/*
 
 router.put("/updateTrackPic", async (req, res) => {
   try {
@@ -103,5 +102,7 @@ router.put("/updateTrackPic", async (req, res) => {
     res.status(500).send(err);
   }
 });
+
+*/
 
 module.exports = router;

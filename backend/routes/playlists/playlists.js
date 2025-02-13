@@ -1,17 +1,10 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
-
-const { user, post } = new PrismaClient();
-// const { JSON } = require("express");
-const { getJWT, verifyJWT } = require("../../utils/jwt");
+const { verifyJWT } = require("../../utils/jwt");
 const {
   getUserExists,
-  getPostExists,
   getPlaylistExists,
 } = require("../../utils/database");
 // Create a new playlist
@@ -107,6 +100,7 @@ router.get("/getPlaylistByID", async (req, res) => {
 });
 
 // Get all playlists for a post by post ID
+/*
 router.get("/getPlaylistsByPostID", async (req, res) => {
   try {
     const postID = req.query.postID;
@@ -131,8 +125,11 @@ router.get("/getPlaylistsByPostID", async (req, res) => {
     return res.status(500).send({ msg: err });
   }
 });
+*/
+
 
 // Get all posts in a playlist
+/*
 router.get("/getPostsByPlaylistID", async (req, res) => {
   try {
     const playlistExists = await getPlaylistExists(req.query.id, "id");
@@ -154,10 +151,12 @@ router.get("/getPostsByPlaylistID", async (req, res) => {
     return res.status(500).send({ msg: err });
   }
 });
+*/
 
 // Delete a playlist
 router.delete("/deletePlaylist", async (req, res) => {
   try {
+    let playlistID = req.body.id;
     const decoded = verifyJWT(req.body.token);
 
     if (!decoded) {
@@ -166,9 +165,8 @@ router.delete("/deletePlaylist", async (req, res) => {
       });
     }
 
-    const deletePlaylist = await prisma.Playlist.delete({
-      where: { id: req.body.id },
-    });
+    const sqlQuery = 'DELETE FROM Playlist WHERE id = ?;';
+    await promiseConnection.query(sqlQuery, [playlistID]);
 
     return res.status(200).send({ msg: "Deleted a user playlist" });
   } catch (err) {
@@ -178,6 +176,7 @@ router.delete("/deletePlaylist", async (req, res) => {
 });
 
 // Put post in playlist
+/*
 router.post("/addPostToPlaylist", async (req, res) => {
   try {
     const { playlistID, postID, token } = req.body;
@@ -216,8 +215,10 @@ router.post("/addPostToPlaylist", async (req, res) => {
     return res.status(500).send({ msg: err });
   }
 });
+*/
 
 // Remove a post from a playlist
+/*
 router.delete("/removePostFromPlaylist", async (req, res) => {
   try {
     const { postID, playlistID, token } = req.body;
@@ -244,8 +245,11 @@ router.delete("/removePostFromPlaylist", async (req, res) => {
     return res.status(500).send(err);
   }
 });
+*/
+
 
 // TODO : Update a playlist
+
 router.put("/updatePlaylist", async (req, res) => {
   try {
     const { id, name, thumbnail, token } = req.body;
@@ -258,13 +262,13 @@ router.put("/updatePlaylist", async (req, res) => {
       });
     }
 
-    const updatePlaylist = await prisma.Playlist.update({
-      where: { id },
-      data: {
-        name: name,
-        thumbnail: thumbnail,
-      },
-    });
+    const sqlQuery1 = "UPDATE Playlist SET name = ?, thumbnail = ? WHERE id = ?;";
+    const sqlQuery2 = "SELECT * FROM Playlist WHERE id = ?";
+    
+    await promiseConnection.query(sqlQuery1, [name, thumbnail, id]);
+    let [rows] = await promiseConnection.query(sqlQuery2, [id]);
+    let updatePlaylist =rows[0];
+
     //   return res.status(200).send({msg: "Updated OK"});
     return res.json(updatePlaylist);
   } catch (err) {
