@@ -38,7 +38,7 @@ function Record() {
 
     /*  Add the interface of a new stream here in the case that you've created a new one, you should define it in the DeviceAbstractFactory
     and import it. */
-    const [device, setDevice] = useState<ConcreteGanglionStream | ConcreteCytonStream | ConcreteTestStream>();
+    const [device, setDevice] = useState<ConcreteGanglionStream | ConcreteCytonStream | ConcreteTestStream >(); // TODO: Add ArduinoUnoR3 as a device type into the device abstract factory
     const navigate = useNavigate();
 
     /* This useEffect is crucial!
@@ -104,6 +104,9 @@ function Record() {
                 break;
             case "ganglion":
                 setDevice(new ConcreteGanglionStream(settings, debugOptionObject, NoteHandler, Enhancer));
+                break;
+            case "arduino uno":
+                // TODO: setDevice(ArduinoUnoR3(settings, debugOptionObject, NoteHandler, Enhancer))
                 break;
             default: return;
         }
