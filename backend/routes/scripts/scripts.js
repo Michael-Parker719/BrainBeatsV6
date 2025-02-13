@@ -30,20 +30,27 @@ async function updateScript(scriptID, token, cards) {
     await promiseConnection.query(sqlQuery1, [scriptID]);
 
     for (let i = 0; i < cards.length; i++) {
-      const newCard = {
-        scriptID: scriptID,
-        order: i,
-        textColor: colorToHex(cards[i].textColor),
-        backgroundColor: colorToHex(cards[i].backgroundColor),
-        imageURL: cards[i].imageURL,
-        audioURL: cards[i].audioURL,
-        text: cards[i].text,
-        speed: cards[i].speed,
-      };
+      const newCard = [
+        scriptID,
+        i,
+        colorToHex(cards[i].textColor),
+        colorToHex(cards[i].backgroundColor),
+        cards[i].imageURL,
+        cards[i].audioURL,
+        cards[i].text,
+        cards[i].speed,
+      ];
+      console.log("#################################");
+      console.log("NEW CARD");
       console.log(newCard);
+      console.log("#################################");
       queries.push(newCard);
     }
+
+    console.log("#################################");
+    console.log("ALL QUERIES");
     console.log(queries);
+    console.log("#################################");
 
     const sqlQuery2 = `
         INSERT INTO Card (scriptID, \`order\`, textColor, backgroundColor, imageURL, audioURL, text, speed)
@@ -78,17 +85,29 @@ router.post("/createScript", async (req, res) => {
     // Create a single record
     console.log(req);
 
-    const sqlQuery = `
+    const sqlQuery1 = `
         INSERT INTO Script (userID, title, thumbnail, public)
-        VALUES (?, ?, ?, TRUE);
+        VALUES (?, ?, ?, TRUE)
     `;
 
-    let [rows] = await promiseConnection.query(sqlQuery, [
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?;`;
+    let [insert] = await promiseConnection.query(sqlQuery1, [
       userID,
       title,
       thumbnail,
     ]);
+    let id = insert.insertId;
+    console.log("THE ID IS " + id);
+    let [rows] = await promiseConnection.query(sqlQuery2, [id]);
+
+    // console.log(rows);
     let newScript = rows[0];
+    console.log("+++++++++++++++++++++++++++++++");
+    console.log(rows);
+    console.log("+++++++++++++++++++++++++++++++");
+    console.log(newScript);
+    console.log("+++++++++++++++++++++++++++++++");
+    console.log(newScript.id);
     let newCards = updateScript(newScript.id, token, cards);
 
     ret = { newScript, newCards };
@@ -136,7 +155,7 @@ WHERE id = ?;`;
     ]);
 
     const sqlQuery2 = `SELECT * FROM Script WHERE id = ?;`;
-    let [ newScript ] = await promiseConnection.query(sqlQuery2, [scriptID]);
+    let [newScript] = await promiseConnection.query(sqlQuery2, [scriptID]);
 
     let newCards = updateScript(newScript.id, token, cards);
 
@@ -154,8 +173,7 @@ router.get("/getUserScriptsByUsername", async (req, res) => {
   try {
     const username = req.query.username;
     if (username === "") {
-
-      const sqlQuery1 = 'SELECT * FROM Script;';
+      const sqlQuery1 = "SELECT * FROM Script;";
       const [allTracks] = await promiseConnection.query(sqlQuery1, []);
 
       return res.json(allTracks);
@@ -174,7 +192,9 @@ FROM Script
 JOIN user ON Script.userID = User.userID
 WHERE Script.userID = ?;`;
 
-      const [userScripts] = await promiseConnection.query(sqlQuery2, [userExists.id]);
+      const [userScripts] = await promiseConnection.query(sqlQuery2, [
+        userExists.id,
+      ]);
 
       if (!userScripts) {
         return res.status(404).json({
@@ -195,7 +215,7 @@ router.get("/getUserScriptsByID", async (req, res) => {
   try {
     const userID = req.query.userID;
     if (userID === "") {
-      const sqlQuery1 = 'SELECT * FROM Script;';
+      const sqlQuery1 = "SELECT * FROM Script;";
       const [allTracks] = await promiseConnection.query(sqlQuery1, []);
 
       return res.json(allTracks);
@@ -210,12 +230,16 @@ router.get("/getUserScriptsByID", async (req, res) => {
     } else {
       // Find the records
 
-      const sqlQuery2 = `SELECT * 
+      const sqlQuery2 = `SELECT Script.id as id, 
+      Script.title, Script.thumbnail, Script.createdAt, Script.public, 
+      User.id as userID, User.firstName, User.lastName
 FROM Script
-JOIN user ON Script.userID = User.userID
+JOIN User ON Script.userID = User.id
 WHERE Script.userID = ?;`;
 
-      const [userScripts] = await promiseConnection.query(sqlQuery2, [userExists.id]);
+      const [userScripts] = await promiseConnection.query(sqlQuery2, [
+        userExists.id,
+      ]);
 
       if (!userScripts) {
         return res.status(404).json({
@@ -234,14 +258,15 @@ WHERE Script.userID = ?;`;
 router.get("/getCardsByScriptID", async (req, res) => {
   try {
     const scriptID = req.query.id;
+    // console.log(req.query.id);
     if (scriptID === "") {
-
-      const sqlQuery1 = 'SELECT * FROM Card;';
+      const sqlQuery1 = "SELECT * FROM Card;";
       const [allTracks] = await promiseConnection.query(sqlQuery1, []);
 
       return res.json(allTracks);
     }
 
+    console.log("IN THE getCardsByScriptID FUNCTION");
     const scriptExists = await getScriptExists(scriptID, "id");
 
     if (!scriptExists) {
@@ -250,8 +275,10 @@ router.get("/getCardsByScriptID", async (req, res) => {
       });
     } else {
       // Find the records
-      const sqlQuery2 = 'SELECT * FROM Card WHERE scriptID = ?;';
-      const [scriptCards] = await promiseConnection.query(sqlQuery2, [scriptID]);
+      const sqlQuery2 = "SELECT * FROM Card WHERE scriptID = ?;";
+      const [scriptCards] = await promiseConnection.query(sqlQuery2, [
+        scriptID,
+      ]);
 
       if (!scriptCards) {
         return res.status(404).json({

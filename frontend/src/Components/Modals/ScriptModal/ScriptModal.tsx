@@ -327,8 +327,12 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
         // add jwt to newUserLike for the payload
         newUserLike = Object.assign({ token: jwt }, newUserLike);     // <------
 
+        console.log("USER LIKE");
+        console.log(newUserLike);
         sendAPI("post", "/likes/createUserLike", newUserLike).then((res) => {
 
+            console.log("USER LIKE");
+            console.log(newUserLike);
             // console.log("res: ", res.data);    
 
             // If success

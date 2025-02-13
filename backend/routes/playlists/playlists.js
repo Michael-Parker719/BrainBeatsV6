@@ -1,7 +1,6 @@
 require("dotenv").config();
 const router = require("express").Router();
 const { PrismaClient } = require("@prisma/client");
-const { pool } = require("../../connect/connect");
 const prisma = new PrismaClient();
 
 const { pool } = require("../../connect/connect");

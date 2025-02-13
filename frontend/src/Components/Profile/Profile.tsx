@@ -262,7 +262,7 @@ const Profile = () => {
     // Gets User
     async function getUpdatedUser() {
 
-        var currentUser = {userID: user?.id};
+        var currentUser = {id: user?.id};
         await sendAPI('get', '/users/getUserByID', currentUser)
             .then(res => {
                 if(res.status == 200) {

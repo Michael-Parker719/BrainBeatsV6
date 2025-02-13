@@ -14,6 +14,8 @@ router.post("/createUserLike", async (req, res) => {
   try {
     const { trackID, userID, token } = req.body;
 
+    console.log("REQ.BODY");
+    console.log(req.body);
     const decoded = verifyJWT(token);
 
     if (!decoded) {
@@ -27,16 +29,18 @@ router.post("/createUserLike", async (req, res) => {
     const trackExists = await getTrackExists(trackID, "id");
 
     if (!userExists) {
+      console.log("user doesnt exist");
       return res.status(404).json({
         msg: "User not found",
       });
     } else if (!trackExists) {
+      console.log("track doesn't exist")
       return res.status(404).json({
         msg: "Post not found",
       });
     } else {
       const likeExists = await getLikeExists(trackID, userID);
-
+      console.log("In the else statement...")
       if (likeExists) {
         return res.status(409).json({
           msg: "Like already exists",
@@ -121,7 +125,7 @@ router.get("/getUserLike", async (req, res) => {
   try {
     const { userID, trackID } = req.query;
 
-    const sqlQuery = `SELECT * FROM Likes WHERE userID = ? AND trackID = ?;`;
+    const sqlQuery = `SELECT * FROM \`Like\` WHERE userID = ? AND trackID = ?;`;
     const [likeStatus] = await promiseConnection.query(sqlQuery, [
       userID,
       trackID,
@@ -142,7 +146,7 @@ router.get("/getUserLike", async (req, res) => {
 router.get("/getAllUserLikes", async (req, res) => {
   try {
     const { userID } = req.query;
-    const sqlQuery = `SELECT * FROM Likes WHERE userID = ?;`;
+    const sqlQuery = `SELECT * FROM \`Like\` WHERE userID = ?;`;
 
     const [allLikes] = await promiseConnection.query(sqlQuery, [userID]);
 

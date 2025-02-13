@@ -95,6 +95,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
         setCurrentSearch(title);
         // console.log(title)
         let query = { title: title };
+        
         await sendAPI('get', '/scripts/getScriptsByTitle', query)
             .then((res) => {
                 for (var i = 0; i < res.data.length; i++) {
@@ -137,8 +138,11 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
             .then(res => {
                 console.log(res)
                 for (var i = 0; i < res.data.length; i++) {
+                    console.log("+++++++++++++++++++++++++");
+                    console.log(res.data[i]);
+                    console.log("+++++++++++++++++++++++++");
                     var currentScript: Script = res.data[i];
-                    var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    var fullname: string = res.data[i].firstName + ' ' + res.data[i].lastName;
                     currentScript = Object.assign({ fullname: fullname }, currentScript);
 
                     objArray.push(currentScript);
@@ -267,9 +271,12 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
     async function setScript(currentScript: Script) {
         var objArray: Card[] = [];
         // must set cards here!
-        await sendAPI('get', '/scripts/getCardsByScriptID', currentScript)
+        console.log("Current ID == " + currentScript.id);
+        console.log(currentScript);
+        let scriptParams = {id: currentScript.id};
+        await sendAPI('get', '/scripts/getCardsByScriptID', scriptParams)
             .then(res => {
-                console.log(res)
+                console.log('Response Data:', res);
                 function compareCards(card1: any, card2: any) {
                     return card1.order - card2.order
                 }

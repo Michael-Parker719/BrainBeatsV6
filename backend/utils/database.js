@@ -1,4 +1,4 @@
-const { pool } = require("../../connect/connect");
+const { pool } = require("../connect/connect");
 const promiseConnection = pool.promise();
 
 // Gets whether a user exists or not based on the field leading the query.
@@ -22,8 +22,8 @@ async function getUserExists(searchVal, searchType) {
   }
 
   if (!promise) promise = false;
-  console.log("Testing...");
-  console.log(promise);
+  // console.log("Testing...");
+  // console.log(promise);
 
   return promise;
 }

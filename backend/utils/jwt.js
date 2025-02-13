@@ -14,6 +14,8 @@ function verifyJWT(jwtToken) {
 
     return jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
         if (err) {
+            console.log("THERE IS AN ERROR");
+        
             console.log(err);
             return false;
         } else {

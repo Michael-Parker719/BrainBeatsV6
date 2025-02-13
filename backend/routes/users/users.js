@@ -3,18 +3,21 @@ const bcrypt = require("bcryptjs");
 const router = require("express").Router();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
+const path = require('path');
+const fs = require('fs');
 const { createJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getIsTokenExpired } = require("../../utils/database");
+const { generateFileName } = require("../../fileReader/fileReader");
 var nodemailer = require("nodemailer");
 const crypto = require("crypto");
-
+const BASE_DIR = path.join(__dirname, '../../uploads');
 // Create a new user
 router.post("/createUser", async (req, res) => {
   try {
     const { firstName, lastName, email, username, password, profilePicture } =
       req.body;
-    const userEmailExists = await getUserExist(email, "email");
-    const userNameExists = await getUserExist(username, "username");
+    const userEmailExists = await getUserExists(email, "email");
+    const userNameExists = await getUserExists(username, "username");
 
     if (userEmailExists || userNameExists) {
       return res.status(400).json({
@@ -165,7 +168,7 @@ router.get("/getUserByUsername", async (req, res) => {
 // Get user by user ID
 router.get("/getUserByID", async (req, res) => {
   try {
-    const userID = req.body.id;
+    const userID = req.query.id;
     const userExists = await getUserExists(userID, "id");
 
     if (!userExists) {
@@ -330,7 +333,7 @@ router.post("/forgotPassword", async (req, res) => {
       });
 
       // DEV Use, later will be checked from .env
-      let devDomain = `http://localhost:3000/`;
+      let devDomain = `http://localhost:2001/`;
       let prodDomain = `http://brainbeats.dev/`;
 
       // Create mailOptions to build the email
