@@ -1,5 +1,6 @@
 import FFT from "fft.js";
 import { number } from "mathjs";
+import { DataStream5Waves } from "./Interfaces";
 
 class EEGProcessor {
   private fftSize = 64; // Must be a power of 2
@@ -9,13 +10,13 @@ class EEGProcessor {
   private output: Float32Array;
 
   // EEG Band Power Storage
-  public bandPower: { [key: string]: number } = {
-    delta: 0,
-    theta: 0,
-    alpha: 0,
-    beta: 0,
-    gamma: 0,
-    time: 0,
+  private bandPower: DataStream5Waves = {
+    waveDelta: 0,
+    waveTheta: 0,
+    waveAlpha: 0,
+    waveBeta: 0,
+    waveGamma: 0,
+    timeStamp: 0,
   };
 
   constructor() {
@@ -90,13 +91,13 @@ class EEGProcessor {
     }
 
     // Normalize by count
-    this.bandPower.delta = deltaCount > 0 ? deltaPower / deltaCount : 0;
-    this.bandPower.theta = thetaCount > 0 ? thetaPower / thetaCount : 0;
-    this.bandPower.alpha = alphaCount > 0 ? alphaPower / alphaCount : 0;
-    this.bandPower.beta = betaCount > 0 ? betaPower / betaCount : 0;
-    this.bandPower.gamma = gammaCount > 0 ? gammaPower / gammaCount : 0;
+    this.bandPower.waveDelta = deltaCount > 0 ? deltaPower / deltaCount : 0;
+    this.bandPower.waveTheta = thetaCount > 0 ? thetaPower / thetaCount : 0;
+    this.bandPower.waveAlpha = alphaCount > 0 ? alphaPower / alphaCount : 0;
+    this.bandPower.waveBeta = betaCount > 0 ? betaPower / betaCount : 0;
+    this.bandPower.waveGamma = gammaCount > 0 ? gammaPower / gammaCount : 0;
 
-    this.bandPower.time = Date.now();
+    this.bandPower.timeStamp = Date.now();
     console.log(this.bandPower);
     return this.bandPower;
   }
