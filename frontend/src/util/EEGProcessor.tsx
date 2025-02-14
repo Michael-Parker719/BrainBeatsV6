@@ -10,7 +10,7 @@ class EEGProcessor {
   private output: Float32Array;
 
   // EEG Band Power Storage
-  private bandPower: DataStream5Waves = {
+  public bandPower: DataStream5Waves = {
     waveDelta: 0,
     waveTheta: 0,
     waveAlpha: 0,

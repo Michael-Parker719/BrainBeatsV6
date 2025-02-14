@@ -1,7 +1,7 @@
-import React, { MouseEvent } from 'react';
+import React, { MouseEvent } from "react";
 import { DeviceHandler } from "../util/DeviceHandler";
 
-const hexFilePath = '/MindControl3.ino.hex';
+const hexFilePath = "/MindControl3.ino.hex";
 
 // Page for testing the arduino Uno
 const DeviceTestPage = () => {
@@ -9,32 +9,29 @@ const DeviceTestPage = () => {
 
   // Handles button (source: https://felixgerschau.com/react-typescript-onclick-event-type/)
   // Performs a function onClick
-  const onClickFunc = async (e:MouseEvent<HTMLButtonElement>) => {
+  const onClickFunc = async (e: MouseEvent<HTMLButtonElement>) => {
     // setting file path for hex
-    console.log('Setting Hex Path');
+    console.log("Setting Hex Path");
     device.setHexFilePath(hexFilePath);
 
     // upload arduino code
-    console.log('Uploading Script');
+    console.log("Uploading Script");
     await device.uploadToArduino();
 
     // listen to serial output
-    console.log('Listening to Serial Port')
+    console.log("Listening to Serial Port");
     device.listen();
     console.log("fin");
-  }
+  };
 
   return (
-    <body>
-
+    <div>
       <h1> This is a Testing Page</h1>
 
       {/* <input type="button" onClick = { () => alert('Uploading Script') } value="click" id="coolbutton"></input> */}
-      
-      <button onClick={onClickFunc}>Upload Code</button>
-      
-    </body>
-  )
 
-}
+      <button onClick={onClickFunc}>Upload Code</button>
+    </div>
+  );
+};
 export default DeviceTestPage;
