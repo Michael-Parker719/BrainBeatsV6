@@ -16,6 +16,7 @@ import {
     DataStream4Ch,
 } from "../../../Interfaces";
 
+
 import { KeyGroups, Keys } from "../../../Enums";
 import { MIDIManager } from "./MIDIManager";
 import { TDebugOptionsObject } from "../../../Types";
@@ -25,7 +26,7 @@ export class NoteHandler extends AbstractNoteHandler {
 
     // Universally used settings
     private numNotes: number = 21;//default in old version
-    private BPM: number;
+    private BPM: number = 0;
     private keyGroup: number;
     private scale: number;
     private octaves: number;
@@ -36,32 +37,32 @@ export class NoteHandler extends AbstractNoteHandler {
 
     musicClock: number;
 
-    private currentNoteData: Array<any>;//Holds Note type format of next note to generate(per track)
+    private currentNoteData: Array<any> = [null,null,null,null,null];//Holds Note type format of next note to generate(per track)
     private timeForEachNoteArray: Array<number>;//Constant Array
 
-    private PrevEEGaverageRec: Array<number>;//Previous average Data Record for each track
-    private EEGaverage: Array<number>;
+    private PrevEEGaverageRec: Array<number> = [0,0,0,0,0];//Previous average Data Record for each track
+    private EEGaverage: Array<number> = [0,0,0,0,0];
     private aveSampleNumb: number = 8;//Amount needed to create a new average
 
-    private AnomlousStreak: Array<number>;//Anomlous Data consecutive appearence counter
-    private AnomlousWeight: Array<number>;//Data Skew Value
+    private AnomlousStreak: Array<number> = [];//Anomlous Data consecutive appearence counter
+    private AnomlousWeight: Array<number> = [];//Data Skew Value
     private AnomlousStreakMax: number = 5;//------[!!!]------//Temporary---
 
-    private EEGbuffer: Array<Array<number>>;//buffer if note generation is busy
-    private EEGabnormalBuffer: Array<Array<number>>//Abnormal buffer
+    private EEGbuffer: Array<Array<number>> = [];//buffer if note generation is busy
+    private EEGabnormalBuffer: Array<Array<number>> = []//Abnormal buffer
     
     private warmup: boolean = true;//Prevents empty data to note convertion
     //private stopFlag: boolean = false;//------[!!!]------//Temporary---
     //private genBusy: boolean = false;
     
     private isMajorScale: number = 1;
-    private noteSetNumb: number;//Set of sets of notes from a scale(either Major or Minor)
+    private noteSetNumb: number = 5;//Set of sets of notes from a scale(either Major or Minor)
 
     private channelTotal: number = 4;//How many 1-1 ratios(inputted EEG to track) are there?
-    private inputTray: Array<number>;//Get next input set
+    private inputTray: Array<number> = [0,0,0,0,0];//Get next input set
 
-    private nextPause: Array<number>;//Wait Counter/Tally
-    private pauseCounter: Array<number>;//Wait Counter maximum
+    private nextPause: Array<number> = [0,0,0,0,0];//Wait Counter/Tally
+    private pauseCounter: Array<number> = [0,0,0,0,0];//Wait Counter maximum
     private NoiseCapacity: number = 4;//Temp value---
 
     private midiGenerator;//Defines Midi Generator
@@ -74,8 +75,9 @@ export class NoteHandler extends AbstractNoteHandler {
     }
 
 
-    constructor(settings: MusicSettings|null, debugOptionsObject: TDebugOptionsObject) {////////////////////TEMPORARY null
+    constructor(settings: MusicSettings, debugOptionsObject: TDebugOptionsObject) {
         super(settings, debugOptionsObject);
+        //super(settings, debugOptionsObject);
         ////////////////////// this.debugOutput = debugOptionsObject.debugOption2;
         ////////////////////
         ////////////////////// if (this.debugOutput) {
@@ -106,16 +108,17 @@ export class NoteHandler extends AbstractNoteHandler {
         ////////////////////this.instrumentNoteSettings = settings.deviceSettings; 
 
         this.midiGenerator = new MIDIManager(
-            settings,
+            null,//settings,    ////////////////////TEMPORARY null
             this.timeForEachNoteArray,
-            debugOptionsObject
+            null//debugOptionsObject    ////////////////////TEMPORARY null
         );
         this.stopFlag = false;
 
         // This has to be assigned in the constructor or else it cannot be cancelled
-        // this.musicClock = window.setInterval(() => {
-        //     this.playNextBeat();
-        // }, this.timeForEachNoteArray[2]);
+         this.musicClock = window.setInterval(() => {
+             console.log("Hi");
+             // this.playNextBeat();
+        }, this.timeForEachNoteArray[2]);
 
         ////////////////////// Initialize streaks and strikes to 0s (otherwise you get NaNs)
         ////////////////////// this.streaks = Array(8).fill(0);
@@ -469,6 +472,10 @@ export class NoteHandler extends AbstractNoteHandler {
 
             return { note: this.keySignature[noteMod], octave: noteDiv };
         }
+    }
+
+    public returnMIDI(): Promise<Uint8Array> {
+        return this.midiGenerator.returnMIDI();
     }
 
 

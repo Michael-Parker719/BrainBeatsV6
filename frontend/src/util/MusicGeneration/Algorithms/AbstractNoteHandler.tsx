@@ -1,4 +1,4 @@
-import { DataStream4Ch, DataStream8Ch, MusicSettings } from "../../Interfaces";
+import { DataStream4Ch, DataStream8Ch, Brainwaves, MusicSettings } from "../../Interfaces";
 import { TDebugOptionsObject } from "../../Types";
 
 /* This abstract class contains all named functions that must be implemented in your new notehandler class
@@ -14,7 +14,7 @@ export abstract class AbstractNoteHandler
         this.debugOutput = debugOptionsObject.debugOption2;
     }
 
-    public abstract originalNoteGeneration(EEGdataObj: DataStream8Ch|DataStream4Ch) : any;
+    public abstract originalNoteGeneration(EEGdataObj: DataStream8Ch|DataStream4Ch|Brainwaves) : any;
 
     public abstract returnMIDI(): Promise<Uint8Array>;
 

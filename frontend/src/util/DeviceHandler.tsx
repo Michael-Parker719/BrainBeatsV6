@@ -7,7 +7,10 @@
 import { upload, boards } from "web-arduino-uploader/dist/index.js";
 import EEGProcessor from "./EEGProcessor";
 //Alex Update Import
-// import V6NoteHandler from "../MusicAlgorithms/V6NoteHandler";
+import {NoteHandler} from "./MusicGeneration/Algorithms/MAV6Test/NoteGeneration";
+
+import { TDebugOptionsObject } from "./Types";
+import { MusicSettings } from "./Interfaces";
 
 export class DeviceHandler {
   private hex_file_path: string = " ";
@@ -15,7 +18,43 @@ export class DeviceHandler {
   private buffer: number[] = [];
   private bufferSize = 64; // Must match FFT size
   private eegProcessor = new EEGProcessor();
-  public V6NoteHandler: any;
+  private temp1: MusicSettings = {
+    deviceSettings: {
+      instruments: {
+        _00: 0,
+        _01: 0,
+        _02: 0,    
+        _03: 0,
+        _04: 0,
+        _05: 0,
+        _06: 0,    
+        _07: 0,
+      },
+  
+      durations: {
+        _00: 2,
+        _01: 2,
+        _02: 2,    
+        _03: 2,
+        _04: 2,
+        _05: 2,
+        _06: 2,    
+        _07: 2,
+      },
+    },
+    
+      octaves: 1,
+      numNotes: 7,
+      bpm: 120,
+      keyGroup: "Major",
+      scale: "A",
+  } 
+  private temp2: TDebugOptionsObject = {
+    debugOption1: false,
+    debugOption2: false,
+    debugOption3: false
+};
+  public V6NoteHandler: NoteHandler = new NoteHandler(this.temp1, this.temp2);
 
   // Set path to hex file to read
   public setHexFilePath(file: string) {
@@ -77,7 +116,7 @@ export class DeviceHandler {
             let brainWaves = this.eegProcessor.processEEG(this.buffer); // Send last value to update rolling buffer
             this.buffer = []; // Reset buffer after processing
             console.log(brainWaves);
-            // this.V6NoteHandler.originalNoteGeneration(brainWaves);
+            this.V6NoteHandler.originalNoteGeneration(brainWaves);
             // Might need to add configuration for the music generation (From DeviceAbstractFactory) to define V6NoteHandler
           }
         }

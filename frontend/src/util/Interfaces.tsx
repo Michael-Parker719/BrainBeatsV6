@@ -18,6 +18,15 @@ export interface DataStream4Ch {
     timeStamp:number;
 }
 
+export interface Brainwaves {
+    channel00:number;
+    channel01:number;
+    channel02:number;
+    channel03:number;
+    channel04:number;
+    timeStamp:number;
+}
+
 // Rename the wave names when figured out
 export interface DataStream5Waves {
     waveAlpha: number;

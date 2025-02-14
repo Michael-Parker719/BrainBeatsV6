@@ -25,7 +25,7 @@ export class MIDIManager {
     private timeForEachNoteArray:Array<number>;
     public settings:MusicSettings|null;////////////////////TEMPORARY null
     private BPM: number;
-    private debugOutput:boolean;
+    private debugOutput:boolean = true;
     public MIDIURI:string;
     private stopFlag;
     private midi;
@@ -37,7 +37,7 @@ export class MIDIManager {
      
     /* The constructor for the MIDIManager requires you to input the settings from the user input
         and the  */
-    constructor(settings:MusicSettings|null, timeForEachNoteArray:Array<number>, debugOptionsObject:TDebugOptionsObject) {////////////////////TEMPORARY null
+    constructor(settings:MusicSettings|null, timeForEachNoteArray:Array<number>, debugOptionsObject:TDebugOptionsObject | null) {////////////////////TEMPORARY null
         this.MIDIURI = "";
         this.midi = new Midi();
 
