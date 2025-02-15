@@ -52,7 +52,7 @@ function Record() {
     | ConcreteCytonStream
     | ConcreteTestStream
     | ConcreteArduinoUnoStream
-  >(); // TODO: Add ArduinoUnoR3 as a device type into the device abstract factory
+  >();
   const navigate = useNavigate();
 
   /* This useEffect is crucial!

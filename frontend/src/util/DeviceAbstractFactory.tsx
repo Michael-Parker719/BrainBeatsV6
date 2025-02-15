@@ -15,7 +15,7 @@ import { Devices, initDevice } from "device-decoder";
 import { Devices as Devices3rdParty } from "device-decoder.third-party";
 
 // Imports for the ArduinoUnoR3 device
-import { DeviceHandler } from "./ArduinoDeviceHandler";
+import { ArduinoDeviceHandler } from "./ArduinoDeviceHandler";
 
 import ganglion from "@brainsatplay/ganglion";
 import Ganglion from "ganglion-ble";
@@ -465,7 +465,7 @@ export class ConcreteArduinoUnoStream {
   public noteHandler: any;
   public enhancer: any;
   private debugOutput: boolean;
-  private hex_file_path: string = " ";
+  private hex_file_path: string = "/MindControl3.ino.hex";
 
   // Assigns everything but the hex file path
   constructor(
@@ -500,24 +500,27 @@ export class ConcreteArduinoUnoStream {
   public async initializeConnection() {
     // console.log("Uploading to Arduino");
     this.stopFlag = false;
-    let device = new DeviceHandler();
+    this.device = new ArduinoDeviceHandler();
 
     // setting hex filepath
-    device.setHexFilePath(this.hex_file_path);
+    this.device.setHexFilePath(this.hex_file_path);
     // uploading hex file to the arduino
-    await device.uploadToArduino();
+    await this.device.uploadToArduino();
+
+    this.recordInputStream();
     return true;
   }
 
-  public recordInputStream() {
+  public async recordInputStream() {
     if (this.stopFlag) {
       this.device.disconnect();
       return;
     }
-
-    // TODO: make listen to return
-    let data = this.device.listen();
-    this.noteHandler.originalNoteGeneration(data);
+    let port = await this.device.listen();
+    while (!this.stopFlag) {
+      let data = await this.device.process(port);
+      this.noteHandler.originalNoteGeneration(data);
+    }
   }
 
   public async stopDevice() {

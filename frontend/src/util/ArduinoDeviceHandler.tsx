@@ -12,7 +12,7 @@ import EEGProcessor from "./EEGProcessor";
 import { TDebugOptionsObject } from "./Types";
 import { MusicSettings } from "./Interfaces";
 
-export class DeviceHandler {
+export class ArduinoDeviceHandler {
   private hex_file_path: string = " ";
   private stop_signal: boolean = false;
   private buffer: number[] = [];
@@ -85,11 +85,15 @@ export class DeviceHandler {
 
   // Listen to the serial port
   public async listen() {
+    console.log("Listening to Serial Port");
     // read setup
     const filter = { usbVendorId: 0x2341 };
     const port = await navigator.serial.requestPort({ filters: [filter] });
     await port.open({ baudRate: 9600 });
+    return port;
+  }
 
+  public async process(port: any) {
     // reading from port
     while (port.readable) {
       const reader = port.readable.getReader();
