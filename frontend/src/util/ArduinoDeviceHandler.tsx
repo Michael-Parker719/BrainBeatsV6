@@ -62,10 +62,6 @@ export class DeviceHandler {
     return true;
   }
 
-  public stop() {
-    this.stop_signal = true;
-  }
-
   // change below to a public function
   public async uploadToArduino(): Promise<boolean> {
     const onProgress = (percentage: number) => {
@@ -116,8 +112,7 @@ export class DeviceHandler {
             let brainWaves = this.eegProcessor.processEEG(this.buffer); // Send last value to update rolling buffer
             this.buffer = []; // Reset buffer after processing
             console.log(brainWaves);
-            // this.V6NoteHandler.originalNoteGeneration(brainWaves);
-            // Might need to add configuration for the music generation (From DeviceAbstractFactory) to define V6NoteHandler
+            return brainWaves;
           }
         }
       } catch (error) {
@@ -127,5 +122,10 @@ export class DeviceHandler {
         reader.releaseLock();
       }
     }
+  }
+
+  public async disconnect() {
+    const port = await navigator.serial.requestPort();
+    await port.close();
   }
 }
