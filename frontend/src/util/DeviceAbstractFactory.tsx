@@ -13,6 +13,9 @@
 
 import { Devices, initDevice } from "device-decoder";
 import {Devices as Devices3rdParty} from 'device-decoder.third-party'
+
+// Imports for the ArduinoUnoR3 device
+import { DeviceHandler } from /DeviceHandler
  
 import ganglion from '@brainsatplay/ganglion'
 import Ganglion from 'ganglion-ble';
@@ -434,5 +437,89 @@ export class ConcreteGanglionStream implements AbstractGanglionStream {
 
 }
 
+// This is version 6's device (Arduino Uno R3), further documentation found in the wiki
+export class ConcreteArduinoUnoStream{
+    public device:any;
+    public stopFlag:boolean;
+    public settings:MusicSettings;
+    public noteHandler:any;
+    public enhancer:any;
+    private debugOutput:boolean;
+    private hex_file_path: string = " ";
+    private eegProcessor = new EEGProcessor();
+
+    // Assigns everything but the hex file path
+    constructor(settings:MusicSettings, debugOptionObject:TDebugOptionsObject, handler: any, enhancer: any) {
+        this.settings = settings;
+
+        this.noteHandler = new handler.NoteHandler(this.settings, debugOptionObject);
+        this.noteHandler.setDebugOutput(debugOptionObject.debugOption2);
+        this.stopFlag = false;
+        this.debugOutput = debugOptionObject.debugOption1;
+
+        if (enhancer === 'None') this.enhancer = 'None';
+        else this.enhancer = new enhancer.Enhance();
+    }
+
+    public setDebugOutput(b:boolean) {
+        this.debugOutput = b;
+    }
+    // Set path to hex file to read
+    public setHexFilePath(file: string) {
+        this.hex_file_path = file;
+        return true;
+    }
+
+    public async initializeConnection() {
+        // console.log("Uploading to Arduino");
+        this.stopFlag = false;
+        let device = new DeviceHandler();
+
+        // setting hex filepath
+        device.setHexFilePath(file);
+        // uploading hex file to the arduino
+        await device.upload();
+        return true;
+    }
+
+    public recordInputStream(data:any){
+        if(this.stopFlag) {
+            this.device.disconnect();
+            return;
+        }
+
+        // TODO: make listen to return
+        let data = device.listen()
+        this.notehandler.originalNoteGeneration(data)
+    }
+
+    public async stopDevice() {
+        this.stopFlag = true;
+        this.device.disconnect();
+        
+        const originalMidi = await this.noteHandler.returnMIDI();
+        let outputMidi = originalMidi;
+
+        var res = await this.convertToBase64(outputMidi);
+        return res;
+    }
+
+    private convertToBase64(file:Uint8Array): Promise<string> {
+        return new Promise((resolve, reject) => {
+            var fileBlob = new Blob([file], {
+                type: 'audio/midi'
+            });
+            const fileReader = new FileReader();
+        
+            fileReader.readAsDataURL(fileBlob);
+            fileReader.onload = () => {
+                resolve(fileReader.result as string);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        })
+    }
+}
 
 export {}
