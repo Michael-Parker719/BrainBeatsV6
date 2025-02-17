@@ -2,7 +2,7 @@ require("dotenv").config();
 const router = require("express").Router();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
-const { deleteFile } = require("../../fileReader/fileReader");
+const { deleteFile } = require("../../file/fileReader/fileReader");
 const { verifyJWT } = require("../../utils/jwt");
 const { getUserExists } = require("../../utils/database");
 
