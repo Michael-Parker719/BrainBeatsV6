@@ -1,10 +1,9 @@
 import FFT from "fft.js";
 import { number } from "mathjs";
 import { DataStream5Waves } from "./Interfaces";
+import { sampleRate } from "./Constants";
 
 class EEGProcessor {
-  private fftSize = 64; // Must be a power of 2
-  private sampleRate = 128; // Hz
   private fft: FFT;
   private eegBuffer: Float32Array;
   private output: Float32Array;
@@ -19,44 +18,43 @@ class EEGProcessor {
     timeStamp: 0,
   };
 
-  constructor() {
-    this.fft = new FFT(this.fftSize);
-    this.eegBuffer = new Float32Array(this.fftSize);
-    this.output = new Float32Array(this.fftSize);
+  constructor(bufferSize: number, sampleRate: number) {
+    this.fft = new FFT(bufferSize);
+    this.eegBuffer = new Float32Array(bufferSize);
+    this.output = new Float32Array(bufferSize);
   }
 
   /** Update EEG Buffer with new data and process FFT when buffer is full */
   processEEG(eegBuffer: number[]) {
     // eegBuffer = this.eegBuffer.slice(1); // Shift left
-    // this.eegBuffer[this.fftSize - 1] = eegValue; // Append new value
+    // this.eegBuffer[this.buffer - 1] = eegValue; // Append new value
     console.log(eegBuffer.length);
-    if (eegBuffer.length >= this.fftSize) {
+    if (eegBuffer.length >= eegBuffer.length) {
       console.log("Processing FFT");
-      return this.performFFT(eegBuffer);
+      return this.performFFT(eegBuffer, sampleRate);
     }
   }
 
   /** Perform FFT and compute band powers */
-  private performFFT(eegBuffer: number[]) {
+  private performFFT(eegBuffer: number[], sampleRate: number) {
     const complexArray = this.fft.createComplexArray();
     this.fft.realTransform(complexArray, eegBuffer);
     this.fft.completeSpectrum(complexArray);
 
-    const magnitudes = new Float32Array(this.fftSize / 2);
+    const magnitudes = new Float32Array(eegBuffer.length / 2);
     for (let i = 0; i < magnitudes.length; i++) {
       const real = complexArray[2 * i];
       const imag = complexArray[2 * i + 1];
       magnitudes[i] = Math.sqrt(real * real + imag * imag); // Get amplitude
     }
 
-    console.log("COmputing Band Powers");
-    return this.computeBandPowers(magnitudes);
+    console.log("Computing Band Powers");
+    const freqResolution = sampleRate / eegBuffer.length;
+    return this.computeBandPowers(magnitudes, freqResolution);
   }
 
   /** Compute EEG band powers */
-  private computeBandPowers(magnitudes: Float32Array) {
-    const freqResolution = this.sampleRate / this.fftSize;
-
+  private computeBandPowers(magnitudes: Float32Array, freqResolution: number) {
     let deltaPower = 0,
       thetaPower = 0,
       alphaPower = 0,

@@ -13,48 +13,12 @@ import { TDebugOptionsObject } from "./Types";
 import { MusicSettings } from "./Interfaces";
 
 export class ArduinoDeviceHandler {
-  private hex_file_path: string = " ";
+  private hex_file_path: string = "";
   private stop_signal: boolean = false;
   private buffer: number[] = [];
-  private bufferSize = 64; // Must match FFT size
-  private eegProcessor = new EEGProcessor();
-  private temp1: MusicSettings = {
-    deviceSettings: {
-      instruments: {
-        _00: 0,
-        _01: 0,
-        _02: 0,
-        _03: 0,
-        _04: 0,
-        _05: 0,
-        _06: 0,
-        _07: 0,
-      },
-
-      durations: {
-        _00: 2,
-        _01: 2,
-        _02: 2,
-        _03: 2,
-        _04: 2,
-        _05: 2,
-        _06: 2,
-        _07: 2,
-      },
-    },
-
-    octaves: 1,
-    numNotes: 7,
-    bpm: 120,
-    keyGroup: "Major",
-    scale: "A",
-  };
-  private temp2: TDebugOptionsObject = {
-    debugOption1: false,
-    debugOption2: false,
-    debugOption3: false,
-  };
-  // public V6NoteHandler: NoteHandler = new NoteHandler(this.temp1, this.temp2);
+  private bufferSize = 64; // Must be a power of 2 <= the sample rate
+  private sampleRate = 128; // Hz
+  private eegProcessor = new EEGProcessor(this.bufferSize, this.sampleRate);
 
   // Set path to hex file to read
   public setHexFilePath(file: string) {
