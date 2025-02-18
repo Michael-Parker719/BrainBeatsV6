@@ -519,6 +519,7 @@ export class ConcreteArduinoUnoStream {
     let port = await this.device.listen();
     while (!this.stopFlag) {
       let data = await this.device.process(port);
+      console.log("data = " + data);
       this.noteHandler.originalNoteGeneration(data);
     }
   }

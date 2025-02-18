@@ -77,7 +77,7 @@ export class ArduinoDeviceHandler {
           // When buffer is full, process EEG and reset buffer
           if (this.buffer.length >= this.bufferSize) {
             console.log("Starting processing");
-            let brainWaves = this.eegProcessor.processEEG(this.buffer); // Send last value to update rolling buffer
+            let brainWaves = this.eegProcessor.processEEG(this.buffer);
             this.buffer = []; // Reset buffer after processing
             console.log(brainWaves);
             return brainWaves;

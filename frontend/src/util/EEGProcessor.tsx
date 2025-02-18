@@ -1,12 +1,13 @@
 import FFT from "fft.js";
 import { number } from "mathjs";
 import { DataStream5Waves } from "./Interfaces";
-import { sampleRate } from "./Constants";
+// import { sampleRate } from "./Constants";
 
 class EEGProcessor {
   private fft: FFT;
-  private eegBuffer: Float32Array;
+  // private eegBuffer: Float32Array;
   private output: Float32Array;
+  private sampleRate: number;
 
   // EEG Band Power Storage
   public bandPower: DataStream5Waves = {
@@ -20,8 +21,9 @@ class EEGProcessor {
 
   constructor(bufferSize: number, sampleRate: number) {
     this.fft = new FFT(bufferSize);
-    this.eegBuffer = new Float32Array(bufferSize);
+    // this.eegBuffer = new Float32Array(bufferSize);
     this.output = new Float32Array(bufferSize);
+    this.sampleRate = sampleRate;
   }
 
   /** Update EEG Buffer with new data and process FFT when buffer is full */
@@ -31,7 +33,7 @@ class EEGProcessor {
     console.log(eegBuffer.length);
     if (eegBuffer.length >= eegBuffer.length) {
       console.log("Processing FFT");
-      return this.performFFT(eegBuffer, sampleRate);
+      return this.performFFT(eegBuffer, this.sampleRate);
     }
   }
 
