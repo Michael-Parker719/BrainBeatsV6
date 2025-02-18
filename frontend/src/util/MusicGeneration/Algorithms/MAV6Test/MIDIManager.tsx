@@ -13,9 +13,9 @@ import { TDebugOptionsObject } from "../../../Types";
 import MidiWriter from 'midi-writer-js';
 import { Midi, Track } from '@tonejs/midi';
 
-import { time } from "console";
-import { NoteConstructorInterface } from "@tonejs/midi/dist/Note";
-import { NoteHandler } from "./NoteGeneration";
+//import { time } from "console";
+//import { NoteConstructorInterface } from "@tonejs/midi/dist/Note";
+//import { NoteHandler } from "./NoteGeneration";
 
 export class MIDIManager {
     // Settings
@@ -23,7 +23,7 @@ export class MIDIManager {
     private synthArr:Array<Tone.PolySynth<Tone.Synth<Tone.SynthOptions>>> = [];
     public MIDIChannels:MidiWriter.Track[] = [];
     private timeForEachNoteArray:Array<number>;
-    public settings:MusicSettings|null;////////////////////TEMPORARY null
+    public settings:MusicSettings;//////////[OFF]////////TEMPORARY null
     private BPM: number;
     private debugOutput:boolean = true;
     public MIDIURI:string;
@@ -33,11 +33,12 @@ export class MIDIManager {
     private lastPlayedTime:number;
 
     private midiWriterTracks:Array<Track> = []; 
-    private currentVoices:Array<number> = [];
+    //UNUSED for now
+    //private currentVoices:Array<number> = [];
      
     /* The constructor for the MIDIManager requires you to input the settings from the user input
         and the  */
-    constructor(settings:MusicSettings|null, timeForEachNoteArray:Array<number>, debugOptionsObject:TDebugOptionsObject | null) {////////////////////TEMPORARY null
+    constructor(settings:MusicSettings, timeForEachNoteArray:Array<number>, debugOptionsObject:TDebugOptionsObject) {//////////[OFF]////////TEMPORARY null
         this.MIDIURI = "";
         this.midi = new Midi();
 
@@ -47,6 +48,7 @@ export class MIDIManager {
             this.midiWriterTracks.push((this.midi.addTrack()));
         }
 
+        //////////[ X ]////////
         ////////////////////var newChannel0 = this.midi.addTrack();
         ////////////////////var newChannel1 = this.midi.addTrack();
         ////////////////////var newChannel2 = this.midi.addTrack();
@@ -80,20 +82,21 @@ export class MIDIManager {
         ////////////////////    this.midiWriterTracks.push(newChannel4, newChannel5, newChannel6, newChannel7);
         ////////////////////
         ////////////////////}
+
         this.settings = settings;
-        ////////////////////this.BPM = settings.bpm;
-        this.BPM = 120;
+        this.BPM = settings.bpm;
+        //////////[OFF]////////this.BPM = 120;
         
         this.stopFlag = false;
-        ////////////////////this.debugOutput = debugOptionsObject.debugOption3;
-        ////////////////////this.initializeSettings(settings);
-        this.initializeSettingsTEMP();
+        this.debugOutput = debugOptionsObject.debugOption3;
+        this.initializeSettings(settings);
+        //////////[OFF]////////this.initializeSettingsTEMP();
         this.timeForEachNoteArray = timeForEachNoteArray;
         this.prevNoteDuration = 0;
         this.lastPlayedTime = Date.now();
         
-        ////////////////////this.initializeSynth();
-        this.initializeSynthTEMP();
+        this.initializeSynth();
+        //////////[OFF]////////this.initializeSynthTEMP();
         
     }
 
@@ -106,82 +109,86 @@ export class MIDIManager {
         volume.value = -100). To use the sampler, to add new instruments, you need to use a baseUrl that stores all the audio you want, and then
         provide all of the urls to each file that plays a note. If you want to see our samplers, we have a list of them in the utils folder under
         Samplers.tsx  */
-    ////////////////////// private initializeSynth() {
-    //////////////////////     Tone.getTransport().bpm.value = this.settings.bpm;
-    //////////////////////
-    //////////////////////     this.currentVoices = new Array(8).fill(0);
-    //////////////////////     var instArr = Object.values(this.settings.deviceSettings.instruments)            
-    //////////////////////    
-    //////////////////////     /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
-    //////////////////////     that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
-    //////////////////////     channel size consistent. If it seems practical in the future to alter the samplers for consistency they can just simply be defined 
-    //////////////////////     in the Samplers.tsx file. */
-    //////////////////////     var polySynthesizer:Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> =  new Tone.PolySynth().toDestination();
-    //////////////////////     var sampler;
-    //////////////////////
-    //////////////////////     // Loop through the user chosen instruments and set their SL values
-    //////////////////////     for (var i = 0; i < 8; i++) { 
-    //////////////////////
-    //////////////////////         // Sinewave / Default
-    //////////////////////         if (instArr[i] === 0) {
-    //////////////////////             sampler = SamplerList[instArr[i]].toDestination();
-    //////////////////////             polySynthesizer.volume.value = -10;
-    //////////////////////         }
-    //////////////////////         else {
-    //////////////////////             // This is piano right now, any new instrument that gets added needs to go in in its respective location in the sampler list
-    //////////////////////             // constant
-    //////////////////////             // console.log(instArr[i], SamplerList[instArr[i]]);
-    //////////////////////             sampler = SamplerList[instArr[i]].toDestination()
-    //////////////////////         }
-    //////////////////////         this.samplerArr.push(sampler);
-    //////////////////////         this.synthArr.push(polySynthesizer);
-    //////////////////////     }
-    //////////////////////
-    ////////////////////// }
+    private initializeSynth() {
+        Tone.getTransport().bpm.value = this.settings.bpm;
     
-    
-    private initializeSynthTEMP() {//////////////////////[TEMP]
-        Tone.getTransport().bpm.value = 120;
-
-        this.currentVoices = new Array(8).fill(0);
-    
+        //UNUSED for now
+        //this.currentVoices = new Array(8).fill(0);
+        var instArr = Object.values(this.settings.deviceSettings.instruments)            
+       
         /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
         that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
         channel size consistent. If it seems practical in the future to alter the samplers for consistency they can just simply be defined 
         in the Samplers.tsx file. */
         var polySynthesizer:Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> =  new Tone.PolySynth().toDestination();
         var sampler;
-
+    
         // Loop through the user chosen instruments and set their SL values
-        for (var i = 0; i < 5; i++) { 
+        for (var i = 0; i < 8; i++) { 
     
             // Sinewave / Default
-            sampler = SamplerList[0].toDestination();
-            polySynthesizer.volume.value = -10;
+            if (instArr[i] === 0) {
+                sampler = SamplerList[instArr[i]].toDestination();
+                polySynthesizer.volume.value = -10;
+            }
+            else {
+                // This is piano right now, any new instrument that gets added needs to go in in its respective location in the sampler list
+                // constant
+                // console.log(instArr[i], SamplerList[instArr[i]]);
+                ///////////////sampler = SamplerList[instArr[i]].toDestination()
+                sampler = SamplerList[0].toDestination();
+                polySynthesizer.volume.value = -10;
+            }
             this.samplerArr.push(sampler);
             this.synthArr.push(polySynthesizer);
         }
-
+    
     }
+    
+    //////////[OFF]////////
+    // private initializeSynthTEMP() {//////////////////////[TEMP]
+    //     Tone.getTransport().bpm.value = 120;
 
-    ////////////////////// public initializeSettings(settings:MusicSettings) {
-    //////////////////////     /* This is just a start, we're going to work on a condition here
-    //////////////////////        where the number of tempos get set by the type of settings */
-    //////////////////////     for(var i = 0; i < this.MIDIChannels.length; i++) {
-    //////////////////////
-    //////////////////////         this.MIDIChannels[i].setTempo(settings.bpm, .1);
-    //////////////////////         this.MIDIChannels[i].setTimeSignature(4, 4);
-    //////////////////////     }
-    ////////////////////// }
+    //     this.currentVoices = new Array(5).fill(0);
+    
+    //     /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
+    //     that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
+    //     channel size consistent. If it seems practical in the future to alter the samplers for consistency they can just simply be defined 
+    //     in the Samplers.tsx file. */
+    //     var polySynthesizer:Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> =  new Tone.PolySynth().toDestination();
+    //     var sampler;
 
-    public initializeSettingsTEMP()//////////////////////[TEMP]
-    {
+    //     // Loop through the user chosen instruments and set their SL values
+    //     for (var i = 0; i < 5; i++) { 
+    
+    //         // Sinewave / Default
+    //         sampler = SamplerList[0].toDestination();
+    //         polySynthesizer.volume.value = -10;
+    //         this.samplerArr.push(sampler);
+    //         this.synthArr.push(polySynthesizer);
+    //     }
+
+    // }
+
+    public initializeSettings(settings:MusicSettings) {
+        /* This is just a start, we're going to work on a condition here
+           where the number of tempos get set by the type of settings */
         for(var i = 0; i < this.MIDIChannels.length; i++) {
-
-            this.MIDIChannels[i].setTempo(120, .1);
+    
+            this.MIDIChannels[i].setTempo(settings.bpm, .1);
             this.MIDIChannels[i].setTimeSignature(4, 4);
         }
     }
+
+    //////////[OFF]////////
+    // public initializeSettingsTEMP()//////////////////////[TEMP]
+    // {
+    //     for(var i = 0; i < this.MIDIChannels.length; i++) {
+
+    //         this.MIDIChannels[i].setTempo(120, .1);
+    //         this.MIDIChannels[i].setTimeSignature(4, 4);
+    //     }
+    // }
 
     public adjustVolume(amount: number, channel: number) {
         this.synthArr[channel].volume.value += amount;
@@ -387,12 +394,12 @@ export class MIDIManager {
 
 
     public async realtimeGenerate(noteData:any, idVal:number) {
-       ////////////////////var instruments = this.settings.deviceSettings.instruments;
-       var instruments = [0,0,0,0,0]//default  sinwave = 0
+       var instruments = this.settings.deviceSettings.instruments;
+       //////////[OFF]////////var instruments = [0,0,0,0,0]//default  sinwave = 0
        var instrumentsArr:Array<any> = [];
 
-       ////////////////////var durations = this.settings.deviceSettings.durations;
-       var durations = [2,2,2,2,2]//default quarter = 2
+       var durations = this.settings.deviceSettings.durations;
+       //////////[OFF]////////var durations = [2,2,2,2,2]//default quarter = 2
        var durationsArr:Array<number> = [];
 
        var notesToPlay:Array<any> = [];
@@ -429,13 +436,15 @@ export class MIDIManager {
         var playerInfo = noteData.player;
 
         // Setup for their vars
-        var soundType = instrumentsArr[0];
+        //UNUSED
+        //////////////////var soundType = instrumentsArr[idVal];
         var duration = 2 + (2 - playerInfo.noteLength);         // Durations is reversed in here for some reason    
-        var amplitude = playerInfo.amplitude;
+        //UNUSED
+        //////////////////var amplitude = playerInfo.amplitude;
         var frequencies = playerInfo.noteFrequencies;
 
-        ////////////////////var instArr = Object.values(this.settings.deviceSettings.instruments)            
-        var instArr = Object.values([0,0,0,0,0])
+        var instArr = Object.values(this.settings.deviceSettings.instruments)            
+        //////////[OFF]////////var instArr = Object.values([0,0,0,0,0])
 
         /*
         * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
@@ -447,24 +456,25 @@ export class MIDIManager {
 
         var durationString:string = this.convertDurationToString(duration); 
         
-        var soundTime = this.currentVoices[0] * 1000;
-        ////////////////////var noteDurationMS = this.setTimeForEachNoteArray(this.settings.bpm, duration);
-        var noteDurationMS = this.setTimeForEachNoteArray(120, duration);
+        //UNUSED!!!
+        ////////////////////var soundTime = this.currentVoices[idVal] * 1000;
+        var noteDurationMS = this.setTimeForEachNoteArray(this.settings.bpm, duration);
+        //////////[OFF]////////var noteDurationMS = this.setTimeForEachNoteArray(120, duration);
 
         /* This is the base case, if there is nothing stored in the array then we don't want to check if the currentVoice is undefined */
-        if(instArr[0] === Enums.InstrumentTypes.SINEWAVE) {
+        if(true || instArr[idVal] === Enums.InstrumentTypes.SINEWAVE) {
             // if (this.debugOutput) console.log(this.synthArr[i]);
             //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {
                 this.convertInput(noteData.writer, idVal);
                 if (frequencies.length === 1) {
-                    this.synthArr[0].triggerAttackRelease(frequencies, durationString)
+                    this.synthArr[idVal].triggerAttackRelease(frequencies, durationString)
                 }       
                 else if (frequencies.length === 2) {
-                    this.synthArr[0].triggerAttackRelease(frequencies[0], durationString)
-                    setTimeout(() => {this.synthArr[0].triggerAttackRelease(frequencies[1], durationString)}, noteDurationMS);
+                    this.synthArr[idVal].triggerAttackRelease(frequencies[0], durationString)
+                    setTimeout(() => {this.synthArr[idVal].triggerAttackRelease(frequencies[1], durationString)}, noteDurationMS);
                 }    
                 else {
-                    this.playSixteenthsRecursiveSynth(frequencies, durationString, noteDurationMS, 0);
+                    this.playSixteenthsRecursiveSynth(frequencies, durationString, noteDurationMS, 0, idVal);
                 }     
                 this.lastPlayedTime = Date.now();
                 this.prevNoteDuration = noteDurationMS;
@@ -476,17 +486,17 @@ export class MIDIManager {
                 this.convertInput(noteData.writer, idVal);
                 if (notesToPlay.length === 1) {
                     if (notesToPlay[0] !== '00') {
-                        this.samplerArr[0].triggerAttackRelease(notesToPlay[0], durationString)
+                        this.samplerArr[idVal].triggerAttackRelease(notesToPlay[0], durationString)
                     }
                 }       
                 else if (notesToPlay.length === 2) {
                     if (notesToPlay[0] !== '00') {
-                        this.samplerArr[0].triggerAttackRelease(notesToPlay[0], durationString)
+                        this.samplerArr[idVal].triggerAttackRelease(notesToPlay[0], durationString)
                     }
-                    setTimeout(() => { if(notesToPlay[1] !== '00') {this.samplerArr[0].triggerAttackRelease(notesToPlay[1], durationString)}}, noteDurationMS);
+                    setTimeout(() => { if(notesToPlay[1] !== '00') {this.samplerArr[idVal].triggerAttackRelease(notesToPlay[1], durationString)}}, noteDurationMS);
                 }    
                 else {
-                    this.playSixteenthsRecursiveSampler(notesToPlay, durationString, noteDurationMS, 0);
+                    this.playSixteenthsRecursiveSampler(notesToPlay, durationString, noteDurationMS, 0, idVal);
                 }
                 this.lastPlayedTime = Date.now();
                 this.prevNoteDuration = noteDurationMS;
@@ -512,22 +522,22 @@ export class MIDIManager {
         // }   
     }
 
-    private playSixteenthsRecursiveSynth(frequencies:Array<number>, duration:string, noteDurationMS:number, i:number) {
+    private playSixteenthsRecursiveSynth(frequencies:Array<number>, duration:string, noteDurationMS:number, i:number, idVal:number) {
         if (i === 4) {
             return;
         }
-        this.synthArr[0].triggerAttackRelease(frequencies[i], duration);
-        setTimeout(() => {this.playSixteenthsRecursiveSynth(frequencies, duration, noteDurationMS, i + 1)}, noteDurationMS);
+        this.synthArr[idVal].triggerAttackRelease(frequencies[i], duration);
+        setTimeout(() => {this.playSixteenthsRecursiveSynth(frequencies, duration, noteDurationMS, i + 1, idVal)}, noteDurationMS);
     }
 
-    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number) {
+    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number, idVal:number) {
         if (i === 4) {
             return;
         }
         if (notesToPlay[i] !== '00') {
-            this.samplerArr[0].triggerAttackRelease(notesToPlay[i], duration);
+            this.samplerArr[idVal].triggerAttackRelease(notesToPlay[i], duration);
         }
-        setTimeout(() => {this.playSixteenthsRecursiveSynth(notesToPlay, duration, noteDurationMS, i + 1)}, noteDurationMS);
+        setTimeout(() => {this.playSixteenthsRecursiveSynth(notesToPlay, duration, noteDurationMS, i + 1, idVal)}, noteDurationMS);
     }
 
     public setStopFlag() {

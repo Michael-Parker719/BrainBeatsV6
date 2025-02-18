@@ -1,4 +1,3 @@
-//import { MIDIManager } from "./MIDIManager";
 import {
   getNoteLengthStringFromInt,
   getMillisecondsFromBPM,
@@ -20,6 +19,7 @@ import { KeyGroups, Keys } from "../../../Enums";
 import { MIDIManager } from "./MIDIManager";
 import { TDebugOptionsObject } from "../../../Types";
 import { AbstractNoteHandler } from "../AbstractNoteHandler";
+import { faL } from "@fortawesome/free-solid-svg-icons";
 
 export class NoteHandler extends AbstractNoteHandler {
   // Universally used settings
@@ -30,96 +30,107 @@ export class NoteHandler extends AbstractNoteHandler {
   private octaves: number;
   private keySignature;
 
-  //[UNUSED!]
-  ////////////////////private instrumentNoteSettings: CytonSettings | GanglionSettings;
-
   musicClock: number;
 
   private currentNoteData: Array<any> = [null, null, null, null, null]; //Holds Note type format of next note to generate(per track)
   private timeForEachNoteArray: Array<number>; //Constant Array
-
-  private PrevEEGaverageRec: Array<number> = [0, 0, 0, 0, 0]; //Previous average Data Record for each track
   private EEGaverage: Array<number> = [0, 0, 0, 0, 0];
-  private aveSampleNumb: number = 8; //Amount needed to create a new average
+  //No longer used
+  //private PrevEEGaverageRec: Array<number> = [0, 0, 0, 0, 0]; //Previous average Data Record for each track
+  //No longer used
+  //private aveSampleNumb: number = 8; //Amount needed to create a new average
 
+  private rangeOfNorm: Array<number> = [1,1,10,10,10];//Range zone from average that is consider not Anomlous
   private AnomlousStreak: Array<number> = []; //Anomlous Data consecutive appearence counter
   private AnomlousWeight: Array<number> = []; //Data Skew Value
-  private AnomlousStreakMax: number = 5; //------[!!!]------//Temporary---
+  private AnomlousStreakMax: number = 5; //------[!!!]------//Temporary value---
+  private AnomlousWeightMax: number = 5; //------[!!!]------//Temporary value---
 
-  private EEGbuffer: Array<Array<number>> = []; //buffer if note generation is busy
-  private EEGabnormalBuffer: Array<Array<number>> = []; //Abnormal buffer
+  private EEGbuffer: number[][] = []; //buffer if note generation is busy to generate the next note
+  private EEGabnormalRecord: number[][] = []; //average adjustment case 1: Outlier streak towards one side[higher or lower]
+  private EEGabnormalTotal: number[][] = []; //average adjustment case 2: Data is skewing towards one side[higher or lower]
 
-  private warmup: boolean = true; //Prevents empty data to note convertion
-  //private stopFlag: boolean = false;//------[!!!]------//Temporary---
-  //private genBusy: boolean = false;
+  private startUp: boolean = true; //Prevents empty data to note convertion
 
   private isMajorScale: number = 1;
   private noteSetNumb: number = 5; //Set of sets of notes from a scale(either Major or Minor)
 
-  private channelTotal: number = 4; //How many 1-1 ratios(inputted EEG to track) are there?
-  private inputTray: Array<number> = [0, 0, 0, 0, 0]; //Get next input set
+  private channelTotal: number = 5; //How many 1-1 ratios(inputted EEG to track) are there?
 
   private nextPause: Array<number> = [0, 0, 0, 0, 0]; //Wait Counter/Tally
-  private pauseCounter: Array<number> = [0, 0, 0, 0, 0]; //Wait Counter maximum
-  private NoiseCapacity: number = 4; //Temp value---
+  private pauseCounter: Array<number> = [0, 100, 100, 100, 100]; //Wait Counter maximum
+  private NoiseCapacity: number = 3; //Temp value---
 
   private midiGenerator; //Defines Midi Generator
 
-  public override setStopFlag() {
+  public override setStopFlag()
+  {
     console.log("stopped");
     clearInterval(this.musicClock);
     this.midiGenerator.setStopFlag();
     this.stopFlag = true;
   }
 
-  constructor(
-    settings: MusicSettings,
-    debugOptionsObject: TDebugOptionsObject
-  ) {
+  constructor(settings: MusicSettings,debugOptionsObject: TDebugOptionsObject)
+  {
     super(settings, debugOptionsObject);
-    //super(settings, debugOptionsObject);
-    ////////////////////// this.debugOutput = debugOptionsObject.debugOption2;
-    ////////////////////
-    ////////////////////// if (this.debugOutput) {
-    //////////////////////     console.log("Constructing originalNoteGeneration Class with the following settings: ");
-    //////////////////////     console.log(settings);
-    ////////////////////// }
-    ////////////////////
-    ////////////////////// Assignments in constructor to counter error messages
-    ////////////////////// this.startTime = 0;
-    ////////////////////// this.eegPerSecond = undefined;
-    ////////////////////// this.prevBeat = 0;
+    this.debugOutput = debugOptionsObject.debugOption2;
+    
+    if (this.debugOutput) {
+        console.log("Constructing originalNoteGeneration Class with the following settings: ");
+        console.log(settings);
+    }
+    
+    // Assignments in constructor to counter error messages
+    // this.startTime = 0;
+    // this.eegPerSecond = undefined;
+    // this.prevBeat = 0;
 
-    ////////////////////this.octaves = settings.octaves;
-    this.octaves = 1;
+    this.octaves = settings.octaves;
+    //////////[OFF]////////this.octaves = 1;
     this.numNotes = 21;
-    ////////////////////this.BPM = settings.bpm;
-    this.BPM = 120;
+    this.BPM = settings.bpm;
+    //////////[OFF]////////this.BPM = 120;
 
     this.timeForEachNoteArray = this.setTimeForEachNoteArray(this.BPM);
 
-    ////////////////////this.keyGroup = KeyGroups[settings.keyGroup as keyof typeof KeyGroups]; // Example: Major
-    ////////////////////this.scale = Keys[settings.scale as keyof typeof Keys]; // Example: C#, full example: C# Major
-    this.keyGroup = KeyGroups["Major" as keyof typeof KeyGroups]; // Example: Major
-    this.scale = Keys["A" as keyof typeof Keys]; // Example: C#, full example: C# Major
+    this.keyGroup = KeyGroups[settings.keyGroup as keyof typeof KeyGroups]; // Example: Major
+    this.scale = Keys[settings.scale as keyof typeof Keys]; // Example: C#, full example: C# Major
+    //////////[OFF]////////this.keyGroup = KeyGroups["Major" as keyof typeof KeyGroups]; // Example: Major
+    //////////[OFF]////////this.scale = Keys["A" as keyof typeof Keys]; // Example: C#, full example: C# Major
 
     this.keySignature = Constants.KEY_SIGNATURES[this.keyGroup][this.scale];
     //[UNUSED!]
     ////////////////////this.instrumentNoteSettings = settings.deviceSettings;
 
     this.midiGenerator = new MIDIManager(
-      null, //settings,    ////////////////////TEMPORARY null
+      settings,    //////////[OFF]////////TEMPORARY null
       this.timeForEachNoteArray,
-      null //debugOptionsObject    ////////////////////TEMPORARY null
+      debugOptionsObject    //////////[OFF]////////TEMPORARY null
     );
     this.stopFlag = false;
 
     // This has to be assigned in the constructor or else it cannot be cancelled
-    this.musicClock = window.setInterval(() => {
+    this.musicClock = window.setInterval(() =>{
       //   console.log("Hi");
       // this.playNextBeat();
     }, this.timeForEachNoteArray[2]);
 
+    for (var i = 0; i < this.channelTotal; i++)
+    {
+      this.EEGbuffer.push([]);
+      this.EEGabnormalRecord.push([]);
+      this.EEGabnormalTotal.push([]);
+      this.EEGaverage[i] = 0;
+      //No longer used
+      //this.PrevEEGaverageRec[i] = 0;
+      this.nextPause[i] = 0;
+      this.pauseCounter[i] = 0;
+      this.AnomlousStreak[i] = 0;
+      this.AnomlousWeight[i] = 0;
+    }
+
+    //////////[ X ]////////OLD CODE
     ////////////////////// Initialize streaks and strikes to 0s (otherwise you get NaNs)
     ////////////////////// this.streaks = Array(8).fill(0);
     ////////////////////// this.strikes = Array(8).fill(0);
@@ -169,138 +180,161 @@ export class NoteHandler extends AbstractNoteHandler {
   public originalNoteGeneration = async (instream: any) => {
     var inputStream = Object.values(instream) as number[];
 
-    if (this.stopFlag) {
+    if(this.startUp)//Starting average data
+    {
+      for (var i = 0; i < this.channelTotal; i++)
+      {
+        this.EEGaverage[i] = inputStream[i];
+      }
+      this.startUp = false;
+    }
+
+    if(this.stopFlag)
+    {
       //Stop recording
       console.log("stopped");
       clearInterval(this.musicClock);
       this.midiGenerator.setStopFlag();
       return;
     }
-
-    if (this.warmup) {
-      //headset error and/or doesn't output EEG readings
-      var tempStorage = inputStream[0];
-      inputStream[0] = 0.0; //timestamp is not needed to check if start of recording
-      if (this.average(inputStream) != 0) {
-        inputStream[0] = tempStorage;
-        this.warmup = false; //ignore first EEG reading due to oddity of EEG headset(abnormal high spike upon start and then goes to normal)
-        for (var i = 0; i < this.channelTotal; i++) {
-          this.EEGaverage[i] = 0;
-          this.PrevEEGaverageRec[i] = 0;
-          this.nextPause[i] = 0;
-          this.pauseCounter[i] = 0;
-          this.AnomlousStreak[i] = 0;
-          this.AnomlousWeight[i] = 0;
-        }
+    
+    for(var i = 0; i < this.channelTotal; i++)
+    {
+      if(this.outlierCheck(i, inputStream[i]))
+      {
+        this.EEGabnormalRecord[i].push(inputStream[i]);//Abnormal streak -> update to new average value when streak limit reached
+        this.EEGabnormalTotal[i].push(inputStream[i])
       }
-    } //Recording actually starts
-    else {
-      for (var i = 0; i < this.channelTotal; i++) {
-        if (this.outlierCheck(i, inputStream[i])) {
-          //outlier or first value of recording section
-          this.EEGabnormalBuffer[i].push(inputStream[i]);
-        } else {
-          this.EEGbuffer[i].push(inputStream[i]);
-        }
-        this.generateNextBeat(i); //attempt to generate the next beat
-      }
+      this.EEGbuffer[i].push(inputStream[i]);
+      this.generateNextBeat(i); //attempt to generate the next beat
     }
+    
   };
 
-  private outlierCheck(idVal: number, inValue: number): boolean {
-    //True -> Send to Abnormal EEG buffer | False -> Send to Normal EEG buffer
-    if (this.EEGaverage[idVal] == 0) {
-      //first batch for average record
-      return true;
-    } else if (true) {
-      //Outlier check
-      if (this.EEGaverage[idVal] * 1.5 < inValue) {
-        //Higher Outlier
-        if (this.AnomlousStreak[idVal] < 0) {
-          this.AnomlousStreak[idVal] = 1; //Note: Streak -> adjustments, Weight -> significant change in average
-        } else {
-          this.AnomlousStreak[idVal] = this.AnomlousStreak[idVal] + 1;
-        }
-        this.AnomlousWeight[idVal] = this.AnomlousWeight[idVal] + 1;
-        return true;
-      } else if (this.EEGaverage[idVal] * 0.5 > inValue) {
-        //Lower Outlier
-        if (this.AnomlousStreak[idVal] > 0) {
-          this.AnomlousStreak[idVal] = -1;
-        } else {
-          this.AnomlousStreak[idVal] = this.AnomlousStreak[idVal] - 1;
-        }
-        this.AnomlousWeight[idVal] = this.AnomlousWeight[idVal] - 1;
-
-        return true;
-      } else {
-        this.AnomlousStreak[idVal] = 0;
+  //True -> Add to Abnormal Streak | False -> Send to Normal EEG buffer
+  private outlierCheck(idVal: number, inValue: number): boolean
+  {
+    if(this.EEGaverage[idVal] + this.rangeOfNorm[idVal] < inValue)//Higher Outlier
+    {
+      if(this.AnomlousStreak[idVal] < 0)//If negative -> Break Lower Outlier streak
+      {
+        this.AnomlousStreak[idVal] = 1;
+        this.EEGabnormalRecord[idVal].splice(0, this.EEGabnormalRecord[idVal].length);//Empty Higher streak record
       }
+      else//Increment by 1(positve -> Higher Outlier streak)
+      {
+        this.AnomlousStreak[idVal] = this.AnomlousStreak[idVal] + 1;
+      }
+
+      this.AnomlousWeight[idVal] = this.AnomlousWeight[idVal] + 1;//Add 1 to outlier weight tally(Too many higher outliers in general)
+      return true;
     }
+    else if(this.EEGaverage[idVal] - this.rangeOfNorm[idVal] > inValue)//Lower Outlier
+    {
+      if(this.AnomlousStreak[idVal] > 0)//If positive -> Break Higher Outlier streak
+      {
+        this.AnomlousStreak[idVal] = -1;
+        this.EEGabnormalRecord[idVal].splice(0, this.EEGabnormalRecord[idVal].length);//Empty Lower streak record
+      }
+      else//Increment by -1(negative ->Lower Outlier streak)
+      {
+        this.AnomlousStreak[idVal] = this.AnomlousStreak[idVal] - 1;
+      }
+
+      this.AnomlousWeight[idVal] = this.AnomlousWeight[idVal] - 1;//Subtract 1 to outlier weight tally(Too many lower outliers in general)
+      return true;
+    }
+    else//Nothing wrong
+    {
+      this.AnomlousStreak[idVal] = 0;
+    }
+    
     return false; //Nothing wrong
   }
 
-  private ScaleAdjustment(idVal: number) {
-    if (this.AnomlousStreak[idVal] <= this.AnomlousStreakMax * -1) {
-      //Higher theta/delta activity -> user is getting sleepy
+  private ScaleAdjustment(idVal: number)
+  {//Might have to fix since lower activity is normal
+    if(this.AnomlousStreak[idVal] <= this.AnomlousStreakMax * -1)//Lower theta/delta activity -> user is not sleepy
+    {
       this.AnomlousStreak[idVal] = 0;
-      this.noteSetNumb = this.noteSetNumb - 1; //Set to lower note set
-      if (this.noteSetNumb <= -1) {
+      this.AnomlousWeight[idVal] = 0;
+      this.noteSetNumb -= 1; //Set to lower note set
+
+      if(this.noteSetNumb <= -1)
+      {
         //underflow check
-        if (this.isMajorScale == 1) {
+        if(this.isMajorScale == 1)
+        {
           this.noteSetNumb = 11; //array[0->11]
           this.isMajorScale = 0;
-        } else {
+        }
+        else
+        {
           this.noteSetNumb = 0;
         }
       }
-      this.keySignature =
-        Constants.KEY_SIGNATURES[this.isMajorScale][this.noteSetNumb]; //KEY_SIGNATURES[ScaleType][Scale note set][A music note of the scale]
-    } //Might have to fix since lower activity is normal
-    else if (this.AnomlousStreak[idVal] >= this.AnomlousStreakMax * 2) {
-      //Lower theta/delta activity -> user is not sleepy
+      this.keySignature = Constants.KEY_SIGNATURES[this.isMajorScale][this.noteSetNumb]; //KEY_SIGNATURES[ScaleType][Scale note set][A music note of the scale]
+    }
+    else if(this.AnomlousStreak[idVal] >= this.AnomlousStreakMax * 2)//Higher theta/delta activity -> user is getting sleepy
+    {  
       this.AnomlousStreak[idVal] = 0;
-      this.noteSetNumb = this.noteSetNumb - 1; //Set to lower note set
-      if (this.noteSetNumb >= 12) {
+      this.AnomlousWeight[idVal] = 0;
+      this.noteSetNumb += 1; //Set to higher note set
+
+      if(this.noteSetNumb >= 12)
+      {
         //overflow check
-        if (this.isMajorScale == 0) {
+        if(this.isMajorScale == 0)
+        {
           this.noteSetNumb = 0; //------[!!!]------//TEMPORARY
           this.isMajorScale = 1;
-        } else {
+        }
+        else
+        {
           this.noteSetNumb = 11;
         }
       }
-      this.keySignature =
-        Constants.KEY_SIGNATURES[this.isMajorScale][this.noteSetNumb];
+      this.keySignature = Constants.KEY_SIGNATURES[this.isMajorScale][this.noteSetNumb];
     }
   }
 
-  private generateNextBeat(idVal: number) {
+  private generateNextBeat(idVal: number)
+  {
     var NoiseTotal = 0; //Temporarily set to amount of active channels
 
-    this.ScaleAdjustment(idVal); //Check for a need to change the scale
+    if(idVal <= 1)//[ID 0 -> Delta channel | ID 1 -> Theta channel] (See Interfaces.tsx)
+    {
+      this.ScaleAdjustment(idVal); //Check for a need to change the scale
+    }
+    if(true) //------[!!!]------//TEMPORARY
+    {//Update to new average due to outlier weight
+      if( (this.AnomlousWeight[idVal] < (this.AnomlousWeightMax * -1)) || (this.AnomlousWeight[idVal] > this.AnomlousWeightMax))
+      {
+        let abArrSize:number = this.EEGabnormalTotal[idVal].length
+        this.EEGaverage[idVal] = Math.floor( (this.average(this.EEGabnormalTotal[idVal]) *  abArrSize) + (this.EEGaverage[idVal] * abArrSize) / (abArrSize * 2))
+      }
+    }
 
-    if (this.pauseCounter[idVal] >= this.nextPause[idVal]) {
-      //MIDI channel is available
+    if(this.pauseCounter[idVal] >= this.nextPause[idVal])//MIDI channel is available
+    {
       //Check if able to generate notes in this channel or track
-      for (
-        var i = 0;
-        i < this.channelTotal;
-        i++ //Get number of channels active
-      ) {
-        if (this.pauseCounter[i] < this.nextPause[i]) {
+      for(var i = 0; i < this.channelTotal; i++ )//Get number of channels active
+      {
+        if(this.pauseCounter[i] < this.nextPause[i])
+        {
           NoiseTotal = NoiseTotal + 1; //------[!!!]------//TEMPORARY
         }
       }
 
-      if (NoiseTotal < this.NoiseCapacity) {
+      if(NoiseTotal < this.NoiseCapacity)
+      {
         //Is able to be generated without exceding noise capacity(white noise prevention)
         var declaredBeat = this.noteDeclaration(idVal);
         this.pauseCounter[idVal] = 0;
-        this.nextPause[idVal] = 4; //------[!!!]------//TEMPORARY delay timer for A channel
+        this.nextPause[idVal] = 0; //------[!!!]------//TEMPORARY delay timer for A channel
 
         this.generateBeat(declaredBeat, idVal);
-        this.midiGenerator.realtimeGenerate(this.currentNoteData, idVal);
+        this.midiGenerator.realtimeGenerate(this.currentNoteData[idVal], idVal);
         // this.currentNoteData.player.noteLength === 3
         //     ? 1
         //     : this.currentNoteData.player.noteLength === 4
@@ -308,68 +342,72 @@ export class NoteHandler extends AbstractNoteHandler {
         //     : 0; // 1 wait for half notes, 3 for whole notes
       }
     } //This MIDI Channel is currently busy generating a note so try again later
-    else {
+    else
+    {
       this.pauseCounter[idVal]++;
     }
   }
 
-  private noteDeclaration(idVal: number) {
+  private noteDeclaration(idVal: number)
+  {
     var beats;
+    var duration = 4;
     var aveNorm = -1; //Default to no silent note
-    var aveAbNorm;
+    ///////////////////var aveAbNorm;
 
-    if (this.EEGbuffer[idVal].length != 0) {
-      //Checks if there is any normal EEG data to use. Also Divide by zero prevention
-      if (
-        this.EEGbuffer[idVal].length / 4 <
-        this.EEGabnormalBuffer[idVal].length
-      ) {
-        // Not enough outlier data to change results//------[!!!]------//(TEMPORARY)
-        aveNorm = Math.floor(
-          this.average(this.EEGbuffer[idVal]) * this.EEGbuffer[idVal].length
-        ); //get sum of normal EEG data from average calcuation
-        aveAbNorm = Math.floor(
-          this.average(this.EEGabnormalBuffer[idVal]) *
-            this.EEGabnormalBuffer[idVal].length
-        ); //get sum of abnormal EEG data from average calcuation
-        aveNorm = Math.round(
-          (aveAbNorm + aveAbNorm) /
-            (this.EEGbuffer[idVal].length +
-              this.EEGabnormalBuffer[idVal].length)
-        ); //Calculate new average based on both arrays
-      } //significant amount of outlier data compared to normal data
-      else {
-        aveNorm = Math.round(this.average(this.EEGabnormalBuffer[idVal])); //Use abnormal EEG data to generate next note instead
-        this.PrevEEGaverageRec[idVal] = this.EEGaverage[idVal]; //update previous average record based on abundant Abnormal EEG data//------[!!!]------//(TEMPORARY)
-        this.EEGaverage[idVal] = aveNorm; //update current average record
-      }
-    } else if (this.EEGabnormalBuffer[idVal].length != 0) {
-      //Only abnormal EEG data present or calculating the first average EEG record for this input channel
-      if (this.EEGaverage[idVal] == 0) {
-        //Calculate first average EEG record for this input channel
-        if (this.EEGabnormalBuffer[idVal].length >= this.aveSampleNumb) {
-          //Enough samples for an average?
-          aveNorm = Math.round(this.average(this.EEGabnormalBuffer[idVal])); //Use abnormal EEG data to generate next note
-          this.PrevEEGaverageRec[idVal] = this.EEGaverage[idVal]; //update previous average record//------[!!!]------//(TEMPORARY)
-          this.EEGaverage[idVal] = aveNorm; //update current average record
-        } //Not enough samples so silence
-        else {
-          console.log(
-            "not enough samples, defaulting to generating silent note"
-          );
-        }
-      } //Use abnormal EEG data to generate next note
-      else {
-        aveNorm = Math.round(this.average(this.EEGabnormalBuffer[idVal]));
-      }
+    if(this.EEGbuffer[idVal].length != 0)
+    {
+      aveNorm = (Math.floor(this.average(this.EEGbuffer[idVal]) * this.EEGbuffer[idVal].length )) % 89;
+      console.log(aveNorm);
+      this.EEGbuffer[idVal].splice(0, this.EEGbuffer[idVal].length);
+
+    ////////////////////   //Checks if there is any normal EEG data to use. Also Divide by zero prevention
+    ////////////////////   if(this.EEGbuffer[idVal].length / 4 < this.EEGabnormalRecord[idVal].length)
+    ////////////////////   {
+    ////////////////////     // Not enough outlier data to change results//------[!!!]------//(TEMPORARY)
+    ////////////////////     aveNorm = Math.floor(this.average(this.EEGbuffer[idVal]) * this.EEGbuffer[idVal].length); //get sum of normal EEG data from average calcuation
+    ////////////////////     aveAbNorm = Math.floor(this.average(this.EEGabnormalRecord[idVal]) * this.EEGabnormalRecord[idVal].length); //get sum of abnormal EEG data from average calcuation
+    ////////////////////     aveNorm = Math.round((aveAbNorm + aveAbNorm) / (this.EEGbuffer[idVal].length + this.EEGabnormalRecord[idVal].length)); //Calculate new average based on both arrays
+    ////////////////////   } //significant amount of outlier data compared to normal data
+    ////////////////////   else
+    ////////////////////   {
+    ////////////////////     aveNorm = Math.round(this.average(this.EEGabnormalRecord[idVal])); //Use abnormal EEG data to generate next note instead
+    ////////////////////     this.PrevEEGaverageRec[idVal] = this.EEGaverage[idVal]; //update previous average record based on abundant Abnormal EEG data//------[!!!]------//(TEMPORARY)
+    ////////////////////     this.EEGaverage[idVal] = aveNorm; //update current average record
+    ////////////////////   }
+    //////////////////// }
+    //////////////////// else if
+    //////////////////// (this.EEGabnormalRecord[idVal].length != 0)
+    //////////////////// {
+    ////////////////////   //Only abnormal EEG data present or calculating the first average EEG record for this input channel
+    ////////////////////   if(this.EEGaverage[idVal] == 0)
+    ////////////////////   {
+    ////////////////////     //Calculate first average EEG record for this input channel
+    ////////////////////     if(this.EEGabnormalRecord[idVal].length >= this.aveSampleNumb)
+    ////////////////////     {
+    ////////////////////       //Enough samples for an average?
+    ////////////////////       aveNorm = Math.round(this.average(this.EEGabnormalRecord[idVal])); //Use abnormal EEG data to generate next note
+    ////////////////////       this.PrevEEGaverageRec[idVal] = this.EEGaverage[idVal]; //update previous average record//------[!!!]------//(TEMPORARY)
+    ////////////////////       this.EEGaverage[idVal] = aveNorm; //update current average record
+    ////////////////////     } //Not enough samples so silence
+    ////////////////////     else
+    ////////////////////     {
+    ////////////////////       console.log("not enough samples, defaulting to generating silent note");
+    ////////////////////     }
+    ////////////////////   } //Use abnormal EEG data to generate next note
+    ////////////////////   else
+    ////////////////////   {
+    ////////////////////     aveNorm = Math.round(this.average(this.EEGabnormalRecord[idVal]));
+    ////////////////////   }
     } //Literally no data to process
-    else {
-      console.log("What happend to the input?");
+    else
+    {
+      console.log("What happend to the input!?");
     }
 
     beats = {
-      notes: [aveNorm],
-      duration: 4,
+      notes: [((aveNorm + Math.floor(Math.random() * 30)) % 89), ((aveNorm + Math.floor(Math.random() * 30)) % 89), ((aveNorm + Math.floor(Math.random() * 30)) % 89), ((aveNorm + Math.floor(Math.random() * 30)) % 89)],
+      duration: 2,
     };
 
     return beats;
@@ -427,13 +465,13 @@ export class NoteHandler extends AbstractNoteHandler {
 
     this.currentNoteData[idVal] = {
       player: {
-        noteFrequencies,
-        noteLength,
+        noteFrequencies: noteFrequencies,
+        noteLength: noteLength,
         timeForEachNoteArray: this.timeForEachNoteArray,
         amplitude: 100,
       },
       writer: {
-        noteLengthName,
+        noteLengthName: noteLengthName,
         notes: noteAndOctaves,
         floorOctave: floorOctave,
       },
