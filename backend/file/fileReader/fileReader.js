@@ -1,10 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 
+const BASE_DIR = path.join(__dirname, "../../uploads");
+
 // Function to read the file and store its contents into a constant
 async function readFileContent(fileName) {
-  const filePath = path.join(__dirname, "../uploads", fileName); // Path to your file
-
+  // const filePath = path.join(__dirname, "../uploads", fileName); // Path to your file
+  const filePath = fileName;
   // Return a Promise that will resolve to the file contents
   return new Promise((resolve, reject) => {
     let fileContent = ""; // Initialize an empty string to accumulate file content
@@ -44,60 +46,62 @@ async function generateFileName() {
 // Function to delete a file based on its file path
 async function deleteFile(filePath) {
   // Check if the file exists before attempting to delete it
-  fs.existsSync(filePath, (exists) => {
-    if (!exists) {
-      console.log("File does not exist.");
-      return;
-    }
 
-    // Use fs.unlink to delete the file
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.error("Error deleting the file:", err);
-      } else {
-        console.log(`File deleted successfully: ${filePath}`);
-      }
-    });
+   // Check if the file exists before attempting to delete it
+   if (!fs.existsSync(filePath)) {
+    console.log("File does not exist.");
+    return;
+  }
+
+  // Use fs.unlink to delete the file
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Error deleting the file:", err);
+    } else {
+      console.log(`File deleted successfully: ${filePath}`);
+    }
   });
 }
 
-async function processMultiplePlaylists(playlists) {
-
-  // Use Promise.all to process all playlists concurrently
-  return await Promise.all(playlists.map(async (playlist) => {
+// Function to convert base64 string to file
+function base64ToFile(base64String, fileName) {
+  return new Promise((resolve, reject) => {
     try {
-      // Read the file content and convert it to a base64 string
-      const base64Thumbnail = await readFileContent(playlist.thumbnail);
+      // Split the base64 string into metadata and the actual base64 data
+      // const base64Data = base64String.replace(/^data:image\/(png|jpg|jpeg);base64,/, '');
+      
+      // Decode base64 data
+      // const buffer = Buffer.from(base64Data, 'base64');
+      
+      // Define the file path
+      const filePath = path.join(BASE_DIR, fileName);
+      
+      // Write the buffer to the file
+      fs.writeFile(filePath, base64String, 'base64', (err) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(filePath);
+      });
 
-      // Replace the filepath with the base64 string
-      playlist.thumbnail = base64Thumbnail;
-      return playlist;
-    } catch (err) {
-      console.error(`Error reading thumbnail for playlist ID ${playlist.id}:`, err);
-      playlist.thumbnail = null; // Handle the error (set to null or keep original path)
-      return playlist;
+      // fs.writeFile(filePath, base64String, "utf8", (err) => {
+      //   if (err) {
+      //     return reject(err);
+      //   }
+      //   resolve(filePath);
+      // });
+
+    } catch (error) {
+      reject(error);
     }
-  }));
-}
-
-async function processSinglePlayList(playlist) {
-  try {
-    // Read the file content and convert it to a base64 string
-    const base64Thumbnail = await readFileContent(playlist.thumbnail);
-
-    // Replace the filepath with the base64 string
-    playlist.thumbnail = base64Thumbnail;
-    return playlist;
-  } catch (err) {
-    console.error(`Error reading thumbnail for playlist ID ${playlist.id}:`, err);
-    playlist.thumbnail = null; // Handle the error (set to null or keep original path)
-    return playlist;
-  }
+  });
 }
 
 module.exports = {
   readFileContent: readFileContent,
   generateFileName: generateFileName,
   deleteFile: deleteFile,
+  base64ToFile: base64ToFile,
+  BASE_DIR: BASE_DIR
 };
 

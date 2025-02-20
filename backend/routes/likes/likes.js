@@ -12,7 +12,7 @@ const promiseConnection = pool.promise();
 // Create a user like
 router.post("/createUserLike", async (req, res) => {
   try {
-    const { trackID, userID, token } = req.body;
+    const { objectID, userID, token } = req.body;
 
     console.log("REQ.BODY");
     console.log(req.body);
@@ -26,7 +26,7 @@ router.post("/createUserLike", async (req, res) => {
 
     const userExists = await getUserExists(userID, "id");
 
-    const trackExists = await getTrackExists(trackID, "id");
+    const trackExists = await getTrackExists(objectID, "id");
 
     if (!userExists) {
       console.log("user doesnt exist");

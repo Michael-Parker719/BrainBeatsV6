@@ -24,6 +24,7 @@ const Profile = () => {
     const [playlist, setPlaylist] = useState([]); 
     const [posts, setPosts] = useState([])
     const [msg, setMsg] = useState('');
+    const [displayPicture, setDisplayPicture] = useState(user?.profilePicture);
 
     const [tracksTotal, setTracksTotal] = (useState(0));
     const [userLikesTotal, setUserLikesTotal] = (useState(0));
@@ -49,10 +50,10 @@ const Profile = () => {
             getUserLikes();
             getUpdatedUser();
         }
-    }, [])
+    }, [displayPicture])
 
     // For displaying profile picture
-    const [displayPicture, setDisplayPicture] = useState(user?.profilePicture);
+    // const [displayPicture, setDisplayPicture] = useState(user?.profilePicture);
     if(displayPicture !== undefined) {
 
         // Logic for display image from Uint8Array 

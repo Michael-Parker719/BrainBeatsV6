@@ -1,12 +1,21 @@
 require("dotenv").config();
 const router = require("express").Router();
 const { pool } = require("../../connect/connect");
+const path = require("path");
 const promiseConnection = pool.promise();
 const { verifyJWT } = require("../../utils/jwt");
+const { getUserExists, getPlaylistExists } = require("../../utils/database");
 const {
-  getUserExists,
-  getPlaylistExists,
-} = require("../../utils/database");
+  generateFileName,
+  deleteFile,
+  BASE_DIR
+} = require("../../file/fileReader/fileReader");
+
+const {
+  processMultiplePlaylists,
+  processSinglePlayList,
+} = require("../../file/processPlaylists/processPlaylists");
+// const BASE_DIR = path.join(__dirname, "../../uploads");
 // Create a new playlist
 
 //Thumbnail is a file upload is here
@@ -14,6 +23,7 @@ router.post("/createPlaylist", async (req, res) => {
   try {
     const { name, userID, token, thumbnail } = req.body;
     const decoded = verifyJWT(token);
+
 
     if (!decoded) {
       return res.status(400).json({
@@ -29,6 +39,17 @@ router.post("/createPlaylist", async (req, res) => {
       });
     }
 
+    const fileName = await generateFileName();
+
+    // Full path to the new .txt file
+    const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
+
+    fs.writeFile(filePath, thumbnail, "utf8", (err) => {
+      if (err) {
+        return res.status(500).send("Error saving the file.");
+      }
+    });
+
     const sqlQuery = `
     INSERT INTO Playlist (name, userID, thumbnail)
     VALUES ($1, $2, $3)
@@ -37,13 +58,11 @@ router.post("/createPlaylist", async (req, res) => {
     const [rows] = await promiseConnection.query(sqlQuery, [
       name,
       userID,
-      thumbnail,
+      filePath,
     ]);
-
 
     const newPlaylist = rows[0];
 
-    // console.log(profilePicture);
     return res.json(newPlaylist);
   } catch (err) {
     console.error(err);
@@ -54,9 +73,10 @@ router.post("/createPlaylist", async (req, res) => {
 // Get all playlists
 router.get("/getAllPlaylists", async (req, res) => {
   try {
-
     const sqlQuery = "SELECT * FROM Playlist;";
-    let [playlists] = await promiseConnection.query(sqlQuery, []);
+    let [rows] = await promiseConnection.query(sqlQuery, []);
+
+    const playlists = await processMultiplePlaylists(rows);
 
     return res.json(playlists);
   } catch (err) {
@@ -70,9 +90,9 @@ router.get("/getUserPlaylists", async (req, res) => {
   const userID = req.query.userID;
 
   try {
-
     const sqlQuery = "SELECT * FROM Playlist WHERE `userID` = ?;";
-    let [playlists] = await promiseConnection.query(sqlQuery, [userID]);
+    let [rows] = await promiseConnection.query(sqlQuery, [userID]);
+    const playlists = await processMultiplePlaylists(rows);
 
     return res.json(playlists);
   } catch (err) {
@@ -92,7 +112,9 @@ router.get("/getPlaylistByID", async (req, res) => {
       });
     }
 
-    return res.json(playlistExists);
+    const playlist = await processSinglePlayList(playlistExists);
+
+    return res.json(playlist);
   } catch (err) {
     console.error(err);
     return res.status(500).send({ msg: err });
@@ -126,7 +148,6 @@ router.get("/getPlaylistsByPostID", async (req, res) => {
   }
 });
 */
-
 
 // Get all posts in a playlist
 /*
@@ -165,8 +186,13 @@ router.delete("/deletePlaylist", async (req, res) => {
       });
     }
 
-    const sqlQuery = 'DELETE FROM Playlist WHERE id = ?;';
-    await promiseConnection.query(sqlQuery, [playlistID]);
+    const sqlQuery1 = "SELECT thumbnail FROM Playlist WHERE id = ?;";
+    const [playlist] = await promiseConnection.query(sqlQuery1, [playlistID]);
+    const thumbnailPath = playlist[0].thumbnail;
+    await deleteFile(thumbnailPath);
+
+    const sqlQuery2 = "DELETE FROM Playlist WHERE id = ?;";
+    await promiseConnection.query(sqlQuery2, [playlistID]);
 
     return res.status(200).send({ msg: "Deleted a user playlist" });
   } catch (err) {
@@ -247,7 +273,6 @@ router.delete("/removePostFromPlaylist", async (req, res) => {
 });
 */
 
-
 // TODO : Update a playlist
 
 router.put("/updatePlaylist", async (req, res) => {
@@ -262,12 +287,13 @@ router.put("/updatePlaylist", async (req, res) => {
       });
     }
 
-    const sqlQuery1 = "UPDATE Playlist SET name = ?, thumbnail = ? WHERE id = ?;";
+    const sqlQuery1 =
+      "UPDATE Playlist SET name = ?, thumbnail = ? WHERE id = ?;";
     const sqlQuery2 = "SELECT * FROM Playlist WHERE id = ?";
-    
+
     await promiseConnection.query(sqlQuery1, [name, thumbnail, id]);
     let [rows] = await promiseConnection.query(sqlQuery2, [id]);
-    let updatePlaylist =rows[0];
+    let updatePlaylist = rows[0];
 
     //   return res.status(200).send({msg: "Updated OK"});
     return res.json(updatePlaylist);

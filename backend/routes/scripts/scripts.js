@@ -102,12 +102,6 @@ router.post("/createScript", async (req, res) => {
 
     // console.log(rows);
     let newScript = rows[0];
-    console.log("+++++++++++++++++++++++++++++++");
-    console.log(rows);
-    console.log("+++++++++++++++++++++++++++++++");
-    console.log(newScript);
-    console.log("+++++++++++++++++++++++++++++++");
-    console.log(newScript.id);
     let newCards = updateScript(newScript.id, token, cards);
 
     ret = { newScript, newCards };
@@ -168,6 +162,23 @@ WHERE id = ?;`;
   }
 });
 
+router.delete("/deleteScript", async (req, res) => {
+  try {
+    const { scriptID } = req.body;
+    const sqlQuery1 = `DELETE FROM Card WHERE scriptID = ?`;
+    const sqlQuery2 = `DELETE FROM Script WHERE id = ?`;
+
+    await promiseConnection.query(sqlQuery1, [scriptID]);
+    console.log("Deleting cards...");
+    await promiseConnection.query(sqlQuery2, [scriptID]);
+    console.log("Deleting script...");
+
+    return res.status(200).send({ msg: "Sucessfully deleted script!"});
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({msg: err});
+  }
+})
 // Get all tracks based on a username
 router.get("/getUserScriptsByUsername", async (req, res) => {
   try {

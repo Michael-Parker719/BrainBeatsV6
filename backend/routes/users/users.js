@@ -7,10 +7,11 @@ const path = require('path');
 const fs = require('fs');
 const { createJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getIsTokenExpired } = require("../../utils/database");
-const { generateFileName } = require("../../fileReader/fileReader");
+const { generateFileName, base64ToFile, BASE_DIR } = require("../../file/fileReader/fileReader");
 var nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const BASE_DIR = path.join(__dirname, '../../uploads');
+const { processUser } = require("../../file/processUsers/processUsers");
+
 // Create a new user
 router.post("/createUser", async (req, res) => {
   try {
@@ -30,13 +31,15 @@ router.post("/createUser", async (req, res) => {
       const fileName = await generateFileName();
 
       // Full path to the new .txt file
-      const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
+      // const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
 
-      fs.writeFile(filePath, profilePicture, "utf8", (err) => {
-        if (err) {
-          return res.status(500).send("Error saving the file.");
-        }
-      });
+      // fs.writeFile(filePath, profilePicture, "utf8", (err) => {
+      //   if (err) {
+      //     return res.status(500).send("Error saving the file.");
+      //   }
+      // });
+      
+      const filePath = await base64ToFile(profilePicture, fileName);
 
       //Create a single record
       const sqlQuery1 =
@@ -176,7 +179,9 @@ router.get("/getUserByID", async (req, res) => {
         msg: "User does not exist",
       });
     }
-    res.json(userExists);
+
+    let user = await processUser(userExists);
+    res.json(user);
   } catch (err) {
     console.log(err);
     res.status(500).send({ msg: err });
@@ -244,10 +249,7 @@ router.put("/updateUser", async (req, res) => {
             lastName = IFNULL(?, lastName),
             email = IFNULL(?, email),
             bio = IFNULL(?, bio),
-            username = IFNULL(?, username),
-            tracks = IFNULL(?, tracks),
-            playlists = IFNULL(?, playlists),
-            likes = IFNULL(?, likes)
+            username = IFNULL(?, username)
         WHERE id = ?;
         `;
     // If the only some data is passed, say firstName is not passed,
@@ -258,10 +260,8 @@ router.put("/updateUser", async (req, res) => {
       lastName,
       email,
       bio,
-      user,
-      tracks,
-      playlists,
-      likes,
+      username,
+      id
     ]);
 
     // const updateUser = await new Promise(resolve);

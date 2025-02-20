@@ -14,7 +14,7 @@ async function processMultiplePlaylists(playlists) {
           `Error reading thumbnail for playlist ID ${playlist.id}:`,
           err
         );
-        playlist.thumbnail = null; // Handle the error (set to null or keep original path)
+        playlist.thumbnail = ""; // Handle the error (set to null or keep original path)
         return playlist;
       }
     })
@@ -34,7 +34,7 @@ async function processSinglePlayList(playlist) {
       `Error reading thumbnail for playlist ID ${playlist.id}:`,
       err
     );
-    playlist.thumbnail = null; // Handle the error (set to null or keep original path)
+    playlist.thumbnail = ""; // Handle the error (set to null or keep original path)
     return playlist;
   }
 }

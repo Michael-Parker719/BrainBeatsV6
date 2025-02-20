@@ -138,9 +138,9 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
             .then(res => {
                 console.log(res)
                 for (var i = 0; i < res.data.length; i++) {
-                    console.log("+++++++++++++++++++++++++");
+                    // console.log("+++++++++++++++++++++++++");
                     console.log(res.data[i]);
-                    console.log("+++++++++++++++++++++++++");
+                    // console.log("+++++++++++++++++++++++++");
                     var currentScript: Script = res.data[i];
                     var fullname: string = res.data[i].firstName + ' ' + res.data[i].lastName;
                     currentScript = Object.assign({ fullname: fullname }, currentScript);

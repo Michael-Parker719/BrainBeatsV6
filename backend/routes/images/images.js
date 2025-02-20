@@ -2,13 +2,20 @@ require("dotenv").config();
 const router = require("express").Router();
 const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
-const { deleteFile } = require("../../file/fileReader/fileReader");
+const path = require("path");
+const fs = require('fs');
 const { verifyJWT } = require("../../utils/jwt");
 const { getUserExists } = require("../../utils/database");
+const {
+  generateFileName,
+  deleteFile,
+  BASE_DIR
+} = require("../../file/fileReader/fileReader");
 
 router.put("/updateUserProfilePic", async (req, res) => {
   try {
     const { id, token, profilePicture } = req.body;
+    // console.log("Token:" + token);
     const decoded = verifyJWT(token);
 
     if (!decoded) {
@@ -25,7 +32,9 @@ router.put("/updateUserProfilePic", async (req, res) => {
       });
     }
 
-    const fullPath = userExists.profilePicture + ".txt";
+    
+    const fullPath = userExists.profilePicture;
+
     await deleteFile(fullPath);
 
     const fileName = await generateFileName();
