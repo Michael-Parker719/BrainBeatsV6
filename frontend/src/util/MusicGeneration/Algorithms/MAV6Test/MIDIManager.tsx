@@ -114,7 +114,8 @@ export class MIDIManager {
     
         //UNUSED for now
         //this.currentVoices = new Array(8).fill(0);
-        var instArr = Object.values(this.settings.deviceSettings.instruments)            
+        var instArr = Object.values(this.settings.deviceSettings.instruments)   
+        instArr.push(0);//Since it's using the default GanglionSettings settings         
        
         /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
         that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
@@ -409,11 +410,13 @@ export class MIDIManager {
        for (inst in instruments) {
          instrumentsArr.push(instruments[inst]);
        }
+       instrumentsArr.push(0);//Since it's using the default GanglionSettings settings
 
        let dur: keyof typeof durations;
        for (dur in durations) {
          durationsArr.push(durations[dur]);
        }
+       durationsArr.push(4);//Since it's using the default GanglionSettings settings
 
        // Convert given notes to a usable form
        for (var i = 0; i < noteData.writer.notes.length; i++) {
@@ -443,7 +446,8 @@ export class MIDIManager {
         //////////////////var amplitude = playerInfo.amplitude;
         var frequencies = playerInfo.noteFrequencies;
 
-        var instArr = Object.values(this.settings.deviceSettings.instruments)            
+        var instArr = Object.values(this.settings.deviceSettings.instruments) 
+        instArr.push(0);           
         //////////[OFF]////////var instArr = Object.values([0,0,0,0,0])
 
         /*
