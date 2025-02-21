@@ -1,4 +1,4 @@
-import FFT from "fft.js";
+import FFT from "fft.js"; // FFT library
 import { number } from "mathjs";
 import { DataStream5Waves } from "./Interfaces";
 // import { sampleRate } from "./Constants";
