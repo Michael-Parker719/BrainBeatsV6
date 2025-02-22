@@ -9,7 +9,7 @@ const { getUserExists } = require("../../utils/database");
 const {
   generateFileName,
   deleteFile,
-  BASE_DIR
+  writeToFile
 } = require("../../file/fileReader/fileReader");
 
 router.put("/updateUserProfilePic", async (req, res) => {
@@ -31,22 +31,13 @@ router.put("/updateUserProfilePic", async (req, res) => {
         msg: "User not found",
       });
     }
-
     
     const fullPath = userExists.profilePicture;
 
     await deleteFile(fullPath);
 
     const fileName = await generateFileName();
-
-    // Full path to the new .txt file
-    const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
-
-    fs.writeFile(filePath, profilePicture, "utf8", (err) => {
-      if (err) {
-        return res.status(500).send("Error saving the file.");
-      }
-    });
+    const filePath = await writeToFile(fileName, profilePicture);
 
     const sqlQuery1 = `
         UPDATE User SET profilePicture = ? WHERE id = ?`;

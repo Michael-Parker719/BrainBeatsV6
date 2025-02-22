@@ -4,6 +4,7 @@ const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
 const { getBPMValues } = require("../../utils/music");
 const { getUserExists } = require("../../utils/database");
+const processMusic = require("../../file/processMusic/processMusic");
 
 // TODO : Don't think this is needed, change it to actually work for our case for downloading to
 // Get user midi information by ID
@@ -23,6 +24,7 @@ router.get("/findMidi", async (req, res) => {
         WHERE User.username = ?;`;
 
         let [ posts ] = await promiseConnection.query(sqlQuery, [username]);
+        posts = processMusic(posts);
     res.json(posts);
   }
 });

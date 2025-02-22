@@ -8,14 +8,13 @@ const { getUserExists, getPlaylistExists } = require("../../utils/database");
 const {
   generateFileName,
   deleteFile,
-  BASE_DIR
+  writeToFile,
 } = require("../../file/fileReader/fileReader");
 
 const {
   processMultiplePlaylists,
   processSinglePlayList,
 } = require("../../file/processPlaylists/processPlaylists");
-// const BASE_DIR = path.join(__dirname, "../../uploads");
 // Create a new playlist
 
 //Thumbnail is a file upload is here
@@ -40,15 +39,7 @@ router.post("/createPlaylist", async (req, res) => {
     }
 
     const fileName = await generateFileName();
-
-    // Full path to the new .txt file
-    const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
-
-    fs.writeFile(filePath, thumbnail, "utf8", (err) => {
-      if (err) {
-        return res.status(500).send("Error saving the file.");
-      }
-    });
+    const filePath = await writeToFile(fileName, thumbnail);
 
     const sqlQuery = `
     INSERT INTO Playlist (name, userID, thumbnail)
@@ -287,11 +278,17 @@ router.put("/updatePlaylist", async (req, res) => {
       });
     }
 
-    const sqlQuery1 =
-      "UPDATE Playlist SET name = ?, thumbnail = ? WHERE id = ?;";
-    const sqlQuery2 = "SELECT * FROM Playlist WHERE id = ?";
+    const sqlQuery1 = "SELECT * FROM Playlist WHERE id = ?";
+    const sqlQuery2 = "UPDATE Playlist SET name = ?, thumbnail = ? WHERE id = ?;";
+    
+    let [playlist] = await promiseConnection.query(sqlQuery2, [id]);
+    const thumbnailPath = playlist[0].thumbnail;
+    await deleteFile(thumbnailPath);
 
-    await promiseConnection.query(sqlQuery1, [name, thumbnail, id]);
+    const fileName = await generateFileName();
+    const filePath = await writeToFile(fileName, thumbnail);
+
+    await promiseConnection.query(sqlQuery1, [name, filePath, id]);
     let [rows] = await promiseConnection.query(sqlQuery2, [id]);
     let updatePlaylist = rows[0];
 

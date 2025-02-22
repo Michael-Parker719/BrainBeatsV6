@@ -4,6 +4,8 @@ const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
 const { verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists } = require("../../utils/database");
+const { processSingleTrack, processMultipleTracks } = require("../../file/processTracks/processTracks");
+const { deleteFile } = require("../../file/fileReader/fileReader");
 
 // Create a track
 router.post("/createTrack", async (req, res) => {
@@ -46,6 +48,12 @@ router.post("/createTrack", async (req, res) => {
       (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
+      const fileName1 = await generateFileName();
+      const filePath1 = await writeToFile(fileName1, thumbnail);
+
+      const fileName2 = await generateFileName();
+      const filePath2 = await writeToFile(fileName2, midi);
+
       await promiseConnection.query(sqlQuery1, [
         title,
         bpm,
@@ -53,16 +61,16 @@ router.post("/createTrack", async (req, res) => {
         scale,
         instruments,
         noteTypes,
-        thumbnail,
-        midi,
+        filePath1,
+        filePath2,
         likeCount,
-        public,
+        true,
         userID,
       ]);
 
       const sqlQuery2 = "SELECT * FROM Track WHERE `midi` = ?";
       let [rows] = await promiseConnection.query(sqlQuery2, [midi]);
-      let newTrack = rows[0];
+      let newTrack = await processSingleTrack(rows[0]);
 
       return res.status(201).json(newTrack);
     }
@@ -79,8 +87,9 @@ router.get("/getUserTracksByUsername", async (req, res) => {
     if (username === "") {
       const sqlQuery1 = "SELECT * FROM Track";
       let [rows] = await promiseConnection.query(sqlQuery1);
+      let tracks = await processMultipleTracks(rows);
 
-      return res.json(rows);
+      return res.json(tracks);
     }
 
     const userExists = await getUserExists(username, "username");
@@ -102,6 +111,8 @@ router.get("/getUserTracksByUsername", async (req, res) => {
         });
       }
 
+      userTracks = await processMultipleTracks(userTracks);
+
       return res.status(200).json(userTracks);
     }
   } catch (err) {
@@ -117,6 +128,8 @@ router.get("/getTracksByTitle", async (req, res) => {
     if (title === "") {
       const sqlQuery1 = "SELECT * FROM Track";
       let [allTracks] = await promiseConnection.query(sqlQuery1);
+      allTracks = await processMultipleTracks(allTracks);
+
       return res.json(allTracks);
     }
 
@@ -129,6 +142,7 @@ router.get("/getTracksByTitle", async (req, res) => {
       });
     }
 
+    tracks = await processMultipleTracks(tracks);
     return res.status(200).json(tracks);
   } catch (err) {
     console.log(err);
@@ -158,6 +172,7 @@ router.get("/getUserTracksByID", async (req, res) => {
         });
       }
 
+      userTracks = processMultipleTracks(userTracks);
       return res.status(200).json(userTracks);
     }
   } catch (err) {
@@ -171,7 +186,7 @@ router.get("/getTrackByID", async (req, res) => {
   try {
     const sqlQuery = "SELECT * FROM Track WHERE `id` = ?";
     let [rows] = await promiseConnection.query(sqlQuery, [trackID]);
-    let track = rows[0];
+    let track = await processSingleTrack(rows[0]);
 
     if (!track) {
       return res.status(404).json({
@@ -191,6 +206,7 @@ router.get("/getAllTracks", async (req, res) => {
   try {
     const sqlQuery = "SELECT * FROM Track";
     let [tracks] = await promiseConnection.query(sqlQuery);
+    tracks = await processMultipleTracks(tracks);
 
     return res.status(200).json(tracks);
   } catch (err) {
@@ -212,8 +228,17 @@ router.delete("/deleteTrack", async (req, res) => {
       });
     }
 
-    const sqlQuery = "DELETE FROM Track WHERE `id` = ?";
-    await promiseConnection.query(sqlQuery, [trackId]);
+    const sqlQuery1 = "SELECT * FROM Track WHERE id = ?";
+    const sqlQuery2 = "DELETE FROM Track WHERE id = ?";
+
+    let [rows] = await promiseConnection(sqlQuery1, [trackID]);
+    let thumbnail = rows[0].thumbnail;
+    let midi = rows[0].midi;
+
+    await deleteFile(thumbnail);
+    await deleteFile(midi);
+
+    await promiseConnection.query(sqlQuery2, [trackID]);
 
     return res.status(200).send({ msg: "Deleted a user track" });
   } catch (err) {
@@ -235,7 +260,8 @@ router.get("/getPublicPopularTracks", async (req, res) => {
     ORDER BY t.likeCount DESC 
     LIMIT 8`;
 
-    let [tracks] = await promiseConnection.query(sqlQuery);
+    let [tracks] = await promiseConnection.query(sqlQuery, []);
+    tracks = await processMultipleTracks(tracks);
 
     return res.status(200).json(tracks);
   } catch (err) {
@@ -268,6 +294,9 @@ router.put("/updateTrack", async (req, res) => {
       });
     }
 
+    await deleteFile(trackExists.thumbnail);
+    await deleteFile(trackExists.midi);
+
     const sqlQuery = `
         UPDATE Track
         SET 
@@ -280,12 +309,18 @@ router.put("/updateTrack", async (req, res) => {
             id = ?;
     `;
 
+    const fileName1 = await generateFileName();
+    const filePath1 = await writeToFile(fileName1, thumbnail);
+
+    const fileName2 = await generateFileName();
+    const filePath2 = await writeToFile(fileName2, midi);
+
     let [tracks] = await promiseConnection.query(sqlQuery, [
       title,
       likeCount,
-      midi,
+      filePath2,
       public,
-      thumbnail,
+      filePath1,
       id,
     ]);
     

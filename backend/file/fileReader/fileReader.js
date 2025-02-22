@@ -7,6 +7,9 @@ const BASE_DIR = path.join(__dirname, "../../uploads");
 async function readFileContent(fileName) {
   // const filePath = path.join(__dirname, "../uploads", fileName); // Path to your file
   const filePath = fileName;
+  if (fileName == "") {
+    return "";
+  }
   // Return a Promise that will resolve to the file contents
   return new Promise((resolve, reject) => {
     let fileContent = ""; // Initialize an empty string to accumulate file content
@@ -45,8 +48,6 @@ async function generateFileName() {
 
 // Function to delete a file based on its file path
 async function deleteFile(filePath) {
-  // Check if the file exists before attempting to delete it
-
    // Check if the file exists before attempting to delete it
    if (!fs.existsSync(filePath)) {
     console.log("File does not exist.");
@@ -63,6 +64,19 @@ async function deleteFile(filePath) {
   });
 }
 
+async function writeToFile(fileName, base64String) {
+
+  return new Promise((resolve, reject) => {
+    const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
+  
+      fs.writeFile(filePath, base64String, "utf8", (err) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(filePath);
+      });
+  })
+}
 // Function to convert base64 string to file
 function base64ToFile(base64String, fileName) {
   return new Promise((resolve, reject) => {
@@ -101,6 +115,7 @@ module.exports = {
   readFileContent: readFileContent,
   generateFileName: generateFileName,
   deleteFile: deleteFile,
+  writeToFile: writeToFile,
   base64ToFile: base64ToFile,
   BASE_DIR: BASE_DIR
 };
