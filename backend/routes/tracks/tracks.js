@@ -4,9 +4,53 @@ const { pool } = require("../../connect/connect");
 const promiseConnection = pool.promise();
 const { verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getTrackExists } = require("../../utils/database");
-const { processSingleTrack, processMultipleTracks } = require("../../file/processTracks/processTracks");
-const { deleteFile } = require("../../file/fileReader/fileReader");
+const {
+  processSingleTrack,
+  processMultipleTracks,
+} = require("../../file/processTracks/processTracks");
+const {
+  deleteFile,
+  generateFileName,
+  writeToFile,
+} = require("../../file/fileReader/fileReader");
 
+router.post("/testCreateTrack", async (req, res) => {
+  try {
+    const sqlQuery1 = `
+  INSERT INTO Track 
+      (title, bpm, \`key\`, \`scale\`, likeCount, midi, thumbnail, 
+      userID, public) VALUES 
+      (?, ?, ?, ?, ?, ?, ?, ?, ?);
+`;
+
+
+    // Placeholder values for each column (in order)
+    const values = [
+      "My Track", // title
+      120, // bpm
+      "C", // key
+      "major", // scale
+      0, // likeCount
+      "/path/to/midi/file", // midi
+      "/path/to/thumbnail/image", // thumbnail
+      43, // userID
+      true, // public
+    ];
+
+    await promiseConnection.query(sqlQuery1, values, (err, results) => {
+      if (err) {
+        console.error("Error executing query:", err);
+      } else {
+        console.log("Record inserted:", results);
+      }
+    });
+
+    return res.status(201).send("Sucess!!!");
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
 // Create a track
 router.post("/createTrack", async (req, res) => {
   try {
@@ -23,6 +67,9 @@ router.post("/createTrack", async (req, res) => {
       thumbnail,
       likeCount,
     } = req.body;
+
+    console.log("IN THE CREATE TRACK ROUTE!!!!!");
+
     const decoded = verifyJWT(token);
 
     if (!decoded) {
@@ -38,15 +85,15 @@ router.post("/createTrack", async (req, res) => {
       });
     } else {
       // Create a single record
-      console.log(req);
+      // console.log(req);
 
       const sqlQuery1 = `
-      INSERT INTO Track 
-      (title, bpm, key, scale, instruments, 
-      noteTypes, thumbnail, midi, likeCount, 
-      public, userID) VALUES 
-      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+  INSERT INTO Track 
+      (title, bpm, \`key\`, \`scale\`, instruments, 
+      noteTypes, likeCount, midi, thumbnail, 
+      userID, public) VALUES 
+      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+`;
 
       const fileName1 = await generateFileName();
       const filePath1 = await writeToFile(fileName1, thumbnail);
@@ -59,19 +106,20 @@ router.post("/createTrack", async (req, res) => {
         bpm,
         key,
         scale,
-        instruments,
-        noteTypes,
-        filePath1,
-        filePath2,
+        JSON.stringify(instruments),
+        JSON.stringify(noteTypes),
         likeCount,
-        true,
+        filePath2,
+        filePath1,
         userID,
+        1,
       ]);
 
       const sqlQuery2 = "SELECT * FROM Track WHERE `midi` = ?";
-      let [rows] = await promiseConnection.query(sqlQuery2, [midi]);
+      let [rows] = await promiseConnection.query(sqlQuery2, [filePath2]);
+      
       let newTrack = await processSingleTrack(rows[0]);
-
+      console.log(newTrack);
       return res.status(201).json(newTrack);
     }
   } catch (err) {
@@ -99,7 +147,6 @@ router.get("/getUserTracksByUsername", async (req, res) => {
         msg: "Username not found",
       });
     } else {
-
       const sqlQuery2 = "SELECT * FROM Track WHERE `userID` = ?";
       let [userTracks] = await promiseConnection.query(sqlQuery2, [
         userExists.id,
@@ -121,19 +168,60 @@ router.get("/getUserTracksByUsername", async (req, res) => {
   }
 });
 
+router.get("/getNumberUserTracks", async (req, res) => {
+  try {
+    const userID = req.query.userID;
+
+    const userExists = await getUserExists(userID, "id");
+
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "UserId not found",
+      });
+    } else {
+      const sqlQuery2 = "SELECT * FROM Track WHERE `userID` = ?";
+      let [userTracks] = await promiseConnection.query(sqlQuery2, [
+        userExists.id,
+      ]);
+
+      if (!userTracks) {
+        return res.status(404).json({
+          msg: "Tracks not found",
+        });
+      }
+
+      // console.log("***********************");
+      // console.log(userTracks);
+      // console.log(userTracks.length);
+      // console.log("***********************");
+      return res.status(200).json(userTracks.length);
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
 // Get all tracks based on a title
 router.get("/getTracksByTitle", async (req, res) => {
   try {
     const title = req.query.title;
     if (title === "") {
-      const sqlQuery1 = "SELECT * FROM Track";
+      const sqlQuery1 = `
+      SELECT Track.*, User.firstName, User.lastName
+      FROM Track
+      INNER JOIN User ON Track.userID = User.id
+      `;
       let [allTracks] = await promiseConnection.query(sqlQuery1);
       allTracks = await processMultipleTracks(allTracks);
 
       return res.json(allTracks);
     }
 
-    const sqlQuery2 = "SELECT * FROM Track WHERE `title` = ?";
+    const sqlQuery2 = `
+    SELECT Track.*, User.firstName, User.lastName
+    FROM Track 
+    INNER JOIN User ON Track.userID = User.id
+    WHERE \`title\` = ?`;
     let [tracks] = await promiseConnection.query(sqlQuery2, [title]);
 
     if (!tracks) {
@@ -156,12 +244,17 @@ router.get("/getUserTracksByID", async (req, res) => {
     const userID = req.query.userID;
     const userExists = await getUserExists(userID, "id");
 
+    // console.log(userID);
     if (!userExists) {
       return res.status(404).json({
         msg: "User not found",
       });
     } else {
-      const sqlQuery = "SELECT * FROM Track WHERE `userID` = ?";
+      const sqlQuery = `
+      SELECT Track.*, User.firstName, User.lastName
+      FROM Track 
+      INNER JOIN User ON Track.userID = User.id
+      WHERE Track.userID = ?`;
       let [userTracks] = await promiseConnection.query(sqlQuery, [
         userExists.id,
       ]);
@@ -172,7 +265,8 @@ router.get("/getUserTracksByID", async (req, res) => {
         });
       }
 
-      userTracks = processMultipleTracks(userTracks);
+      userTracks = await processMultipleTracks(userTracks);
+      // console.log(userTracks);
       return res.status(200).json(userTracks);
     }
   } catch (err) {
@@ -231,9 +325,14 @@ router.delete("/deleteTrack", async (req, res) => {
     const sqlQuery1 = "SELECT * FROM Track WHERE id = ?";
     const sqlQuery2 = "DELETE FROM Track WHERE id = ?";
 
-    let [rows] = await promiseConnection(sqlQuery1, [trackID]);
-    let thumbnail = rows[0].thumbnail;
-    let midi = rows[0].midi;
+    let [rows] = await promiseConnection.query(sqlQuery1, [trackID]);
+
+    let thumbnail = "";
+    let midi = "";
+    if (rows[0]) {
+      thumbnail = rows[0].thumbnail;
+      midi = rows[0].midi;
+    }
 
     await deleteFile(thumbnail);
     await deleteFile(midi);
@@ -275,6 +374,9 @@ router.put("/updateTrack", async (req, res) => {
   try {
     const { id, title, midi, thumbnail, likeCount, public, token } = req.body;
 
+    console.log("****************************");
+    console.log(req.body);
+    console.log("****************************");
     const decoded = verifyJWT(token);
 
     if (!decoded) {
@@ -323,7 +425,6 @@ router.put("/updateTrack", async (req, res) => {
       filePath1,
       id,
     ]);
-    
 
     return res.status(200).json(tracks);
   } catch (err) {

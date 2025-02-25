@@ -1,10 +1,7 @@
-[
-  "Black and White",
-  "",
-  43,
-  "2025-02-22T02:42:48.512Z",
-  1,
-  [
+{
+  "title": "Black and White",
+  "thumbnail": "",
+  "cards": [
     {
       "order": 0,
       "textColor": "ffffff",
@@ -24,4 +21,4 @@
       "speed": 1000
     }
   ]
-]
+}

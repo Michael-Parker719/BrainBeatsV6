@@ -18,6 +18,10 @@ const {
 } = require("../../file/processScripts/processScripts");
 
 function colorToHex(color) {
+
+  if (color.length == 6) {
+    return color;
+  }
   var redHex = ("00" + color.r.toString(16)).slice(-2); //009A
   var greenHex = ("00" + color.g.toString(16)).slice(-2); //009A
   var blueHex = ("00" + color.b.toString(16)).slice(-2); //009A
@@ -87,6 +91,8 @@ async function updateScript(scriptID, cards) {
   }
 }
 
+
+
 router.post("/createScript", async (req, res) => {
   try {
     const { userID, title, token, thumbnail, cards } = req.body;
@@ -97,6 +103,56 @@ router.post("/createScript", async (req, res) => {
         msg: "Invalid token",
       });
     }
+
+    const userExists = await getUserExists(userID, "id");
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+    // Create a single record
+    // console.log(req);
+
+    let filePath;
+
+    if (!thumbnail) {
+      filePath = "";
+    } else {
+      const fileName = await generateFileName();
+      filePath = await writeToFile(fileName, thumbnail);
+    }
+
+    const sqlQuery1 = `
+        INSERT INTO Script (userID, title, thumbnail, public)
+        VALUES (?, ?, ?, TRUE)
+    `;
+
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?;`;
+    let [insert] = await promiseConnection.query(sqlQuery1, [
+      userID,
+      title,
+      filePath,
+    ]);
+    let id = insert.insertId;
+    console.log("THE ID IS " + id);
+    let [rows] = await promiseConnection.query(sqlQuery2, [id]);
+
+    // console.log(rows);
+    let newScript = rows[0];
+    let newCards = updateScript(newScript.id, cards);
+
+    ret = { newScript, newCards };
+
+    return res.status(201).json(ret);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
+
+router.post("/importScript", async (req, res) => {
+  try {
+    const { userID, title, thumbnail, cards } = req.body;
 
     const userExists = await getUserExists(userID, "id");
     if (!userExists) {
@@ -204,14 +260,52 @@ WHERE id = ?;`;
 
 router.delete("/deleteScript", async (req, res) => {
   try {
-    const { scriptID } = req.body;
-    const sqlQuery1 = `DELETE FROM Card WHERE scriptID = ?`;
-    const sqlQuery2 = `DELETE FROM Script WHERE id = ?`;
+    const { scriptID, token } = req.body;
 
-    await promiseConnection.query(sqlQuery1, [scriptID]);
+    console.log("Deleting this body...");
+    console.log(req.body);
+    const decoded = verifyJWT(token);
+
+    if (!decoded) {
+      return res.status(401).json({
+        msg: "Invalid token",
+      });
+    }
+    const sqlQuery1 = `SELECT * FROM Card WHERE scriptID = ?`;
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?`;
+    const sqlQuery3 = `DELETE FROM Card WHERE scriptID = ?`;
+    const sqlQuery4 = `DELETE FROM Script WHERE id = ?`;
+
+    const [row1] = await promiseConnection.query(sqlQuery1, [scriptID]);
+    const [row2] = await promiseConnection.query(sqlQuery2, [scriptID]);
+
+    row1.forEach(async (row) => {
+      let imagePath = "";
+      let audioPath = "";
+
+      if (row) {
+        imagePath = row.imageURL;
+        audioPath = row.audioURL;
+      }
+
+      await deleteFile(imagePath);
+      await deleteFile(audioPath);
+    })
+
+    thumbnail = "";
+    if (row2[0]) {
+      thumbnail = row2[0].thumbnail;
+    }
+    
+    await deleteFile(thumbnail);
+
+    let [row3] = await promiseConnection.query(sqlQuery3, [scriptID]);
     console.log("Deleting cards...");
-    await promiseConnection.query(sqlQuery2, [scriptID]);
+    console.log(row3.affectedRows);
+    console.log(row3);
+    let [row4] = await promiseConnection.query(sqlQuery4, [scriptID]);
     console.log("Deleting script...");
+    console.log(row4.affectedRows);
 
     return res.status(200).send({ msg: "Sucessfully deleted script!" });
   } catch (err) {
@@ -374,14 +468,13 @@ router.get("/downloadScript", async (req, res) => {
 
     console.log("Organizing Scripts...");
     // Organize data by script
-    const download = {
+    const download = ({
       title: script.title,
       thumbnail: script.thumbnail,
-      userID: script.userID,
       createdAt: script.createdAt,
       public: script.public,
       cards: [],
-    };
+    });
 
     cards.forEach((card) => {
       download.cards.push({
@@ -397,7 +490,7 @@ router.get("/downloadScript", async (req, res) => {
 
     console.log("Creating json object...");
     // Create JSON file
-    const jsonData = JSON.stringify(Object.values(download), null, 2);
+    const jsonData = JSON.stringify(download, null, 2);
     const fileName = download.title + ".json";
     console.log("Writing to file...");
     // Write to file and send it for download

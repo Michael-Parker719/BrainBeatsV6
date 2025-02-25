@@ -27,9 +27,11 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
     const [tracksPulled, setTracksPulled] = useState(false);
     const [currentSearch, setCurrentSearch] = useState('');
 
+    // const [trackCards, setTrackCards] = useState<Track[]>([]);
     // For refresing track list component on page
     const [seed, setSeed] = useState(1);
     
+    // const [trackCards, setTrackCards] = useState<Track>
     const resetTrackComponent = () => {
         // console.log("resetTrackComponent()");
         setSeed(Math.random());
@@ -37,6 +39,14 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
         // console.log("resetting seed");
     }
 
+    // useEffect(() => {
+    //     PopulateTrackCards(); // need to debug. not calling checklike when opening/editing unliked track.
+    //     if(cardType === 'Profile') 
+    //         getProfileTracks();
+    //     console.log("Tracklist:");
+    //     console.log(trackList);
+    //     // console.log("use effect: " + newTrackList);
+    // }, []);
     // Initializes newTrackList
     // useEffect(() => {
     //     setNewTrackList(PopulateTrackCards()); // need to debug. not calling checklike when opening/editing unliked track.
@@ -70,7 +80,7 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
                     // Here the track is unchanged so just push it
                     // No need to do for each entry
                     var currentTrack:Track = res.data[i];
-                    currentTrack.fullname = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    currentTrack.fullname = res.data[i].firstName + ' ' + res.data[i].lastName;
                     objArray.push(currentTrack);
 
                 }
@@ -94,7 +104,7 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
 
                     var currentTrack:Track = res.data[i];
 
-                    var fullname:string =  res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    var fullname:string =  res.data[i].firstName + ' ' + res.data[i].lastName;
 
                     // Copy over the track from res, "append" the fullname key-value to it
                     currentTrack = Object.assign({fullname: fullname}, currentTrack);
@@ -128,14 +138,17 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
 
         await sendAPI('get', '/tracks/getUserTracksByID', currentUser)
             .then(res => {
+                console.log("Checking res.data...")
+                console.log(res.data);
                 for(var i = 0; i < res.data.length; i++) {                    
                     var currentTrack:Track = res.data[i];
-                    var fullname:string =  res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    var fullname:string =  res.data[i].firstName + ' ' + res.data[i].lastName;
                     currentTrack = Object.assign({fullname: fullname}, currentTrack);
 
                     objArray.push(currentTrack);
                 }
 
+                // setTrackCards(objArray);
                 setTrackList(objArray);
                 setTracksPulled(true)
 
@@ -210,6 +223,8 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
         let gridArray:any[] = [];
         let currentTrackCounter:number = 0;
         
+        console.log("Attempting to populate cards");
+        console.log(cardType);
         //cardType Search goes outside of the conditional because there is the case where searching has already happened
         if (cardType === 'Search' && currentSearch !== input) 
             getSearchTracks(input);
@@ -234,7 +249,6 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
             }
         }
 
-        // console.log("PopulateTrackCards()");
         return gridArray;
     }
 
@@ -243,6 +257,7 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
        setShow(true);      
     }
 
+    
     let trackCards = PopulateTrackCards();
 
     return (

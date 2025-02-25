@@ -19,9 +19,10 @@ import { current } from '@reduxjs/toolkit';
 type Props = {
     cardType: string;
     input: string; // was :any
+    submitted: boolean;
 }
 
-const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
+const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
 
     // For displaying Modal
     const [show, setShow] = useState(false);
@@ -44,6 +45,9 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
         // console.log("resetting seed");
     }
 
+    useEffect(() => {
+        getProfileScripts();
+    }, [submitted]);
     // Initializes newTrackList
     // useEffect(() => {
     //     setNewTrackList(PopulateTrackCards()); // need to debug. not calling checklike when opening/editing unliked track.
@@ -136,10 +140,10 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
         await sendAPI('get', '/scripts/getUserScriptsByID', currentUser)
             .then(res => {
-                console.log(res)
+                // console.log(res)
                 for (var i = 0; i < res.data.length; i++) {
                     // console.log("+++++++++++++++++++++++++");
-                    console.log(res.data[i]);
+                    // console.log(res.data[i]);
                     // console.log("+++++++++++++++++++++++++");
                     var currentScript: Script = res.data[i];
                     var fullname: string = res.data[i].firstName + ' ' + res.data[i].lastName;
@@ -150,7 +154,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input }) => {
 
                 setScriptList(objArray);
                 setScriptsPulled(true)
-                console.log("Script List:", scriptList)
+                // console.log("Script List:", scriptList)
 
             }).catch(e => {
                 console.error("Failed to pull profile scripts: ", e);

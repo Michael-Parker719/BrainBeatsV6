@@ -77,6 +77,7 @@ async function writeToFile(fileName, base64String) {
       });
   })
 }
+
 // Function to convert base64 string to file
 function base64ToFile(base64String, fileName) {
   return new Promise((resolve, reject) => {
