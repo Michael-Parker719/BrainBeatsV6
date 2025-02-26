@@ -54,6 +54,11 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
                 name: "Create Track",
                 icon: <FontAwesomeIcon icon={["fas", "music"]} />
             },
+            {
+                path: "../Community",
+                name: "Community Page",
+                icon: <FontAwesomeIcon icon={["fas", "home"]} />
+            },
         ]
     }
     else {
@@ -82,6 +87,11 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
                 path: "../track-settings",
                 name: "Create Track",
                 icon: <FontAwesomeIcon icon={["fas", "music"]} />
+            },
+            {
+                path: "../Community",
+                name: "Community Page",
+                icon: <FontAwesomeIcon icon={["fas", "home"]} />
             },
         ]
     }

@@ -2,6 +2,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Routes, Route, BrowserRouter as Router, Navigate, useNavigate} from 'react-router-dom'
 import Home from './Pages/Home';
+import Community from './Pages/Community';
 import About from './Pages/About';
 import Search from './Pages/Search';
 import Settings from './Pages/Settings';
@@ -48,6 +49,7 @@ function App() {
         {/* <Sidebar> */}
           <Routes>
             <Route path='/' element={<Home />}  />
+            <Route path='/Community' element={<Community />}  />
             <Route path='/about' element={<About />} />
             <Route path='/search' element={<Search />} />
             <Route path='/track-settings' element={<Settings />} />
