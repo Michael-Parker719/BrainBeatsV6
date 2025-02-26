@@ -8,7 +8,7 @@ import reportWebVitals from './reportWebVitals';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fab } from '@fortawesome/free-brands-svg-icons'
-import { faHeartCirclePlus, faHeartCircleMinus, faHeartCircleCheck} from '@fortawesome/free-solid-svg-icons'
+import { faHeartCirclePlus, faHeartCircleMinus, faHeartCircleCheck, faHandshake} from '@fortawesome/free-solid-svg-icons'
 
 
 import { faHeart} from '@fortawesome/free-regular-svg-icons'
@@ -24,7 +24,7 @@ import { store } from './Redux/store'
 import { Provider } from 'react-redux'
 
 // Adding icons to global library
-library.add(fab, faBars, faHome, faInfo, faCircleInfo, faSearch, faPlusCircle, faPlus, faHeart, faPlayCircle, faEllipsisH, faFloppyDisk, faTrash)
+library.add(fab, faBars, faHome, faInfo, faCircleInfo, faSearch, faPlusCircle, faPlus, faHeart, faPlayCircle, faEllipsisH, faFloppyDisk, faTrash, faHandshake)
 library.add(faEye, faEyeSlash, faEdit, faPlay, faPause, faUser, faMusic, faList, faRightFromBracket, faCircle, faSquare, faArrowUpFromBracket, faDownload, faGithub, faYoutube)
 
 const root = ReactDOM.createRoot(

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { unsetScriptIDGlobal } from '../../Redux/slices/scriptIDSlice';
 import { useDispatch } from 'react-redux';
 
+
 // images
 import logo from '../../images/bbLogo.png';
 
@@ -57,7 +58,7 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
             {
                 path: "../Community",
                 name: "Community Page",
-                icon: <FontAwesomeIcon icon={["fas", "home"]} />
+                icon: <FontAwesomeIcon icon={["fas", "handshake"]} />
             },
         ]
     }
@@ -91,7 +92,7 @@ const Navbar: React.FunctionComponent<RouteProps> = ({ children, ...props }) => 
             {
                 path: "../Community",
                 name: "Community Page",
-                icon: <FontAwesomeIcon icon={["fas", "home"]} />
+                icon: <FontAwesomeIcon icon={["fas", "handshake"]} />
             },
         ]
     }

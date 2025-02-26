@@ -9,26 +9,28 @@
     padding: 0px;
 }
 
-#carousel-container {
-    display: flex;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
+#community-image {
     width: 100%;
-    padding: 0px;
+    height: 100vh;
+    object-fit: cover;
 }
 
-#carousel-container .carousel.carousel-slider {
-    width: 100%!important;
+#community-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 4rem;
+    font-weight: bold;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 20px;
+    border-radius: 10px;
 }
-
-#carousel-container .carousel .carousel-status{
-    display: none;
-} 
-
 
 /* CSS for Tracks Section on Community */
-#featured-tracks-heading { 
+#community-tracks-heading { 
     color: #ffffff;
     text-decoration: none !important;
     margin-top: 2%;
