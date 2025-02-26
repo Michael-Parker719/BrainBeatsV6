@@ -223,8 +223,8 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
         let gridArray:any[] = [];
         let currentTrackCounter:number = 0;
         
-        console.log("Attempting to populate cards");
-        console.log(cardType);
+        // console.log("Attempting to populate cards");
+        // console.log(cardType);
         //cardType Search goes outside of the conditional because there is the case where searching has already happened
         if (cardType === 'Search' && currentSearch !== input) 
             getSearchTracks(input);
