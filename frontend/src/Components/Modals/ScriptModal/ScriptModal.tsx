@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import sendAPI from "../../../SendAPI";
+import downloadAPI from "../../../DownloadAPI";
 import { userJWT, userModeState } from "../../../JWT";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useNavigate } from "react-router-dom";
@@ -513,6 +514,33 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   function goToRecord() {
     navigate("/record");
   }
+
+  function DownloadScript() {
+
+    let data = {
+      id: script.id
+    }
+    
+    downloadAPI("post", "/scripts/downloadScript", data, "blob").then(async (res) => {
+      if (res.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+
+        link.download = `${script.title}.json`;
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+      } else {
+        setErrMsg("Could not save post.");
+        setSuccessMsg("");
+      }
+    });
+  }
+
   function goToEdit() {
     navigate("/script-settings");
     dispatch(setScriptIDGlobal(script.id));
@@ -718,6 +746,16 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   icon={["fas", "music"]}
                 />
                 Record
+              </button>
+              <button
+                className="btn btn-secondary modal-btn"
+                onClick={() => DownloadScript()}
+              >
+                <FontAwesomeIcon
+                  className="modal-track-icons"
+                  icon={["fas", "music"]}
+                />
+                Download
               </button>
               <button
                 className="btn btn-secondary modal-btn-public"
