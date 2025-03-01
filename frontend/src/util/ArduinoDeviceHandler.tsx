@@ -5,10 +5,10 @@
  */
 
 import { upload, boards } from "web-arduino-uploader/dist/index.js";
+import { promises as fs } from "fs";
+
 import EEGProcessor from "./EEGProcessor";
-
-// import { NoteHandler } from "./MusicGeneration/Algorithms/MAV6Test/NoteGeneration";
-
+import path from "path";
 import { TDebugOptionsObject } from "./Types";
 import { MusicSettings } from "./Interfaces";
 
@@ -26,6 +26,22 @@ export class ArduinoDeviceHandler {
     return true;
   }
 
+  // public async fetchHexFile(filePath: string): Promise<void> {
+  //   try {
+  //     const response = await fetch(filePath);
+  //     console.log("Response status:", response.status);
+  //     if (!response.ok) {
+  //       throw new Error(`Network response was not ok: ${response.statusText}`);
+  //     }
+  //     const text = await response.text();
+  //     console.log("File Contents:\n", text);
+  //     // const data = await response.data;
+  //     // console.log("File Contents:\n", text);
+  //   } catch (error) {
+  //     console.error("Error reading file:", error);
+  //   }
+  // }
+
   // change below to a public function
   public async uploadToArduino(): Promise<boolean> {
     const onProgress = (percentage: number) => {
@@ -35,7 +51,8 @@ export class ArduinoDeviceHandler {
     const verify = false; // optional
     const portFilters = {}; // optional, e.g. [{"usbProductId":46388,"usbVendorId":1241}]
     console.log("starting");
-
+    // console.log("Hex File Path", this.hex_file_path);
+    // this.fetchHexFile("/ArduinoEEGCode.hex");
     try {
       await upload(boards.uno, this.hex_file_path, onProgress, verify);
     } catch (e) {

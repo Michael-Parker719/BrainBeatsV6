@@ -465,7 +465,7 @@ export class ConcreteArduinoUnoStream {
   public noteHandler: any;
   public enhancer: any;
   private debugOutput: boolean;
-  private hex_file_path: string = "/MindControl3.ino.hex";
+  private hex_file_path: string = "/ArduinoEEGCode.hex";
 
   // Assigns everything but the hex file path
   constructor(
