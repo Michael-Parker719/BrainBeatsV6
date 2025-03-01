@@ -178,7 +178,7 @@ function Record() {
         // console.log("Midi URL from Record.tsx: ", url);
         setMIDIURI(url);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Unable to stop device: ", err);
       });
     setDevice(undefined);

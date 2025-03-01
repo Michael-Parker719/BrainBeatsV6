@@ -1,44 +1,38 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { user, post } = new PrismaClient();
+const { pool } = require("../../connect/connect");
+const promiseConnection = pool.promise();
 const { getBPMValues } = require("../../utils/music");
-// const { JSON } = require("express");
 const { getUserExists } = require("../../utils/database");
+const processMusic = require("../../file/processMusic/processMusic");
 
 // TODO : Don't think this is needed, change it to actually work for our case for downloading to
 // Get user midi information by ID
-router.get('/findMidi', async (req, res) => {
+router.get("/findMidi", async (req, res) => {
+  const { username } = req.body;
+  const userExists = await getUserExists(username, "username");
 
-    const { username } = req.body;
-    const userExists = await getUserExists(username, "username");
+  if (!userExists) {
+    return res.status(400).json({
+      msg: "User not found",
+    });
+  } else {
+    const sqlQuery = `
+        SELECT Track.midi
+        FROM User
+        JOIN Track ON Track.userID = users.id
+        WHERE User.username = ?;`;
 
-    if (!userExists) {
-        return res.status(400).json({
-            msg: "User not found"
-        });
-    } else {
-        const posts = await prisma.User.findUnique({
-            where: { username: username },
-            select: {
-                posts: {
-                    select: {
-                        midi: true,
-                        data: true
-                    }
-                }
-            }
-        });
-        res.json(posts);
-    }
+        let [ posts ] = await promiseConnection.query(sqlQuery, [username]);
+        posts = processMusic(posts);
+    res.json(posts);
+  }
 });
 
-
 // Get BPM values
-router.get('/getBPMValues', async (req, res) => {
-    const bpmValues = await getBPMValues();
-    res.json(bpmValues);
+router.get("/getBPMValues", async (req, res) => {
+  const bpmValues = await getBPMValues();
+  res.json(bpmValues);
 });
 
 module.exports = router;

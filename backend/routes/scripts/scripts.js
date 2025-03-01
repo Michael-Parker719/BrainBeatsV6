@@ -1,279 +1,518 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { user, track } = new PrismaClient();
-// const { JSON } = require("express");
-const { getJWT, verifyJWT } = require("../../utils/jwt");
-const { getUserExists, getTrackExists, getScriptExists } = require("../../utils/database");
+const { pool } = require("../../connect/connect");
+const promiseConnection = pool.promise();
+const path = require("path");
+const fs = require("fs");
+const { verifyJWT } = require("../../utils/jwt");
+const { getUserExists, getScriptExists } = require("../../utils/database");
+const {
+  deleteFile,
+  generateFileName,
+  writeToFile,
+} = require("../../file/fileReader/fileReader");
+const {
+  processMultipleScripts,
+  processMultipleCards,
+  processSingleScript,
+} = require("../../file/processScripts/processScripts");
 
 function colorToHex(color) {
-    var redHex = ('00' + color.r.toString(16)).slice(-2); //009A
-    var greenHex = ('00' + color.g.toString(16)).slice(-2); //009A
-    var blueHex = ('00' + color.b.toString(16)).slice(-2); //009A
 
-    let ret = redHex + greenHex + blueHex;
-    console.log(color);
-    console.log("color: ", ret);
-    return ret;
+  if (color.length == 6) {
+    return color;
+  }
+  var redHex = ("00" + color.r.toString(16)).slice(-2); //009A
+  var greenHex = ("00" + color.g.toString(16)).slice(-2); //009A
+  var blueHex = ("00" + color.b.toString(16)).slice(-2); //009A
+
+  let ret = redHex + greenHex + blueHex;
+  console.log(color);
+  console.log("color: ", ret);
+  return ret;
 }
 
-function getCards(scriptID) {
-
-}
-
-async function updateScript(scriptID, token, cards) {
-    try {
-
-        const queries = [];
-        const deleteCards = await prisma.card.deleteMany({
-            where: {
-                scriptID: scriptID,
-            },
-        })
-
-        for (let i = 0; i < cards.length; i++) {
-            const newCard = {
-                // script: {
-                //     connect: {
-                //         id: scriptID,
-                //     }
-                // },
-                scriptID: scriptID,
-                order: i,
-                textColor: colorToHex(cards[i].textColor),
-                backgroundColor: colorToHex(cards[i].backgroundColor),
-                imageURL: cards[i].imageURL,
-                audioURL: cards[i].audioURL,
-                text: cards[i].text,
-                speed: cards[i].speed,
+async function updateScript(scriptID, cards) {
+  try {
+    const queries = [];
+    const sqlQuery1 = "SELECT * FROM Card WHERE scriptID = ?";
+    const sqlQuery2 = "DELETE FROM Card WHERE scriptID = ?;";
 
 
-            };
-            console.log(newCard);
-            queries.push(newCard);
+    let [rows] = await promiseConnection.query(sqlQuery1, [scriptID]);
+    console.log("In the update script function...")
+    console.log(rows);
+    console.log("The rows are above");
 
-        }
-        console.log(queries);
-        let newCards = await prisma.card.createMany({
-            data: queries,
-        }
-        );
-        return newCards;
-    } catch (err) {
-        throw err;
+    let imageURL = "";
+    let audioURL = "";
+    if (rows[0]) {
+
+      imageURL = rows[0].imageURL;
+      audioURL = rows[0].audioURL;
     }
+
+    // Ensure deletion of files prior to updating a Script component
+    await deleteFile(imageURL);
+    await deleteFile(audioURL);
+
+    await promiseConnection.query(sqlQuery2, [scriptID]);
+
+    for (let i = 0; i < cards.length; i++) {
+      const fileName1 = await generateFileName();
+      const filePath1 = await writeToFile(fileName1, cards[i].imageURL);
+
+      const fileName2 = await generateFileName();
+      const filePath2 = await writeToFile(fileName2, cards[i].audioURL);
+
+      const newCard = [
+        scriptID,
+        i,
+        colorToHex(cards[i].textColor),
+        colorToHex(cards[i].backgroundColor),
+        filePath1,
+        filePath2,
+        cards[i].text,
+        cards[i].speed,
+      ];
+      queries.push(newCard);
+    }
+
+    const sqlQuery3 = `
+        INSERT INTO Card (scriptID, \`order\`, textColor, backgroundColor, imageURL, audioURL, text, speed)
+        VALUES ?;
+    `;
+
+    let [newCards] = await promiseConnection.query(sqlQuery3, [queries]);
+
+    return newCards;
+  } catch (err) {
+    throw err;
+  }
 }
 
-router.post('/createScript', async (req, res) => {
-    try {
-        const { userID, title, token, thumbnail, cards } = req.body;
-        const decoded = verifyJWT(token);
 
-        if (!decoded) {
-            return res.status(401).json({
-                msg: "Invalid token"
-            });
-        }
 
-        const userExists = await getUserExists(userID, "id");
-        if (!userExists) {
-            return res.status(404).json({
-                msg: "User not found"
-            });
-        }
-        // Create a single record
-        console.log(req)
-        const newScript = await prisma.script.create({
-            data: {
-                user: {
-                    connect: {
-                        id: userID
-                    }
-                },
-                title: title,
-                thumbnail: thumbnail,
-                public: true,
-            }
-        });
+router.post("/createScript", async (req, res) => {
+  try {
+    const { userID, title, token, thumbnail, cards } = req.body;
+    const decoded = verifyJWT(token);
 
-        let newCards = updateScript(newScript.id, token, cards);
-
-        ret = { newScript, newCards };
-
-        return res.status(201).json(ret);
-    } catch (err) {
-        console.log(err);
-        return res.status(500).send({ msg: err });
+    if (!decoded) {
+      return res.status(401).json({
+        msg: "Invalid token",
+      });
     }
+
+    const userExists = await getUserExists(userID, "id");
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+    // Create a single record
+    // console.log(req);
+
+    let filePath;
+
+    if (!thumbnail) {
+      filePath = "";
+    } else {
+      const fileName = await generateFileName();
+      filePath = await writeToFile(fileName, thumbnail);
+    }
+
+    const sqlQuery1 = `
+        INSERT INTO Script (userID, title, thumbnail, public)
+        VALUES (?, ?, ?, TRUE)
+    `;
+
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?;`;
+    let [insert] = await promiseConnection.query(sqlQuery1, [
+      userID,
+      title,
+      filePath,
+    ]);
+    let id = insert.insertId;
+    console.log("THE ID IS " + id);
+    let [rows] = await promiseConnection.query(sqlQuery2, [id]);
+
+    // console.log(rows);
+    let newScript = rows[0];
+    let newCards = updateScript(newScript.id, cards);
+
+    ret = { newScript, newCards };
+
+    return res.status(201).json(ret);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
 });
 
-router.post('/updateScript', async (req, res) => {
-    try {
-        const { scriptID, userID, title, token, thumbnail, cards } = req.body;
-        const decoded = verifyJWT(token);
+router.post("/importScript", async (req, res) => {
+  try {
+    const { userID, title, thumbnail, cards } = req.body;
 
-        if (!decoded) {
-            return res.status(401).json({
-                msg: "Invalid token"
-            });
-        }
+    const userExists = await getUserExists(userID, "id");
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+    // Create a single record
+    // console.log(req);
 
-        const userExists = await getUserExists(userID, "id");
-        if (!userExists) {
-            return res.status(404).json({
-                msg: "User not found"
-            });
-        }
-        // Create a single record
-        console.log(req)
-        const newScript = await prisma.script.update({
-            where:{
-                id: scriptID
-            },
-            data: {
-                user: {
-                    connect: {
-                        id: userID
-                    }
-                },
-                title: title,
-                thumbnail: thumbnail,
-                public: true,
-            }
-        });
+    let filePath;
 
-        let newCards = updateScript(newScript.id, token, cards);
-
-        ret = { newScript, newCards };
-
-        return res.status(201).json(ret);
-    } catch (err) {
-        console.log(err);
-        return res.status(500).send({ msg: err });
+    if (!thumbnail) {
+      filePath = "";
+    } else {
+      const fileName = await generateFileName();
+      filePath = await writeToFile(fileName, thumbnail);
     }
 
+    const sqlQuery1 = `
+        INSERT INTO Script (userID, title, thumbnail, public)
+        VALUES (?, ?, ?, TRUE)
+    `;
+
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?;`;
+    let [insert] = await promiseConnection.query(sqlQuery1, [
+      userID,
+      title,
+      filePath,
+    ]);
+    let id = insert.insertId;
+    console.log("THE ID IS " + id);
+    let [rows] = await promiseConnection.query(sqlQuery2, [id]);
+
+    // console.log(rows);
+    let newScript = rows[0];
+    let newCards = updateScript(newScript.id, cards);
+
+    ret = { newScript, newCards };
+
+    return res.status(201).json(ret);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
 });
 
+router.post("/updateScript", async (req, res) => {
+  try {
+    const { scriptID, userID, title, token, thumbnail, cards } = req.body;
+    const decoded = verifyJWT(token);
+
+    if (!decoded) {
+      return res.status(401).json({
+        msg: "Invalid token",
+      });
+    }
+
+    const userExists = await getUserExists(userID, "id");
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+    // Create a single record
+    console.log(req);
+
+    const sqlQuery1 = "SELECT * From Script WHERE id = ?";
+    let [rows] = await promiseConnection.query(sqlQuery1, [scriptID]);
+    let thumbnailPath = rows[0].thumbnail;
+
+    await deleteFile(thumbnailPath);
+
+    const fileName = await generateFileName();
+    const filePath = await writeToFile(fileName, thumbnail);
+
+    const sqlQuery2 = `UPDATE Script
+SET 
+    user_id = ?,
+    title = ?,
+    thumbnail = ?,
+    public = true
+WHERE id = ?;`;
+
+    await promiseConnection.query(sqlQuery2, [
+      userID,
+      title,
+      filePath,
+      scriptID,
+    ]);
+
+    const sqlQuery3 = `SELECT * FROM Script WHERE id = ?;`;
+    let [newScript] = await promiseConnection.query(sqlQuery3, [scriptID]);
+
+    let newCards = updateScript(newScript.id, token, cards);
+
+    ret = { newScript, newCards };
+
+    return res.status(201).json(ret);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
+
+router.delete("/deleteScript", async (req, res) => {
+  try {
+    const { scriptID, token } = req.body;
+
+    console.log("Deleting this body...");
+    console.log(req.body);
+    const decoded = verifyJWT(token);
+
+    if (!decoded) {
+      return res.status(401).json({
+        msg: "Invalid token",
+      });
+    }
+    const sqlQuery1 = `SELECT * FROM Card WHERE scriptID = ?`;
+    const sqlQuery2 = `SELECT * FROM Script WHERE id = ?`;
+    const sqlQuery3 = `DELETE FROM Card WHERE scriptID = ?`;
+    const sqlQuery4 = `DELETE FROM Script WHERE id = ?`;
+
+    const [row1] = await promiseConnection.query(sqlQuery1, [scriptID]);
+    const [row2] = await promiseConnection.query(sqlQuery2, [scriptID]);
+
+    row1.forEach(async (row) => {
+      let imagePath = "";
+      let audioPath = "";
+
+      if (row) {
+        imagePath = row.imageURL;
+        audioPath = row.audioURL;
+      }
+
+      await deleteFile(imagePath);
+      await deleteFile(audioPath);
+    })
+
+    thumbnail = "";
+    if (row2[0]) {
+      thumbnail = row2[0].thumbnail;
+    }
+    
+    await deleteFile(thumbnail);
+
+    let [row3] = await promiseConnection.query(sqlQuery3, [scriptID]);
+    console.log("Deleting cards...");
+    console.log(row3.affectedRows);
+    console.log(row3);
+    let [row4] = await promiseConnection.query(sqlQuery4, [scriptID]);
+    console.log("Deleting script...");
+    console.log(row4.affectedRows);
+
+    return res.status(200).send({ msg: "Sucessfully deleted script!" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
 // Get all tracks based on a username
-router.get('/getUserScriptsByUsername', async (req, res) => {
-    try {
-        const username = req.query.username;
-        if (username === "") {
-            const allTracks = await prisma.script.findMany({
-                include: { user: true }
-            });
+router.get("/getUserScriptsByUsername", async (req, res) => {
+  try {
+    const username = req.query.username;
+    if (username === "") {
+      const sqlQuery1 = "SELECT * FROM Script;";
+      const [allScripts] = await promiseConnection.query(sqlQuery1, []);
 
-            return res.json(allTracks);
-        }
-
-        const userExists = await getUserExists(username, "username");
-
-        if (!userExists) {
-            return res.status(404).json({
-                msg: "Username not found"
-            });
-        } else {
-            // Find the records
-            const userScripts = await prisma.script.findMany({
-                where: { userID: userExists.id },
-                include: { user: true }
-            });
-
-            if (!userScripts) {
-                return res.status(404).json({
-                    msg: "Scripts not found"
-                });
-            }
-
-            return res.status(200).json(userScripts);
-        }
-    } catch (err) {
-        console.log(err);
-        return res.status(500).send({ msg: err });
+      allScripts = await processMultipleScripts(allScripts);
+      return res.json(allScripts);
     }
+
+    const userExists = await getUserExists(username, "username");
+
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "Username not found",
+      });
+    } else {
+      // Find the records
+      const sqlQuery2 = `SELECT * 
+FROM Script
+JOIN User ON Script.userID = User.userID
+WHERE Script.userID = ?;`;
+
+      const [userScripts] = await promiseConnection.query(sqlQuery2, [
+        userExists.id,
+      ]);
+
+      if (!userScripts) {
+        return res.status(404).json({
+          msg: "Scripts not found",
+        });
+      }
+
+      userScripts = await processMultipleScripts(userScripts);
+
+      return res.status(200).json(userScripts);
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
 });
 
-// Get all tracks based on a username
-router.get('/getUserScriptsByID', async (req, res) => {
-    try {
-        const userID = req.query.userID;
-        if (userID === "") {
-            const allTracks = await prisma.script.findMany({
-                include: { user: true }
-            });
+// Get all tracks based on a ID
+router.get("/getUserScriptsByID", async (req, res) => {
+  try {
+    const userID = req.query.userID;
+    if (userID === "") {
+      const sqlQuery1 = "SELECT * FROM Script;";
+      const [allScripts] = await promiseConnection.query(sqlQuery1, []);
 
-            return res.json(allTracks);
-        }
-
-        const userExists = await getUserExists(userID, "id");
-
-        if (!userExists) {
-            return res.status(404).json({
-                msg: "Username not found"
-            });
-        } else {
-            // Find the records
-            const userScripts = await prisma.script.findMany({
-                where: { userID: userExists.id },
-                include: { user: true }
-            });
-
-            if (!userScripts) {
-                return res.status(404).json({
-                    msg: "Scripts not found"
-                });
-            }
-
-            return res.status(200).json(userScripts);
-        }
-    } catch (err) {
-        console.log(err);
-        return res.status(500).send({ msg: err });
+      allScripts = await processMultipleScripts(allScripts);
+      return res.json(allScripts);
     }
+
+    const userExists = await getUserExists(userID, "id");
+
+    if (!userExists) {
+      return res.status(404).json({
+        msg: "Username not found",
+      });
+    } else {
+      // Find the records
+
+      const sqlQuery2 = `SELECT Script.id as id, 
+      Script.title, Script.thumbnail, Script.createdAt, Script.public, 
+      User.id as userID, User.firstName, User.lastName
+FROM Script
+JOIN User ON Script.userID = User.id
+WHERE Script.userID = ?;`;
+
+      let [userScripts] = await promiseConnection.query(sqlQuery2, [
+        userExists.id,
+      ]);
+
+      if (!userScripts) {
+        return res.status(404).json({
+          msg: "Scripts not found",
+        });
+      }
+
+      userScripts = await processMultipleScripts(userScripts);
+
+      return res.status(200).json(userScripts);
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
 });
 
-router.get('/getCardsByScriptID', async (req, res) => {
-    try {
-        const scriptID = req.query.id;
-        if (scriptID === "") {
-            const allTracks = await prisma.card.findMany({
-                include: { script: true }
-            });
+router.get("/getCardsByScriptID", async (req, res) => {
+  try {
+    const scriptID = req.query.id;
 
-            return res.json(allTracks);
-        }
+    if (scriptID === "") {
+      const sqlQuery1 = "SELECT * FROM Card;";
+      let [allCards] = await promiseConnection.query(sqlQuery1, []);
 
-        const scriptExists = await getScriptExists(scriptID, "id");
-
-        if (!scriptExists) {
-            return res.status(404).json({
-                msg: "Script not found"
-            });
-        } else {
-            // Find the records
-            const scriptCards = await prisma.card.findMany({
-                where: { scriptID: scriptExists.id },
-                // include: { user: true }
-            });
-
-            if (!scriptCards) {
-                return res.status(404).json({
-                    msg: "Cards not found"
-                });
-            }
-            // function compareCards(card1, card2){
-            //     return card1.order - card2.order
-            // }
-            // scriptCards.sort(compareCards)
-
-            return res.status(200).json(scriptCards);
-        }
-    } catch (err) {
-        console.log(err);
-        return res.status(500).send({ msg: err });
+      allCards = await processMultipleCards(allCards);
+      return res.json(allCards);
     }
+
+    console.log("IN THE getCardsByScriptID FUNCTION");
+    const scriptExists = await getScriptExists(scriptID, "id");
+
+    if (!scriptExists) {
+      return res.status(404).json({
+        msg: "Script not found",
+      });
+    } else {
+      // Find the records
+      const sqlQuery2 = "SELECT * FROM Card WHERE scriptID = ?;";
+      let [scriptCards] = await promiseConnection.query(sqlQuery2, [
+        scriptID,
+      ]);
+
+      if (!scriptCards) {
+        return res.status(404).json({
+          msg: "Cards not found",
+        });
+      }
+
+      scriptCards = await processMultipleCards(scriptCards);
+
+      return res.status(200).json(scriptCards);
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
 });
 
+// Requires Preprocessing!!!
+router.get("/downloadScript", async (req, res) => {
+  console.log("In the download route...");
+  const scriptID = req.body.id; // Use query params or req.params depending on how you send the ID
+
+  // Query to get scripts and their related cards
+  const sqlQuery1 = "SELECT * from Script WHERE id = ?";
+  const sqlQuery2 = "SELECT * from Card WHERE scriptID = ?";
+
+  try {
+    console.log("Running query...");
+    // Execute the query and await the result
+    const [res1] = await promiseConnection.query(sqlQuery1, [scriptID]);
+    let script = await processSingleScript(res1[0]);
+
+    const [res2] = await promiseConnection.query(sqlQuery2, [scriptID]);
+    let cards = await processMultipleCards(res2);
+
+    console.log("Organizing Scripts...");
+    // Organize data by script
+    const download = ({
+      title: script.title,
+      thumbnail: script.thumbnail,
+      createdAt: script.createdAt,
+      public: script.public,
+      cards: [],
+    });
+
+    cards.forEach((card) => {
+      download.cards.push({
+        order: card.order,
+        textColor: card.textColor,
+        backgroundColor: card.backgroundColor,
+        imageURL: card.imageURL,
+        audioURL: card.audioURL,
+        text: card.text,
+        speed: card.speed,
+      });
+    });
+
+    console.log("Creating json object...");
+    // Create JSON file
+    const jsonData = JSON.stringify(download, null, 2);
+    const fileName = download.title + ".json";
+    console.log("Writing to file...");
+    // Write to file and send it for download
+    fs.writeFile(fileName, jsonData, (err) => {
+      if (err) throw err;
+
+      console.log("Downloading...");
+      // Send the file for download
+      res.download(fileName, fileName, (err) => {
+        if (err) throw err;
+
+        console.log("Unlinking...");
+        // Delete the file after download
+        // fs.unlink(fileName, (err) => {
+        //   if (err) throw err;
+        // });
+      });
+    });
+  } catch (err) {
+    console.error("Error during the query execution:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 module.exports = router;

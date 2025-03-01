@@ -1,12 +1,8 @@
 require("dotenv").config();
 const router = require("express").Router();
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const { user, post } = new PrismaClient();
 var nodemailer = require("nodemailer");
-const { getJWT, verifyJWT, createJWT, removeJWT } = require("../../utils/jwt");
-// const { JSON } = require("express");
-const dbUtil = require("../../utils/database");
+const { getUserExists } = require("../../utils/database");
+const { verifyJWT } = require("../../utils/jwt");
 
 // TODO Check env for if dev, set url to localhost:3000 else, dev url
 
@@ -33,13 +29,11 @@ const transporter = nodemailer.createTransport({
     secure: true,
 });
 
+
 router.post('/sendVerificationEmail', async (req, res) => {
     try {
         const { email, subject } = req.body;
-        const userExists = await prisma.user.findUnique({
-            where: { email },
-            select: { id: true }
-        });
+        let userExists = await getUserExists(email, "email");
 
         // If the user is an existing user, then send a verification email based on their ID
         if (userExists) {
@@ -48,8 +42,8 @@ router.post('/sendVerificationEmail', async (req, res) => {
                 to: email,
                 subject: subject,
                 text: 'Verify your login to BrainBeats by clicking the following link, or copy and paste it into your browser: ',
-                html: '<a href="http://www.brainbeatz.xyz/verify?id=${userExists.id}">Verify Email</a>',
-                // html: `<a href="http://localhost:3000/verify?id=${userExists.id}">Verify Email</a>`,
+                //html: '<a href="http://www.brainbeatz.xyz/verify?id=${userExists.id}">Verify Email</a>',
+                html: `<a href="http://localhost:3000/verify?id=${userExists.id}">Verify Email</a>`,
             };
 
             transporter.sendMail(mailData, function (err, info) {
