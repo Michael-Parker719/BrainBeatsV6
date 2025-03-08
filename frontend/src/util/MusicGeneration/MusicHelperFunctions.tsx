@@ -9,11 +9,11 @@ import { InstrumentTypes, NoteDurations, KeyGroups, Keys} from '../Enums';
 // Takes an int, returns the respective note type in string form.
 export function getNoteLengthStringFromInt(input:number)
 {
-    if (input == 4) return "whole";
-    else if (input == 3) return "half";
+    if (input == 0) return "whole";
+    else if (input == 1) return "half";
     else if (input == 2) return "quarter";
-    else if (input == 1) return "eighth";
-    else if (input == 0) return "sixteenth";
+    else if (input == 3) return "eighth";
+    else if (input == 4) return "sixteenth";
 }
 
 // Takes a string, returns the respective note type in int form.
