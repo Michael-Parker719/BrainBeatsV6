@@ -1,0 +1,24 @@
+{
+  "title": "Black and White",
+  "thumbnail": "",
+  "cards": [
+    {
+      "order": 0,
+      "textColor": "ffffff",
+      "backgroundColor": "0e0e0e",
+      "imageURL": "",
+      "audioURL": "",
+      "text": "Black",
+      "speed": 1000
+    },
+    {
+      "order": 1,
+      "textColor": "ffffff",
+      "backgroundColor": "0e0e0e",
+      "imageURL": "",
+      "audioURL": "",
+      "text": "White",
+      "speed": 1000
+    }
+  ]
+}

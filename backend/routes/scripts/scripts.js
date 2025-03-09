@@ -449,9 +449,8 @@ router.get("/getCardsByScriptID", async (req, res) => {
 });
 
 // Requires Preprocessing!!!
-router.post("/downloadScript", async (req, res) => {
+router.get("/downloadScript", async (req, res) => {
   console.log("In the download route...");
-  
   const scriptID = req.body.id; // Use query params or req.params depending on how you send the ID
 
   // Query to get scripts and their related cards
@@ -505,9 +504,9 @@ router.post("/downloadScript", async (req, res) => {
 
         console.log("Unlinking...");
         // Delete the file after download
-        fs.unlink(fileName, (err) => {
-          if (err) throw err;
-        });
+        // fs.unlink(fileName, (err) => {
+        //   if (err) throw err;
+        // });
       });
     });
   } catch (err) {

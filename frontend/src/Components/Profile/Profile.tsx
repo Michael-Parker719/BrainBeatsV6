@@ -311,13 +311,9 @@ const Profile = () => {
             setJsonData(parsedData);
             setError(null);
           } else {
-            console.log("Error 1 reading in this file");
-            setJsonData(null);
             setError("Invalid JSON structure");
           }
         } catch (e) {
-          console.log("Error 2 reading in this file");
-          setJsonData(null);
           setError("Error parsing JSON");
         }
       };

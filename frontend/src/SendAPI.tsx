@@ -12,8 +12,14 @@ const sendAPI = async (method:any, path:any, data:any = null) => {
     if(method === 'get') config.params =  data;
     else config.data = data;
 
+    // console.log("+++++++++++++++++++++");
+    // console.log("CONFIG");
+    // console.log(config);
+    // console.log("+++++++++++++++++++++");
     const res = await axios(config);
+    // console.log('Response:', res);
     return res;
 }
+
 
 export default sendAPI;
