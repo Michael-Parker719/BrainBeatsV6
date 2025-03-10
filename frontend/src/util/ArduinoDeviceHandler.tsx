@@ -4,7 +4,8 @@
  Web Serial Port Library: https://github.com/WICG/serial
  */
 
-import { upload, boards } from "web-arduino-uploader/dist/index.js";
+// import { upload, boards } from "web-arduino-uploader/dist/index.js";
+import { upload, boards } from "web-arduino-uploader/dist/index";
 import { promises as fs } from "fs";
 
 import EEGProcessor from "./EEGProcessor";
