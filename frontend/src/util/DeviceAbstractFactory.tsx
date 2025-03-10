@@ -465,7 +465,8 @@ export class ConcreteArduinoUnoStream {
   public noteHandler: any;
   public enhancer: any;
   private debugOutput: boolean;
-  private hex_file_path: string = "/ArduinoEEGCode.hex";
+  private OneInput_hex_file_path: string = "/OneInputArduinoEEGCode.hex";
+  private TwoInput_hex_file_path: string = "/TwoInputArduinoEEGCode.hex";
 
   // Assigns everything but the hex file path
   constructor(
@@ -491,19 +492,23 @@ export class ConcreteArduinoUnoStream {
   public setDebugOutput(b: boolean) {
     this.debugOutput = b;
   }
-  // Set path to hex file to read
-  public setHexFilePath(file: string) {
-    this.hex_file_path = file;
-    return true;
-  }
+  // // Set path to hex file to read
+  // public setHexFilePath(file: string) {
+  //   this.hex_file_path = file;
+  //   return true;
+  // }
 
-  public async initializeConnection() {
+  public async initializeConnection(inputs: number) {
     // console.log("Uploading to Arduino");
     this.stopFlag = false;
     this.device = new ArduinoDeviceHandler();
 
     // setting hex filepath
-    this.device.setHexFilePath(this.hex_file_path);
+    if (inputs == 1) {
+      this.device.setHexFilePath(this.OneInput_hex_file_path);
+    } else if (inputs == 2) {
+      this.device.setHexFilePath(this.TwoInput_hex_file_path);
+    }
     // uploading hex file to the arduino
     await this.device.uploadToArduino();
 
