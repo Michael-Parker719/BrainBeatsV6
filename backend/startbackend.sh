@@ -1,11 +1,19 @@
 #!/bin/bash
 
+# Load environment variables from .env file
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+else
+    echo ".env file not found. Exiting."
+    exit 1
+fi
+
 # install modules
 sudo npm i
 
 # Check if there exists "brainbeats" database
 # if not, we need to make it
-RESULT=`sudo mysqlshow -u root brainbeatsv6 | grep -v Wildcard | grep -o brainbeatsv6`
+RESULT=`sudo mysqlshow -u root -p$MYSQL_PASSWORD brainbeatsv6 | grep -v Wildcard | grep -o brainbeatsv6`
 if [ "$RESULT" != "brainbeatsv6" ]; then
     echo "brainbeatsv6 database not found."
 
@@ -18,9 +26,9 @@ if [ "$RESULT" != "brainbeatsv6" ]; then
         esac
     done
 
-    sudo mysql -e "CREATE DATABASE brainbeatsv6"
-    sudo mysql -e "CREATE USER 'brainbeatsv6_root'@'localhost' IDENTIFIED BY ''"
-    sudo mysql -e "GRANT ALL ON brainbeatsv6.* TO 'brainbeatsv6_root'@'localhost'"
+    sudo mysql -u root -p$MYSQL_PASSWORD -e "CREATE DATABASE brainbeatsv6"
+    sudo mysql -u root -p$MYSQL_PASSWORD -e "CREATE USER 'brainbeatsv6_root'@'localhost' IDENTIFIED BY ''"
+    sudo mysql -u root -p$MYSQL_PASSWORD -e "GRANT ALL ON brainbeatsv6.* TO 'brainbeatsv6_root'@'localhost'"
 else
     echo "brainbeatsv6 database found, continuing."
 fi
@@ -55,7 +63,7 @@ fi
 echo "Importing schema into the brainbeatsv6 database..."
 
 # Import the schema using MySQL
-sudo mysql -u root -p brainbeatsv6 < "$SCHEMA_FILE"
+sudo mysql -u root -p$MYSQL_PASSWORD brainbeatsv6 < "$SCHEMA_FILE"
 
 # Check if the schema import was successful
 if [ $? -eq 0 ]; then
