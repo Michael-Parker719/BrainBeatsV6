@@ -498,17 +498,14 @@ export class ConcreteArduinoUnoStream {
   //   return true;
   // }
 
-  public async initializeConnection(inputs: number) {
+  public async initializeConnection() {
     // console.log("Uploading to Arduino");
     this.stopFlag = false;
     this.device = new ArduinoDeviceHandler();
 
     // setting hex filepath
-    if (inputs == 1) {
-      this.device.setHexFilePath(this.OneInput_hex_file_path);
-    } else if (inputs == 2) {
-      this.device.setHexFilePath(this.TwoInput_hex_file_path);
-    }
+    this.device.setHexFilePath(this.OneInput_hex_file_path);
+
     // uploading hex file to the arduino
     await this.device.uploadToArduino();
 

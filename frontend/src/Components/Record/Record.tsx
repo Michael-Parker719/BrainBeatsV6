@@ -67,7 +67,7 @@ function Record() {
       }, 3000);
 
       // For Arduino Device, change number based on number of input chips
-      device.initializeConnection(2);
+      device.initializeConnection();
     }
     // unset
     else {
