@@ -57,9 +57,11 @@ export class NoteHandler extends AbstractNoteHandler {
 
   private channelTotal: number = 5; //How many 1-1 ratios(inputted EEG to track) are there?
 
-  private nextPause: Array<number> = [0, 0, 0, 0, 0]; //Wait Counter/Tally
-  private pauseCounter: Array<number> = [0, 100, 100, 100, 100]; //Wait Counter maximum
-  private NoiseCapacity: number = 3; //Temp value---
+
+  private nextPause: Array<number> = [0, 0, 100, 100, 100]; //Wait Counter maximum
+  private pauseCounter: Array<number> = [0, 0, 0, 0, 0]; //Wait Counter/Tally
+  private NoiseCapacity: number = 10; //Temp value---
+
 
   private midiGenerator; //Defines Midi Generator
 
@@ -122,9 +124,7 @@ export class NoteHandler extends AbstractNoteHandler {
       this.EEGabnormalRecord.push([]);
       this.EEGabnormalTotal.push([]);
       this.EEGaverage[i] = 0;
-      //No longer used
-      //this.PrevEEGaverageRec[i] = 0;
-      this.nextPause[i] = 0;
+      /////////////////////////////////////this.nextPause[i] = 0; TEMPORARY
       this.pauseCounter[i] = 0;
       this.AnomlousStreak[i] = 0;
       this.AnomlousWeight[i] = 0;
@@ -315,7 +315,9 @@ export class NoteHandler extends AbstractNoteHandler {
       }
     }
 
-    if(this.pauseCounter[idVal] >= this.nextPause[idVal])//MIDI channel is available
+    console.log("pauseCount: " + this.pauseCounter[idVal] + "next Pause: " + this.nextPause[idVal] + "ID: " + idVal);
+
+    if(this.pauseCounter[idVal] >= this.nextPause[idVal])//MIDI channel is available?
     {
       //Check if able to generate notes in this channel or track
       for(var i = 0; i < this.channelTotal; i++ )//Get number of channels active
@@ -331,7 +333,7 @@ export class NoteHandler extends AbstractNoteHandler {
         //Is able to be generated without exceding noise capacity(white noise prevention)
         var declaredBeat = this.noteDeclaration(idVal);
         this.pauseCounter[idVal] = 0;
-        this.nextPause[idVal] = 0; //------[!!!]------//TEMPORARY delay timer for A channel
+        this.nextPause[idVal] = 4; //------[!!!]------//TEMPORARY delay timer for A channel
 
         this.generateBeat(declaredBeat, idVal);
         this.midiGenerator.realtimeGenerate(this.currentNoteData[idVal], idVal);
@@ -345,6 +347,14 @@ export class NoteHandler extends AbstractNoteHandler {
     else
     {
       this.pauseCounter[idVal]++;
+
+      // var silentMeasure = {//This is to ensure that the generated notes are in their respective locations
+      //   notes: [-1],
+      //   duration: 4,
+      // };
+
+      // this.generateBeat(silentMeasure, idVal);
+      // this.midiGenerator.realtimeGenerate(this.currentNoteData[idVal], idVal);
     }
   }
 
@@ -403,12 +413,29 @@ export class NoteHandler extends AbstractNoteHandler {
     else
     {
       console.log("What happend to the input!?");
+
+      beats = {//Silent notes only
+        notes: [aveNorm],
+        duration: 0,
+      };
+      return beats;
     }
 
-    beats = {
-      notes: [((aveNorm + Math.floor(Math.random() * 30)) % 89), ((aveNorm + Math.floor(Math.random() * 30)) % 89), ((aveNorm + Math.floor(Math.random() * 30)) % 89), ((aveNorm + Math.floor(Math.random() * 30)) % 89)],
-      duration: 2,
-    };
+    if(idVal == 1)
+    {
+      beats = {
+        notes: [((aveNorm + Math.floor(Math.random() * 15)) % 7) + 1, ((aveNorm + Math.floor(Math.random() * 15)) % 7) + 1],
+        duration: duration,
+      };
+    }
+    else
+    {
+
+      beats = {
+        notes: [/*((aveNorm + Math.floor(Math.random() * 15)) % 14),*/((aveNorm + Math.floor(Math.random() * 15)) % 14) + 1, ((aveNorm + Math.floor(Math.random() * 15)) % 14) + 1, ((aveNorm + Math.floor(Math.random() * 15)) % 14) + 1, ((aveNorm + Math.floor(Math.random() * 15)) % 14) + 1],
+        duration: duration,
+      };
+    }
 
     return beats;
   }

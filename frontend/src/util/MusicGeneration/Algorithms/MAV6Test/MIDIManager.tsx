@@ -23,18 +23,18 @@ export class MIDIManager {
     private synthArr:Array<Tone.PolySynth<Tone.Synth<Tone.SynthOptions>>> = [];
     public MIDIChannels:MidiWriter.Track[] = [];
     private timeForEachNoteArray:Array<number>;
-    public settings:MusicSettings;//////////[OFF]////////TEMPORARY null
+    public settings:MusicSettings;
     private BPM: number;
     private debugOutput:boolean = true;
     public MIDIURI:string;
-    private stopFlag;
+    private stopFlag;//unused for now
     private midi;
     private prevNoteDuration:number;
-    private lastPlayedTime:number;
+    private lastPlayedTime:number;//Unused for now
+    private silentFiller = true;
+    private overflowAdjust = false;
 
     private midiWriterTracks:Array<Track> = []; 
-    //UNUSED for now
-    //private currentVoices:Array<number> = [];
      
     /* The constructor for the MIDIManager requires you to input the settings from the user input
         and the  */
@@ -48,55 +48,17 @@ export class MIDIManager {
             this.midiWriterTracks.push((this.midi.addTrack()));
         }
 
-        //////////[ X ]////////
-        ////////////////////var newChannel0 = this.midi.addTrack();
-        ////////////////////var newChannel1 = this.midi.addTrack();
-        ////////////////////var newChannel2 = this.midi.addTrack();
-        ////////////////////var newChannel3 = this.midi.addTrack();
-        ////////////////////
-        ////////////////////var channel0 = new MidiWriter.Track();
-        ////////////////////var channel1 = new MidiWriter.Track();
-        ////////////////////var channel2 = new MidiWriter.Track();
-        ////////////////////var channel3 = new MidiWriter.Track();
-        ////////////////////this.MIDIChannels.push(channel0, channel1, channel2, channel3)
-        ////////////////////
-        ////////////////////this.midiWriterTracks.push(newChannel0, newChannel1, newChannel2, newChannel3);
-
-        /*  This block initializes 4 more channels to write MIDI to in the case that
-            we are using the cyton board, it does this by looking at the number of channels
-            in the instrument setting since it is specific to the device. */
-        // console.log(Object.keys(settings.deviceSettings.instruments))
-
-        ////////////////////if((Object.keys(settings.deviceSettings.instruments).length) === 8) {
-        ////////////////////    var newChannel4 = this.midi.addTrack();
-        ////////////////////    var newChannel5 = this.midi.addTrack();
-        ////////////////////    var newChannel6 = this.midi.addTrack();
-        ////////////////////    var newChannel7 = this.midi.addTrack();
-        ////////////////////
-        ////////////////////    var channel4 = new MidiWriter.Track();
-        ////////////////////    var channel5 = new MidiWriter.Track();
-        ////////////////////    var channel6 = new MidiWriter.Track();
-        ////////////////////    var channel7 = new MidiWriter.Track();
-        ////////////////////
-        ////////////////////    this.MIDIChannels.push(channel4, channel5, channel6, channel7)
-        ////////////////////    this.midiWriterTracks.push(newChannel4, newChannel5, newChannel6, newChannel7);
-        ////////////////////
-        ////////////////////}
-
         this.settings = settings;
         this.BPM = settings.bpm;
-        //////////[OFF]////////this.BPM = 120;
         
         this.stopFlag = false;
         this.debugOutput = debugOptionsObject.debugOption3;
         this.initializeSettings(settings);
-        //////////[OFF]////////this.initializeSettingsTEMP();
         this.timeForEachNoteArray = timeForEachNoteArray;
         this.prevNoteDuration = 0;
         this.lastPlayedTime = Date.now();
         
         this.initializeSynth();
-        //////////[OFF]////////this.initializeSynthTEMP();
         
     }
 
@@ -112,9 +74,10 @@ export class MIDIManager {
     private initializeSynth() {
         Tone.getTransport().bpm.value = this.settings.bpm;
     
-        //UNUSED for now
-        //this.currentVoices = new Array(8).fill(0);
-        var instArr = Object.values(this.settings.deviceSettings.instruments)            
+
+        var instArr = Object.values(this.settings.deviceSettings.instruments)   
+        instArr.push(0);//Since it's using the default GanglionSettings settings        
+
        
         /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
         that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
@@ -124,7 +87,7 @@ export class MIDIManager {
         var sampler;
     
         // Loop through the user chosen instruments and set their SL values
-        for (var i = 0; i < 8; i++) { 
+        for (var i = 0; i < 5; i++) { 
     
             // Sinewave / Default
             if (instArr[i] === 0) {
@@ -133,65 +96,31 @@ export class MIDIManager {
             }
             else {
                 // This is piano right now, any new instrument that gets added needs to go in in its respective location in the sampler list
+                // V6 Note: The new instrument also has to be added to the Enums.tsx not just the Samplers.tsx
                 // constant
                 // console.log(instArr[i], SamplerList[instArr[i]]);
-                ///////////////sampler = SamplerList[instArr[i]].toDestination()
-                sampler = SamplerList[0].toDestination();
-                polySynthesizer.volume.value = -10;
+                sampler = SamplerList[instArr[i]].toDestination()
             }
             this.samplerArr.push(sampler);
             this.synthArr.push(polySynthesizer);
         }
+
     
     }
-    
-    //////////[OFF]////////
-    // private initializeSynthTEMP() {//////////////////////[TEMP]
-    //     Tone.getTransport().bpm.value = 120;
-
-    //     this.currentVoices = new Array(5).fill(0);
-    
-    //     /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
-    //     that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
-    //     channel size consistent. If it seems practical in the future to alter the samplers for consistency they can just simply be defined 
-    //     in the Samplers.tsx file. */
-    //     var polySynthesizer:Tone.PolySynth<Tone.Synth<Tone.SynthOptions>> =  new Tone.PolySynth().toDestination();
-    //     var sampler;
-
-    //     // Loop through the user chosen instruments and set their SL values
-    //     for (var i = 0; i < 5; i++) { 
-    
-    //         // Sinewave / Default
-    //         sampler = SamplerList[0].toDestination();
-    //         polySynthesizer.volume.value = -10;
-    //         this.samplerArr.push(sampler);
-    //         this.synthArr.push(polySynthesizer);
-    //     }
-
-    // }
 
     public initializeSettings(settings:MusicSettings) {
         /* This is just a start, we're going to work on a condition here
            where the number of tempos get set by the type of settings */
-        for(var i = 0; i < this.MIDIChannels.length; i++) {
+        for(var i = 0; i < 5; i++) {
     
             this.MIDIChannels[i].setTempo(settings.bpm, .1);
             this.MIDIChannels[i].setTimeSignature(4, 4);
         }
     }
 
-    //////////[OFF]////////
-    // public initializeSettingsTEMP()//////////////////////[TEMP]
-    // {
-    //     for(var i = 0; i < this.MIDIChannels.length; i++) {
-
-    //         this.MIDIChannels[i].setTempo(120, .1);
-    //         this.MIDIChannels[i].setTimeSignature(4, 4);
-    //     }
-    // }
-
     public adjustVolume(amount: number, channel: number) {
         this.synthArr[channel].volume.value += amount;
+        this.samplerArr[channel].volume.value += amount;
     }
 
     public adjustTempo(amount: number, channel:number) {
@@ -314,20 +243,102 @@ export class MIDIManager {
         }
         if (this.debugOutput) console.log('beginning to write');
         var noteDuration:MidiWriter.Duration = '1';
+        var expectMaxNumNotes = 1;
+        var fillerSilentNotes = 0;
 
         /* This code block sets the data from the note manager into usable data for
             the midi-writer-js API. */
-        if (noteData.noteLengthName === "sixteenth") noteDuration = '16';
-        else if (noteData.noteLengthName === "eighth") noteDuration = '8';
-        else if (noteData.noteLengthName === "quarter") noteDuration = '4';
-        else if (noteData.noteLengthName === "half") noteDuration = '2';
-        else if (noteData.noteLengthName === "whole") noteDuration = '1';
+        if (noteData.noteLengthName === "sixteenth")
+        { 
+            noteDuration = '16';
+            expectMaxNumNotes = 16;
+        }
+        else if (noteData.noteLengthName === "eighth")
+        {
+            noteDuration = '8';
+            expectMaxNumNotes = 8;
+        }
+        else if (noteData.noteLengthName === "quarter")
+        {
+            noteDuration = '4';
+            expectMaxNumNotes = 4;
+        }
+        else if (noteData.noteLengthName === "half")
+        {
+            noteDuration = '2';
+            expectMaxNumNotes = 2;
+        } 
+        else if (noteData.noteLengthName === "whole")
+        {
+            noteDuration = '1';
+            expectMaxNumNotes = 1;
+        }
         else {
             if (this.debugOutput) console.log("we fell to default length:", noteData.noteLengthName);
             noteDuration = '4';
+            expectMaxNumNotes = 4;
+        }
+        console.log(noteData.noteLengthName + expectMaxNumNotes);
+
+        if(this.overflowAdjust)//[overflow adjustment] EX: Try to generate 3 half notes but a measure can only hold 2 half notes so change into quarter notes
+        {
+            let noteTally = noteData.notes.length;
+            if(noteTally > 8)
+            {
+                if(noteDuration !== '16')
+                {
+                    noteDuration = '16';
+                    expectMaxNumNotes = 16;
+                }
+            }
+            else if(noteTally > 4)
+            {
+                if(noteDuration !== '8')
+                {
+                    noteDuration = '8';
+                    expectMaxNumNotes = 8;
+                }
+            }
+            else if(noteTally > 2)
+            {
+                if(noteDuration !== '4')
+                {
+                    noteDuration = '4';
+                    expectMaxNumNotes = 4;
+                }
+            }
+            else if(noteTally > 1)
+            {
+                if(noteDuration !== '2')
+                {
+                    noteDuration = '2';
+                    expectMaxNumNotes = 2;
+                }
+            }
+            else if(noteTally == 1)
+            {
+                if(noteDuration !== '1')
+                {
+                    noteDuration = '1';
+                    expectMaxNumNotes = 1;
+                }
+            }
+        }
+
+        if(this.silentFiller)//[Filler silent notes] EX: generate 3 quarter notes each time but want them in their own measures so fill in the remaining missing notes at the end of the measure with silent/rest notes
+        {
+            if(noteData.notes.length < expectMaxNumNotes)
+            {
+                fillerSilentNotes = expectMaxNumNotes - noteData.notes.length;
+            }
         }
         
-        for(var i = 0; i < noteData.notes.length; i++) {
+        for(var i = 0; i < noteData.notes.length; i++)
+        {
+            if(i == expectMaxNumNotes || i >= 16)//overflow prevention
+            {
+                break;
+            }
 
             var generatedNote:MidiWriter.NoteEvent;
 
@@ -354,8 +365,43 @@ export class MIDIManager {
                 // if (this.debugOutput) console.log('the channel after this write: ', this.MIDIChannels[i]);
             }
         }
+        
+        if(this.silentFiller)
+        {
+            for(var i = 0; i < fillerSilentNotes; i++)
+            {
+                if (this.debugOutput) console.log('writing a rest on channel: ', i);
+
+                generatedNote = new MidiWriter.NoteEvent({pitch: 'A0', velocity:0, duration: noteDuration});
+                this.MIDIChannels[idVal].addEvent(generatedNote);
+            }
+        }
 
         return;
+    }
+
+    public toggleEndFiller()//Auto generate silent/rest notes at the end of the measure?
+    {
+        if(this.silentFiller)
+        {
+            this.silentFiller = false;
+        }
+        else
+        {
+            this.silentFiller = true;
+        }
+    }
+
+    public toggleOverflowAdjust()//Adjust note type when there are too many of a specified note type that the measure can't hold
+    {
+        if(this.overflowAdjust)//Note You can only generate a maximum of 16 different notes as sixteenths is the shortest a note can be within a measure
+        {
+            this.overflowAdjust = false;
+        }
+        else
+        {
+            this.overflowAdjust = true;
+        }
     }
 
     private convertDurationToString(duration:number) {
@@ -394,36 +440,57 @@ export class MIDIManager {
 
 
     public async realtimeGenerate(noteData:any, idVal:number) {
-       var instruments = this.settings.deviceSettings.instruments;
-       //////////[OFF]////////var instruments = [0,0,0,0,0]//default  sinwave = 0
-       var instrumentsArr:Array<any> = [];
+        var instruments = this.settings.deviceSettings.instruments;
+        var instrumentsArr:Array<any> = [];
 
-       var durations = this.settings.deviceSettings.durations;
-       //////////[OFF]////////var durations = [2,2,2,2,2]//default quarter = 2
-       var durationsArr:Array<number> = [];
+        var durations = this.settings.deviceSettings.durations;
+        var durationsArr:Array<number> = [];
 
-       var notesToPlay:Array<any> = [];
+        var notesToPlay:Array<any> = [];
 
-       // Convert instruments to array
-       let inst: keyof typeof instruments;
-       for (inst in instruments) {
-         instrumentsArr.push(instruments[inst]);
-       }
 
-       let dur: keyof typeof durations;
-       for (dur in durations) {
-         durationsArr.push(durations[dur]);
-       }
+        // Convert instruments to array
+        let inst: keyof typeof instruments;
+        for (inst in instruments) {
+            instrumentsArr.push(instruments[inst]);
+        }
+        instrumentsArr.push(0);//Since it's using the default GanglionSettings settings
+
+        let dur: keyof typeof durations;
+        for (dur in durations) {
+            durationsArr.push(durations[dur]);
+        }
+        durationsArr.push(4);//Since it's using the default GanglionSettings settings
+
+        // let lengthCount = 16;
+
+        // if(this.overflowAdjust)
+        // {
+        //     lengthCount = noteData.writer.length;//overflow on specified length for playback system
+
+        //     if(lengthCount >= (2 ** noteData.player.noteLength))
+        //     {
+        //             lengthCount = (2 ** noteData.player.noteLength);
+        //     }
+        // }
+
 
        // Convert given notes to a usable form
-       for (var i = 0; i < noteData.writer.notes.length; i++) {
-         if (noteData.writer.notes[i].note !== -1) {
-            notesToPlay.push(this.definePitch(noteData.writer.notes[i].note, noteData.writer.notes[i].octave + noteData.writer.floorOctave));
-         }
-         else {
-            // Rest
+        for (var i = 0; i < noteData.writer.notes.length; i++)
+        {
+            // if(i == lengthCount)
+            // {
+            //     break;
+            // }
+            if (noteData.writer.notes[i].note !== -1)
+            {
+                notesToPlay.push(this.definePitch(noteData.writer.notes[i].note, noteData.writer.notes[i].octave + noteData.writer.floorOctave));
+            }
+            else
+            {
+                // Rest
             notesToPlay.push('00');
-         }
+            }
        }
         
     /*  This is where feedback is actually sent to the speakers of the computer, we're using Tone.js to send
@@ -436,15 +503,33 @@ export class MIDIManager {
         var playerInfo = noteData.player;
 
         // Setup for their vars
-        //UNUSED
-        //////////////////var soundType = instrumentsArr[idVal];
-        var duration = 2 + (2 - playerInfo.noteLength);         // Durations is reversed in here for some reason    
-        //UNUSED
-        //////////////////var amplitude = playerInfo.amplitude;
+        var duration;
+        if(false)
+        {
+            duration = 2 + (2 - playerInfo.noteLength);         // Durations is reversed in here for some reason    
+        }
+        else
+        {
+            duration = playerInfo.noteLength;
+            while(true)
+            {
+                if(noteData.writer.notes.length > (2 ** duration))
+                {
+                    duration++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            duration = playerInfo.noteLength;
+        }
+        
         var frequencies = playerInfo.noteFrequencies;
 
-        var instArr = Object.values(this.settings.deviceSettings.instruments)            
-        //////////[OFF]////////var instArr = Object.values([0,0,0,0,0])
+        var instArr = Object.values(this.settings.deviceSettings.instruments) 
+        instArr.push(0);           
+
 
         /*
         * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
@@ -456,16 +541,13 @@ export class MIDIManager {
 
         var durationString:string = this.convertDurationToString(duration); 
         
-        //UNUSED!!!
-        ////////////////////var soundTime = this.currentVoices[idVal] * 1000;
         var noteDurationMS = this.setTimeForEachNoteArray(this.settings.bpm, duration);
-        //////////[OFF]////////var noteDurationMS = this.setTimeForEachNoteArray(120, duration);
 
         /* This is the base case, if there is nothing stored in the array then we don't want to check if the currentVoice is undefined */
-        if(true || instArr[idVal] === Enums.InstrumentTypes.SINEWAVE) {
+        if(instArr[idVal] === Enums.InstrumentTypes.SINEWAVE) {
             // if (this.debugOutput) console.log(this.synthArr[i]);
-            //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {
-                this.convertInput(noteData.writer, idVal);
+            //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {//Old code
+                this.convertInput(noteData.writer, idVal);//add to MIDI track
                 if (frequencies.length === 1) {
                     this.synthArr[idVal].triggerAttackRelease(frequencies, durationString)
                 }       
@@ -474,16 +556,16 @@ export class MIDIManager {
                     setTimeout(() => {this.synthArr[idVal].triggerAttackRelease(frequencies[1], durationString)}, noteDurationMS);
                 }    
                 else {
-                    this.playSixteenthsRecursiveSynth(frequencies, durationString, noteDurationMS, 0, idVal);
+                    this.playSixteenthsRecursiveSynth(frequencies, durationString, noteDurationMS, 0, idVal,  (2 ** duration));
                 }     
                 this.lastPlayedTime = Date.now();
                 this.prevNoteDuration = noteDurationMS;
             //}
         }
         else {
-            //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {
+            //if(Date.now() - this.lastPlayedTime >= this.prevNoteDuration) {//Old code
                 if (this.debugOutput) console.log('playing this note on channel: ', 0);
-                this.convertInput(noteData.writer, idVal);
+                this.convertInput(noteData.writer, idVal);//add to MIDI track
                 if (notesToPlay.length === 1) {
                     if (notesToPlay[0] !== '00') {
                         this.samplerArr[idVal].triggerAttackRelease(notesToPlay[0], durationString)
@@ -496,48 +578,30 @@ export class MIDIManager {
                     setTimeout(() => { if(notesToPlay[1] !== '00') {this.samplerArr[idVal].triggerAttackRelease(notesToPlay[1], durationString)}}, noteDurationMS);
                 }    
                 else {
-                    this.playSixteenthsRecursiveSampler(notesToPlay, durationString, noteDurationMS, 0, idVal);
+                    this.playSixteenthsRecursiveSampler(notesToPlay, durationString, noteDurationMS, 0, idVal, (2 ** duration));
                 }
                 this.lastPlayedTime = Date.now();
                 this.prevNoteDuration = noteDurationMS;
             //}
         }
-        // else if (currentVoice.name === 'Sampler') {      
-        //     console.log(this.samplerArr[i].now());  
-        //     if(currentVoice._activeSources.size < 2) {
-        //         if(instArr[i] === Enums.InstrumentTypes.PIANO) {
-        //             this.currentVoices[i] = this.samplerArr[i].triggerAttackRelease(this.definePitch(noteData[i].writer.note, noteData[i].writer.octave), durationString, this.samplerArr[i].now())
-        //         }
-        //         this.convertInput(noteData[i], i);    
-        //     }
-        // }
-        // else if(currentVoice.name === 'PolySynth') {
-        //     if(currentVoice._activeVoices.length < 1) {
-        //         if(instArr[i] === Enums.InstrumentTypes.SINEWAVE) {
-        //             this.currentVoices[i] = this.synthArr[i].triggerAttackRelease(frequency, durationString, this.synthArr[i].now())
-
-        //         }
-        //         this.convertInput(noteData[i], i);
-        //     }
-        // }   
     }
 
-    private playSixteenthsRecursiveSynth(frequencies:Array<number>, duration:string, noteDurationMS:number, i:number, idVal:number) {
-        if (i === 4) {
+    private playSixteenthsRecursiveSynth(frequencies:Array<number>, duration:string, noteDurationMS:number, i:number, idVal:number, limit:number) {
+        if (i == limit || i >= 16) {
             return;
         }
         this.synthArr[idVal].triggerAttackRelease(frequencies[i], duration);
-        setTimeout(() => {this.playSixteenthsRecursiveSynth(frequencies, duration, noteDurationMS, i + 1, idVal)}, noteDurationMS);
+        setTimeout(() => {this.playSixteenthsRecursiveSynth(frequencies, duration, noteDurationMS, i + 1, idVal, limit)}, noteDurationMS);
     }
 
-    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number, idVal:number) {
-        if (i === 4) {
+    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number, idVal:number, limit:number) {
+        if (i == limit || i >= 16) {
             return;
         }
         if (notesToPlay[i] !== '00') {
             this.samplerArr[idVal].triggerAttackRelease(notesToPlay[i], duration);
         }
-        setTimeout(() => {this.playSixteenthsRecursiveSynth(notesToPlay, duration, noteDurationMS, i + 1, idVal)}, noteDurationMS);
+        setTimeout(() => {this.playSixteenthsRecursiveSampler(notesToPlay, duration, noteDurationMS, i + 1, idVal, limit)}, noteDurationMS);
     }
 
     public setStopFlag() {

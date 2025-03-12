@@ -3,6 +3,12 @@ import * as Tone from "tone";
 // We forked a github containing definitions for each instrument available with toneJs.
 // https://github.com/brandonmrgich/tonejs-instruments/tree/master/samples
 
+//---+++---===---+++---[ IMPORTANT NOTE ]---+++---===---+++---
+//
+//V6 Note: mp3 Files on"https://audio.jukehost.co.uk/" do not exist anymore???
+//
+//---+++---===---+++---[!!!!!!!!!!!!!!!!]---+++---===---+++---
+
 // const BassElectric = new Tone.Sampler({
 //   urls: {
 //     "A#1": "Q6PBLBjM6QMwQZ3mUM9qGaA7yi6qhUq6.mp3",
@@ -554,7 +560,7 @@ export const SamplerList = [
   // GuitarAcoustic,
   // GuitarElectric,
   // GuitarNylon,
-  Piano,
+  Piano//,
   // Harmonium,
   // Harp,
   // Organ,
