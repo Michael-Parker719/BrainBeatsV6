@@ -299,6 +299,7 @@ function Cards() {
             sendAPI('post', '/scripts/createScript', info)
                 .then(res => {
                     console.log("Save Script!", res);
+                    console.log("ScriptID == " + scriptID);
                     // setScriptID(res.data.id);
                     navigate('/profile')
                 }).catch(err => {

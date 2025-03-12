@@ -66,6 +66,7 @@ function Record() {
         device.setDebugOutput(debugOption1);
       }, 3000);
 
+      // For Arduino Device, change number based on number of input chips
       device.initializeConnection();
     }
     // unset
@@ -178,7 +179,7 @@ function Record() {
         // console.log("Midi URL from Record.tsx: ", url);
         setMIDIURI(url);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Unable to stop device: ", err);
       });
     setDevice(undefined);

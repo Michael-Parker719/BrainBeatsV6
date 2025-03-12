@@ -40,12 +40,12 @@ app.use(express.json())
 app.use('/api/users', require('./users/users')); 
 app.use('/api/tracks', require('./tracks/tracks')); 
 app.use('/api/scripts', require('./scripts/scripts')); 
-// app.use('/api/bruh', require('./bruh/bruh')); 
 app.use('/api/playlists', require('./playlists/playlists')); 
 app.use('/api/music', require('./music/music')); 
 app.use('/api/likes', require('./likes/likes')); 
 app.use('/api/images', require('./images/images'));
 app.use('/api/authentication', require('./authentication/authentication')); 
+// app.use('/api/test', require('./test/test'));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

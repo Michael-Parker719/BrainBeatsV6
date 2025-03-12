@@ -74,8 +74,10 @@ export class MIDIManager {
     private initializeSynth() {
         Tone.getTransport().bpm.value = this.settings.bpm;
     
+
         var instArr = Object.values(this.settings.deviceSettings.instruments)   
         instArr.push(0);//Since it's using the default GanglionSettings settings        
+
        
         /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
         that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
@@ -446,6 +448,7 @@ export class MIDIManager {
 
         var notesToPlay:Array<any> = [];
 
+
         // Convert instruments to array
         let inst: keyof typeof instruments;
         for (inst in instruments) {
@@ -470,6 +473,7 @@ export class MIDIManager {
         //             lengthCount = (2 ** noteData.player.noteLength);
         //     }
         // }
+
 
        // Convert given notes to a usable form
         for (var i = 0; i < noteData.writer.notes.length; i++)
@@ -525,6 +529,7 @@ export class MIDIManager {
 
         var instArr = Object.values(this.settings.deviceSettings.instruments) 
         instArr.push(0);           
+
 
         /*
         * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
