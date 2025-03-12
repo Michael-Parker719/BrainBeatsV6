@@ -1,12 +1,12 @@
 import { MusicSettings } from "../../../Interfaces";
 // import { getNoteData } from './Playback'
-import {getMillisecondsFromBPM, findNumSamples} from '../.././MusicHelperFunctions';
+import {getMillisecondsFromBPM/*, findNumSamples*/} from '../.././MusicHelperFunctions';
 import * as Enums from '../../../Enums';
-import * as Constants from '../../../Constants';
-import { instrumentList } from "../.././InstOvertoneDefinitions";
+//import * as Constants from '../../../Constants';
+//import { instrumentList } from "../.././InstOvertoneDefinitions";
 import * as Tone from 'tone'
 import {SamplerList} from '../../../Samplers';
-import * as SL from "../../../Instruments";
+//import * as SL from "../../../Instruments";
 
 import { TDebugOptionsObject } from "../../../Types";
 
@@ -42,7 +42,7 @@ export class MIDIManager {
         this.MIDIURI = "";
         this.midi = new Midi();
 
-        for(var i = 0; i < 5; i++)
+        for(let i = 0; i < 5; i++)
         {
             this.MIDIChannels.push((new MidiWriter.Track()));
             this.midiWriterTracks.push((this.midi.addTrack()));
@@ -74,10 +74,8 @@ export class MIDIManager {
     private initializeSynth() {
         Tone.getTransport().bpm.value = this.settings.bpm;
     
-
         var instArr = Object.values(this.settings.deviceSettings.instruments)   
         instArr.push(0);//Since it's using the default GanglionSettings settings        
-
        
         /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
         that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
@@ -87,22 +85,34 @@ export class MIDIManager {
         var sampler;
     
         // Loop through the user chosen instruments and set their SL values
-        for (var i = 0; i < 5; i++) { 
-    
+        for(let i = 0; i < 5; i++)
+        { 
+            ///OLD Code///
+            ////////////// // Sinewave / Default
+            ////////////// if (instArr[i] === 0) {
+            //////////////     sampler = SamplerList[instArr[i]].toDestination();
+            //////////////     polySynthesizer.volume.value = -10;
+            ////////////// }
+            ////////////// else {
+            //////////////     
+            //////////////     // This is piano right now, any new instrument that gets added needs to go in in its respective location in the sampler list
+            //////////////     // constant
+            //////////////     // console.log(instArr[i], SamplerList[instArr[i]]);
+            //////////////     sampler = SamplerList[instArr[i]].toDestination()
+            ////////////// }
+
             // Sinewave / Default
-            if (instArr[i] === 0) {
-                sampler = SamplerList[instArr[i]].toDestination();
+            if (instArr[i] === 0)
+            {    
                 polySynthesizer.volume.value = -10;
             }
-            else {
-                // This is piano right now, any new instrument that gets added needs to go in in its respective location in the sampler list
-                // V6 Note: The new instrument also has to be added to the Enums.tsx not just the Samplers.tsx
-                // constant
-                // console.log(instArr[i], SamplerList[instArr[i]]);
-                sampler = SamplerList[instArr[i]].toDestination()
-            }
+
+            //Instrument samples
+            sampler = SamplerList[instArr[i]].toDestination();
             this.samplerArr.push(sampler);
-            this.synthArr.push(polySynthesizer);
+            //Sinewave
+            this.synthArr.push(polySynthesizer);//  V6 Note: To add a new instrument you have to add its name to the Enums.tsx's list and Samplers.tsx's list
+                                                //           You also have to add the urls of the relavent note sample files to Sampers.tsx too!
         }
 
     
@@ -111,7 +121,7 @@ export class MIDIManager {
     public initializeSettings(settings:MusicSettings) {
         /* This is just a start, we're going to work on a condition here
            where the number of tempos get set by the type of settings */
-        for(var i = 0; i < 5; i++) {
+        for(let i = 0; i < 5; i++) {
     
             this.MIDIChannels[i].setTempo(settings.bpm, .1);
             this.MIDIChannels[i].setTimeSignature(4, 4);
@@ -134,7 +144,8 @@ export class MIDIManager {
         errors, this is a workaround to that. */
     private sliceIntoChunks(arr:Uint8Array | Uint16Array, chunkSize:number) {
         const res = [];
-        for (let i = 0; i < arr.length; i += chunkSize) {
+        for(let i = 0; i < arr.length; i += chunkSize)
+        {
           const chunk = arr.slice(i, i + chunkSize);
           res.push(chunk);
         }
@@ -315,7 +326,7 @@ export class MIDIManager {
                     expectMaxNumNotes = 2;
                 }
             }
-            else if(noteTally == 1)
+            else if(noteTally === 1)
             {
                 if(noteDuration !== '1')
                 {
@@ -333,9 +344,9 @@ export class MIDIManager {
             }
         }
         
-        for(var i = 0; i < noteData.notes.length; i++)
+        for(let i = 0; i < noteData.notes.length; i++)
         {
-            if(i == expectMaxNumNotes || i >= 16)//overflow prevention
+            if(i === expectMaxNumNotes || i >= 16)//overflow prevention
             {
                 break;
             }
@@ -368,7 +379,7 @@ export class MIDIManager {
         
         if(this.silentFiller)
         {
-            for(var i = 0; i < fillerSilentNotes; i++)
+            for(let i = 0; i < fillerSilentNotes; i++)
             {
                 if (this.debugOutput) console.log('writing a rest on channel: ', i);
 
@@ -448,16 +459,17 @@ export class MIDIManager {
 
         var notesToPlay:Array<any> = [];
 
-
         // Convert instruments to array
         let inst: keyof typeof instruments;
-        for (inst in instruments) {
+        for(inst in instruments)
+        {
             instrumentsArr.push(instruments[inst]);
         }
         instrumentsArr.push(0);//Since it's using the default GanglionSettings settings
 
         let dur: keyof typeof durations;
-        for (dur in durations) {
+        for(dur in durations)
+        {
             durationsArr.push(durations[dur]);
         }
         durationsArr.push(4);//Since it's using the default GanglionSettings settings
@@ -474,9 +486,8 @@ export class MIDIManager {
         //     }
         // }
 
-
        // Convert given notes to a usable form
-        for (var i = 0; i < noteData.writer.notes.length; i++)
+        for(let i = 0; i < noteData.writer.notes.length; i++)
         {
             // if(i == lengthCount)
             // {
@@ -527,9 +538,8 @@ export class MIDIManager {
         
         var frequencies = playerInfo.noteFrequencies;
 
-        var instArr = Object.values(this.settings.deviceSettings.instruments) 
+        var instArr = Object.values(this.settings.deviceSettings.instruments); 
         instArr.push(0);           
-
 
         /*
         * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
@@ -587,15 +597,16 @@ export class MIDIManager {
     }
 
     private playSixteenthsRecursiveSynth(frequencies:Array<number>, duration:string, noteDurationMS:number, i:number, idVal:number, limit:number) {
-        if (i == limit || i >= 16) {
+        if (i === frequencies.length || i === limit || i >= 16) {
             return;
         }
         this.synthArr[idVal].triggerAttackRelease(frequencies[i], duration);
         setTimeout(() => {this.playSixteenthsRecursiveSynth(frequencies, duration, noteDurationMS, i + 1, idVal, limit)}, noteDurationMS);
     }
 
-    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number, idVal:number, limit:number) {
-        if (i == limit || i >= 16) {
+    private playSixteenthsRecursiveSampler(notesToPlay:Array<any>, duration:string, noteDurationMS:number, i:number, idVal:number, limit:number)
+    {
+        if (i === notesToPlay.length|| i === limit || i >= 16) {
             return;
         }
         if (notesToPlay[i] !== '00') {
