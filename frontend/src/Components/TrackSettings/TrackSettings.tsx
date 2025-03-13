@@ -293,67 +293,6 @@ const TrackSettings = () => {
                 )}
               </select>
             </div>
-            <br></br>
-            <div id="checkbox-div">
-              <p className="settings-text2">
-                Please select one of the following music generation options:
-              </p>
-              <div id="settings-options-div">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="inlineRadioOptions"
-                    id="inlineRadio1"
-                    value="slowAndMelodic"
-                    onClick={() => setGenerationType("slowAndMelodic")}
-                    defaultChecked
-                  />
-                  <label className="form-check-label" htmlFor="inlineRadio1">
-                    <span>Slow and Melodic</span>
-                  </label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="inlineRadioOptions"
-                    id="inlineRadio2"
-                    value="moderateAndTimely"
-                    onClick={() => setGenerationType("moderateAndTimely")}
-                  />
-                  <label className="form-check-label" htmlFor="inlineRadio2">
-                    <span>Moderate and Timely</span>
-                  </label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="inlineRadioOptions"
-                    id="inlineRadio3"
-                    value="quickAndLively"
-                    onClick={() => setGenerationType("quickAndLively")}
-                  />
-                  <label className="form-check-label" htmlFor="inlineRadio3">
-                    <span>Quick and Lively</span>
-                  </label>
-                </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="radio"
-                    name="inlineRadioOptions"
-                    id="inlineRadio4"
-                    value="fastAndFrenzied"
-                    onClick={() => setGenerationType("fastAndFrenzied")}
-                  />
-                  <label className="form-check-label" htmlFor="inlineRadio4">
-                    <span>Fast and Frenzied</span>
-                  </label>
-                </div>
-              </div>
-            </div>
 
             <div className="form-group row justify-content-center">
               <div
