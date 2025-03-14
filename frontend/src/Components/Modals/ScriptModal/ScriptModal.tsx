@@ -580,6 +580,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
             closeButton
           ></Modal.Header>
           <Modal.Body className="modal-container-body">
+
+            {/* CARDS AND IMAGES */}
             <div id="modal-track-cover-div">
               {editing && (
                 <div id="edit-track-cover-div">
@@ -601,11 +603,13 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   />
                 </div>
               )}
-              {/*<img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} />*/}
+              {/* <img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} /> */}
               <CardCarousel></CardCarousel>
             </div>
+
+            {/* TEXT FOR SCRIPT */}
             <div id="modal-track-text-div">
-              {!visibility && (
+              {/* {!visibility && (
                 <h6 id="hidden-track-text">
                   <FontAwesomeIcon
                     className="modal-track-icons"
@@ -622,7 +626,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   />
                   Public script
                 </h6>
-              )}
+              )} */}
               {!editing && <h1 id="track-title-text">{scriptName}</h1>}
               {editing && (
                 <input
@@ -646,9 +650,12 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                 {likeCount} Favorites
               </h5>
             </div>
+
+
           </Modal.Body>
+
           <Modal.Footer className="modal-container-footer">
-            <div id="modal-container-footer-1">
+            {/* <div id="modal-container-footer-1">
               {editing && (
                 <button
                   className="btn btn-secondary modal-btn-public"
@@ -684,9 +691,11 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   Delete Script
                 </button>
               )}
-            </div>
+            </div> */}
+
+
             <div id="modal-container-footer-2">
-              {!favorited && (
+              {/* {!favorited && (
                 <button
                   className="btn btn-secondary modal-btn"
                   id="like-track-btn"
@@ -716,7 +725,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   />
                   Favorited
                 </button>
-              )}
+              )} */}
 
               {/* Possibly add playlists feature in the future */}
               {/* <button className='btn btn-secondary modal-btn'>
