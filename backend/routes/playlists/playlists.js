@@ -39,7 +39,7 @@ router.post("/createPlaylist", async (req, res) => {
     }
 
     const fileName = await generateFileName();
-    const filePath = await writeToFile(fileName, thumbnail);
+    const filePath = await writeToFile(fileName, thumbnail, userExists.id);
 
     const sqlQuery = `
     INSERT INTO Playlist (name, userID, thumbnail)
@@ -286,7 +286,7 @@ router.put("/updatePlaylist", async (req, res) => {
     await deleteFile(thumbnailPath);
 
     const fileName = await generateFileName();
-    const filePath = await writeToFile(fileName, thumbnail);
+    const filePath = await writeToFile(fileName, thumbnail, playlist[0].userID);
 
     await promiseConnection.query(sqlQuery1, [name, filePath, id]);
     let [rows] = await promiseConnection.query(sqlQuery2, [id]);

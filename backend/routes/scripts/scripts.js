@@ -16,12 +16,14 @@ const {
   processMultipleCards,
   processSingleScript,
 } = require("../../file/processScripts/processScripts");
+const { image } = require("framer-motion/client");
 
 function colorToHex(color) {
+  if (!color) return "ffffff";
 
   if (color.length == 6) {
     return color;
-  }
+  } 
   var redHex = ("00" + color.r.toString(16)).slice(-2); //009A
   var greenHex = ("00" + color.g.toString(16)).slice(-2); //009A
   var blueHex = ("00" + color.b.toString(16)).slice(-2); //009A
@@ -32,13 +34,13 @@ function colorToHex(color) {
   return ret;
 }
 
-async function updateScript(scriptID, cards) {
+async function updateScript(scriptID, cards, userID) {
   try {
     const queries = [];
     const sqlQuery1 = "SELECT * FROM Card WHERE scriptID = ?";
     const sqlQuery2 = "DELETE FROM Card WHERE scriptID = ?;";
 
-
+    //There can be multiple rows, so we need to make sure that we delete all of the image paths
     let [rows] = await promiseConnection.query(sqlQuery1, [scriptID]);
     console.log("In the update script function...")
     console.log(rows);
@@ -46,24 +48,38 @@ async function updateScript(scriptID, cards) {
 
     let imageURL = "";
     let audioURL = "";
-    if (rows[0]) {
 
-      imageURL = rows[0].imageURL;
-      audioURL = rows[0].audioURL;
+    if (rows && rows.length > 0) {
+      for (let row of rows) {
+        imageURL = row.imageURL;
+        audioURL = row.audioURL;
+
+        if (imageURL) {
+          await deleteFile(imageURL);
+        }
+        if (audioURL) {
+          await deleteFile(audioURL);
+        }
+      }
     }
-
-    // Ensure deletion of files prior to updating a Script component
-    await deleteFile(imageURL);
-    await deleteFile(audioURL);
 
     await promiseConnection.query(sqlQuery2, [scriptID]);
 
+    console.log("NUMBER OF CARDS === " + cards.length);
     for (let i = 0; i < cards.length; i++) {
-      const fileName1 = await generateFileName();
-      const filePath1 = await writeToFile(fileName1, cards[i].imageURL);
+      let filePath1 = "";
 
-      const fileName2 = await generateFileName();
-      const filePath2 = await writeToFile(fileName2, cards[i].audioURL);
+      if (cards[i].imageURL) {
+        const fileName1 = await generateFileName();
+        filePath1 = await writeToFile(fileName1, cards[i].imageURL, userID);
+      }
+
+      let filePath2 = "";
+      
+      if (cards[i].audioURL) {
+        const fileName2 = await generateFileName();
+        filePath2 = await writeToFile(fileName2, cards[i].audioURL, userID);
+      }
 
       const newCard = [
         scriptID,
@@ -72,12 +88,13 @@ async function updateScript(scriptID, cards) {
         colorToHex(cards[i].backgroundColor),
         filePath1,
         filePath2,
-        cards[i].text,
-        cards[i].speed,
+        cards[i].text || "",
+        cards[i].speed || 1000,
       ];
       queries.push(newCard);
     }
 
+    console.log("NUMBER OF QUERIES === " + queries.length);
     const sqlQuery3 = `
         INSERT INTO Card (scriptID, \`order\`, textColor, backgroundColor, imageURL, audioURL, text, speed)
         VALUES ?;
@@ -110,8 +127,6 @@ router.post("/createScript", async (req, res) => {
         msg: "User not found",
       });
     }
-    // Create a single record
-    // console.log(req);
 
     let filePath;
 
@@ -119,7 +134,7 @@ router.post("/createScript", async (req, res) => {
       filePath = "";
     } else {
       const fileName = await generateFileName();
-      filePath = await writeToFile(fileName, thumbnail);
+      filePath = await writeToFile(fileName, thumbnail, userExists.id);
     }
 
     const sqlQuery1 = `
@@ -139,7 +154,7 @@ router.post("/createScript", async (req, res) => {
 
     // console.log(rows);
     let newScript = rows[0];
-    let newCards = updateScript(newScript.id, cards);
+    let newCards = await updateScript(newScript.id, cards, userID);
 
     ret = { newScript, newCards };
 
@@ -160,8 +175,6 @@ router.post("/importScript", async (req, res) => {
         msg: "User not found",
       });
     }
-    // Create a single record
-    // console.log(req);
 
     let filePath;
 
@@ -169,7 +182,7 @@ router.post("/importScript", async (req, res) => {
       filePath = "";
     } else {
       const fileName = await generateFileName();
-      filePath = await writeToFile(fileName, thumbnail);
+      filePath = await writeToFile(fileName, thumbnail, userExists.id);
     }
 
     const sqlQuery1 = `
@@ -189,7 +202,7 @@ router.post("/importScript", async (req, res) => {
 
     // console.log(rows);
     let newScript = rows[0];
-    let newCards = updateScript(newScript.id, cards);
+    let newCards = await updateScript(newScript.id, cards, userId);
 
     ret = { newScript, newCards };
 
@@ -202,8 +215,13 @@ router.post("/importScript", async (req, res) => {
 
 router.post("/updateScript", async (req, res) => {
   try {
-    const { scriptID, userID, title, token, thumbnail, cards } = req.body;
+    const { id, userID, title, token, thumbnail, cards } = req.body;
+    console.log(req.body);
+    console.log("CARDS:");
+    console.log(cards);
+    console.log("Cards.length == " + cards.length);
     const decoded = verifyJWT(token);
+
 
     if (!decoded) {
       return res.status(401).json({
@@ -218,20 +236,24 @@ router.post("/updateScript", async (req, res) => {
       });
     }
     // Create a single record
-    console.log(req);
 
     const sqlQuery1 = "SELECT * From Script WHERE id = ?";
-    let [rows] = await promiseConnection.query(sqlQuery1, [scriptID]);
+    let [rows] = await promiseConnection.query(sqlQuery1, [id]);
+    // console.log(rows);
     let thumbnailPath = rows[0].thumbnail;
 
     await deleteFile(thumbnailPath);
 
+
     const fileName = await generateFileName();
-    const filePath = await writeToFile(fileName, thumbnail);
+    const filePath = "";
+    if (thumbnail) {
+      filePath = await writeToFile(fileName, thumbnail, userExists.id);
+    }
 
     const sqlQuery2 = `UPDATE Script
 SET 
-    user_id = ?,
+    userID = ?,
     title = ?,
     thumbnail = ?,
     public = true
@@ -241,16 +263,16 @@ WHERE id = ?;`;
       userID,
       title,
       filePath,
-      scriptID,
+      id,
     ]);
 
     const sqlQuery3 = `SELECT * FROM Script WHERE id = ?;`;
-    let [newScript] = await promiseConnection.query(sqlQuery3, [scriptID]);
+    let [newScript] = await promiseConnection.query(sqlQuery3, [id]);
 
-    let newCards = updateScript(newScript.id, token, cards);
+    let newCards = await updateScript(id, cards, userID);
 
     ret = { newScript, newCards };
-
+    console.log("RETURNING RET");
     return res.status(201).json(ret);
   } catch (err) {
     console.log(err);

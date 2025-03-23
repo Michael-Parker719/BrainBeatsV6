@@ -14,8 +14,7 @@ router.post("/createUserLike", async (req, res) => {
   try {
     const { objectID, userID, token } = req.body;
 
-    console.log("REQ.BODY");
-    console.log(req.body);
+    let trackID = objectID;
     const decoded = verifyJWT(token);
 
     if (!decoded) {
@@ -26,7 +25,7 @@ router.post("/createUserLike", async (req, res) => {
 
     const userExists = await getUserExists(userID, "id");
 
-    const trackExists = await getTrackExists(objectID, "id");
+    const trackExists = await getTrackExists(trackID, "id");
 
     if (!userExists) {
       console.log("user doesnt exist");
@@ -40,7 +39,6 @@ router.post("/createUserLike", async (req, res) => {
       });
     } else {
       const likeExists = await getLikeExists(trackID, userID);
-      console.log("In the else statement...")
       if (likeExists) {
         return res.status(409).json({
           msg: "Like already exists",
@@ -61,6 +59,7 @@ router.post("/createUserLike", async (req, res) => {
       ]);
 
       await promiseConnection.query(sqlQuery2, [trackID]);
+
 
       res.status(201).json(newLike);
     }
@@ -84,7 +83,6 @@ router.delete("/removeUserLike", async (req, res) => {
     }
 
     const userExists = await getUserExists(userID, "id");
-
     const trackExists = await getTrackExists(trackID, "id");
 
     if (!userExists) {
@@ -96,20 +94,10 @@ router.delete("/removeUserLike", async (req, res) => {
         msg: "Post not found",
       });
     } else {
-      const sqlQuery1 = `DELETE FROM \`Like\` WHERE userID = ? AND trackID = ?;`;
+      const sqlQuery1 = `DELETE FROM \`Like\` WHERE trackID = ?;`;
       const sqlQuery2 = `UPDATE Track SET likeCount = likeCount - 1 WHERE id = ?;`;
 
-      const [deleteLike] = await promiseConnection.query(sqlQuery1, [
-        userID,
-        trackID,
-      ]);
-
-      if (!deleteLike) {
-        return res.status(404).json({
-          msg: "Like not found",
-        });
-      }
-
+      await promiseConnection.query(sqlQuery1, [trackID]);
       await promiseConnection.query(sqlQuery2, [trackID]);
 
       res.status(200).send({ msg: "Deleted a user like" });
@@ -146,11 +134,26 @@ router.get("/getUserLike", async (req, res) => {
 router.get("/getAllUserLikes", async (req, res) => {
   try {
     const { userID } = req.query;
-    const sqlQuery = `SELECT * FROM \`Like\` WHERE userID = ?;`;
+    const sqlQuery = `
+    SELECT l.*, u.firstName, u.lastName
+    FROM \`Like\` l
+    JOIN User u on l.userID = u.id
+    WHERE userID = ?;`;
+
+//     const sqlQuery = `
+//   SELECT 
+//     t.*, 
+//     l.trackID, 
+//     l.userID, 
+//     u.firstName, 
+//     u.lastName
+//   FROM \`Like\` l
+//   JOIN Track t ON l.trackID = t.id
+//   JOIN User u ON l.userID = u.id
+//   WHERE l.userID = ?;
+// `;
 
     const [allLikes] = await promiseConnection.query(sqlQuery, [userID]);
-
-    console.log(allLikes);
     res.status(200).json(allLikes);
   } catch (err) {
     console.error(err);

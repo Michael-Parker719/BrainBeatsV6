@@ -542,7 +542,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   }
 
   function goToEdit() {
-    navigate("/script-settings");
+    navigate("/script-settings", {state: {isEditMode: true}});
     dispatch(setScriptIDGlobal(script.id));
   }
 

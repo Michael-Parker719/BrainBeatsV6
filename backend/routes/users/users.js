@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const { createJWT, verifyJWT } = require("../../utils/jwt");
 const { getUserExists, getIsTokenExpired } = require("../../utils/database");
-const { generateFileName, base64ToFile, BASE_DIR } = require("../../file/fileReader/fileReader");
+const { generateFileName, writeToFile } = require("../../file/fileReader/fileReader");
 var nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { processUser } = require("../../file/processUsers/processUsers");
@@ -28,33 +28,31 @@ router.post("/createUser", async (req, res) => {
       //Encrypt user password
       encryptedPassword = await bcrypt.hash(password, 10);
 
-      const fileName = await generateFileName();
-
-      // Full path to the new .txt file
-      // const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
-
-      // fs.writeFile(filePath, profilePicture, "utf8", (err) => {
-      //   if (err) {
-      //     return res.status(500).send("Error saving the file.");
-      //   }
-      // });
-      
-      const filePath = await base64ToFile(profilePicture, fileName);
-
       //Create a single record
       const sqlQuery1 =
-        "INSERT INTO User (firstName, lastName, email, username, password, profilePicture) VALUES (?, ?, ?, ?, ?, ?)";
-      await promiseConnection.execute(sqlQuery1, [
+        "INSERT INTO User (firstName, lastName, email, username, password) VALUES ( ?, ?, ?, ?, ?)";
+      const [user] = await promiseConnection.execute(sqlQuery1, [
         firstName,
         lastName,
         email,
         username,
         encryptedPassword,
-        filePath,
       ]);
 
-      const sqlQuery2 = "SELECT * FROM User WHERE `email` = ?";
-      let [rows] = await promiseConnection.execute(sqlQuery2, [email]);
+
+      // console.log(user);
+      let id = user.insertId;
+
+      const sqlQuery2 = "UPDATE User SET profilePicture = ? WHERE id = ?";
+      
+      const fileName = await generateFileName();
+      const filePath = await writeToFile(fileName, profilePicture, id);
+
+      await promiseConnection.execute(sqlQuery2, [ filePath, id,]);
+
+      const sqlQuery3 = "SELECT * FROM User WHERE `email` = ?";
+      let [rows] = await promiseConnection.execute(sqlQuery3, [email]);
+
       let newUser = rows[0];
 
       // Create JWT
@@ -104,9 +102,10 @@ router.post("/loginUser", async (req, res) => {
   try {
     // Get user input
     const { email, password } = req.body;
-
+    console.log("IN THE LOGIN ROUTE");
     // Validate if user exists in our database
-    const userExists = await getUserExists(email, "email");
+    let userExists = await getUserExists(email, "email");
+    userExists = await processUser(userExists);
     console.log(userExists);
 
     // If password is related to the email console log a successful login

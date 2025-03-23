@@ -46,15 +46,25 @@ const Profile = () => {
   }
 
   useEffect(() => {
-    console.log(jsonData);
+    // console.log(jsonData);
     kickNonUser();
     if (user != null) {
     
-        console.log("IM HEREEEEEEEE");
+      // setDisplayPicture(user.profilePicture);
       getProfileTracks();
-      console.log("THERE ARE " + tracksTotal + " TRACKS");
+      // console.log("THERE ARE " + tracksTotal + " TRACKS");
       getUserLikes();
       getUpdatedUser();
+
+      let disp = user?.profilePicture;
+      if ((disp as string).split("/")[0] === "data:text") {
+        // console.log(displayPicture);
+        var encodedProfilePic = (disp as string).split(",")[1];
+        var decodedProfilePic = Buffer.from(encodedProfilePic, "base64").toString(
+          "ascii"
+        );
+        setDisplayPicture(buildPath(decodedProfilePic));
+      }
     }
 
     if (submitted) {

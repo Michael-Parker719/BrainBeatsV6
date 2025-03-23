@@ -14,43 +14,6 @@ const {
   writeToFile,
 } = require("../../file/fileReader/fileReader");
 
-router.post("/testCreateTrack", async (req, res) => {
-  try {
-    const sqlQuery1 = `
-  INSERT INTO Track 
-      (title, bpm, \`key\`, \`scale\`, likeCount, midi, thumbnail, 
-      userID, public) VALUES 
-      (?, ?, ?, ?, ?, ?, ?, ?, ?);
-`;
-
-
-    // Placeholder values for each column (in order)
-    const values = [
-      "My Track", // title
-      120, // bpm
-      "C", // key
-      "major", // scale
-      0, // likeCount
-      "/path/to/midi/file", // midi
-      "/path/to/thumbnail/image", // thumbnail
-      43, // userID
-      true, // public
-    ];
-
-    await promiseConnection.query(sqlQuery1, values, (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-      } else {
-        console.log("Record inserted:", results);
-      }
-    });
-
-    return res.status(201).send("Sucess!!!");
-  } catch (err) {
-    console.log(err);
-    return res.status(500).send({ msg: err });
-  }
-});
 // Create a track
 router.post("/createTrack", async (req, res) => {
   try {
@@ -68,8 +31,6 @@ router.post("/createTrack", async (req, res) => {
       likeCount,
     } = req.body;
 
-    console.log("IN THE CREATE TRACK ROUTE!!!!!");
-
     const decoded = verifyJWT(token);
 
     if (!decoded) {
@@ -85,7 +46,6 @@ router.post("/createTrack", async (req, res) => {
       });
     } else {
       // Create a single record
-      // console.log(req);
 
       const sqlQuery1 = `
   INSERT INTO Track 
@@ -96,10 +56,10 @@ router.post("/createTrack", async (req, res) => {
 `;
 
       const fileName1 = await generateFileName();
-      const filePath1 = await writeToFile(fileName1, thumbnail);
+      const filePath1 = await writeToFile(fileName1, thumbnail, userID);
 
       const fileName2 = await generateFileName();
-      const filePath2 = await writeToFile(fileName2, midi);
+      const filePath2 = await writeToFile(fileName2, midi, userID);
 
       await promiseConnection.query(sqlQuery1, [
         title,
@@ -119,7 +79,6 @@ router.post("/createTrack", async (req, res) => {
       let [rows] = await promiseConnection.query(sqlQuery2, [filePath2]);
       
       let newTrack = await processSingleTrack(rows[0]);
-      console.log(newTrack);
       return res.status(201).json(newTrack);
     }
   } catch (err) {
@@ -190,10 +149,6 @@ router.get("/getNumberUserTracks", async (req, res) => {
         });
       }
 
-      // console.log("***********************");
-      // console.log(userTracks);
-      // console.log(userTracks.length);
-      // console.log("***********************");
       return res.status(200).json(userTracks.length);
     }
   } catch (err) {
@@ -244,7 +199,6 @@ router.get("/getUserTracksByID", async (req, res) => {
     const userID = req.query.userID;
     const userExists = await getUserExists(userID, "id");
 
-    // console.log(userID);
     if (!userExists) {
       return res.status(404).json({
         msg: "User not found",
@@ -266,7 +220,6 @@ router.get("/getUserTracksByID", async (req, res) => {
       }
 
       userTracks = await processMultipleTracks(userTracks);
-      // console.log(userTracks);
       return res.status(200).json(userTracks);
     }
   } catch (err) {
@@ -412,10 +365,10 @@ router.put("/updateTrack", async (req, res) => {
     `;
 
     const fileName1 = await generateFileName();
-    const filePath1 = await writeToFile(fileName1, thumbnail);
+    const filePath1 = await writeToFile(fileName1, thumbnail, trackExists.userID);
 
     const fileName2 = await generateFileName();
-    const filePath2 = await writeToFile(fileName2, midi);
+    const filePath2 = await writeToFile(fileName2, midi, trackExists.userID);
 
     let [tracks] = await promiseConnection.query(sqlQuery, [
       title,
