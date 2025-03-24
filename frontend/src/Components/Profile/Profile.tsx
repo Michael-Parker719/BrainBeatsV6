@@ -4,7 +4,7 @@ import profileImage from "../../../images/blankProfile.png";
 import { useRecoilValue, useRecoilState } from "recoil";
 import { userJWT, userModeState } from "../../JWT";
 import sendAPI from "../../SendAPI";
-import react, { useEffect, useState } from "react";
+import react, { useEffect, useRef, useState } from "react";
 import TrackCard from "../TrackCard/TrackCard";
 import ScriptCard from "../ScriptCard/ScriptCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -29,6 +29,7 @@ const Profile = () => {
 
   const [jsonData, setJsonData] = useState<Script | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   // user contains "userID" instead of "id"
@@ -49,7 +50,6 @@ const Profile = () => {
     // console.log(jsonData);
     kickNonUser();
     if (user != null) {
-    
       // setDisplayPicture(user.profilePicture);
       getProfileTracks();
       // console.log("THERE ARE " + tracksTotal + " TRACKS");
@@ -60,9 +60,10 @@ const Profile = () => {
       if ((disp as string).split("/")[0] === "data:text") {
         // console.log(displayPicture);
         var encodedProfilePic = (disp as string).split(",")[1];
-        var decodedProfilePic = Buffer.from(encodedProfilePic, "base64").toString(
-          "ascii"
-        );
+        var decodedProfilePic = Buffer.from(
+          encodedProfilePic,
+          "base64"
+        ).toString("ascii");
         setDisplayPicture(buildPath(decodedProfilePic));
       }
     }
@@ -339,23 +340,37 @@ const Profile = () => {
   // Handle file removal
   const handleRemoveFile = () => {
     setJsonData(null);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   // Handle form submission
   const handleSubmit = () => {
     if (jsonData) {
-      // You can handle the file submission logic here
       jsonData.userID = user?.id || "";
+      console.log(jsonData.userID);
       console.log("File submitted:", jsonData);
       sendAPI("post", "/scripts/importScript", jsonData)
         .then((res) => {
           console.log("Save Script!", res);
           // setScriptID(res.data.id);
           setSubmitted(true);
+          resetFileHandling();
         })
         .catch((err) => {
           console.error("error!", err);
         });
+    }
+  };
+
+  const resetFileHandling = () => {
+    setJsonData(null); 
+    setError(null);     
+    setSubmitted(false); 
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; 
     }
   };
 
@@ -589,24 +604,44 @@ const Profile = () => {
         <h1>My Scripts</h1>
         <hr></hr>
         <h5>Import Script</h5>
-        <input type="file" accept=".json" onChange={handleFileChange} />
-        {jsonData && (
-          <div>
-            <span>{jsonData.title}</span>
-            <button onClick={handleRemoveFile} style={{ marginLeft: "10px" }}>
-              X
-            </button>
+
+        <div className="file-upload-container">
+          <div className="file-input-container">
+            <input
+              type="file"
+              accept=".json"
+              ref={fileInputRef}
+              className="fileInput"
+              id="file-upload"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="file-upload" className="customFileButton">
+              Choose File
+            </label>
+            {jsonData && (
+              <div className="fileName">Script: {jsonData.title}</div>
+            )}
           </div>
-        )}
-
-        {jsonData && (
-          <button onClick={handleSubmit} style={{ marginTop: "10px" }}>
-            Submit
-          </button>
-        )}
-
+          {jsonData && (
+            <div className="button-container">
+              <button className="removeButton" onClick={handleRemoveFile}>
+                Remove
+              </button>
+              <button className="submitButton" onClick={handleSubmit}>
+                Submit
+              </button>
+            </div>
+          )}
+        </div>
         <hr></hr>
-        {user && <ScriptCard cardType={"Profile"} input={user.id} submitted={submitted} />}
+        {user && (
+          <ScriptCard
+            cardType={"Profile"}
+            input={user.id}
+            submitted={submitted}
+            isSearched={false}
+          />
+        )}
       </div>
     </div>
   );

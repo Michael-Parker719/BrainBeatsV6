@@ -35,11 +35,12 @@ import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 type Props = {
   script: Interfaces.Script;
   closeModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isSearched: boolean;
 };
 
 const emptyLikeArr: Interfaces.Like[] = [];
 
-const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
+const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
   const navigate = useNavigate();
   const jwt: any = useRecoilValue(userJWT);
   const [user, setUser] = useRecoilState(userModeState);
@@ -49,7 +50,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   const [successMsg, setSuccessMsg] = useState("");
 
   const [scriptName, setScriptName] = useState(script.title);
-  const [visibility, setVisibility] = useState(script.public);
+  const [visibility, setVisibility] = useState(script.public ? true : false);
   const [editVisibility, setEditVisibility] = useState(false);
   const [buttonText, setButtonText] = useState(
     visibility ? "Make Private" : "Make Public"
@@ -77,6 +78,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   useEffect(() => {
     checkScriptOwner();
     checkLike();
+    checkStatus();
   }, [isModalOpen]);
 
   // ============================= Functions for User Track =============================
@@ -169,8 +171,21 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   };
 
   function setVisibilityButton() {
-    setVisibility(!visibility);
-    setButtonText(visibility ? "Make Private" : "Make Public");
+
+    let data = {
+      id: script.id
+    };
+
+    sendAPI("put", "/scripts/changeStatus", data).then((res) => {
+      if (res.status == 200) {
+        console.log("Changed visibility");
+        setVisibility((prevState) => !prevState);
+        setButtonText(visibility ? "Make Private" : "Make Public");
+        script.public = !script.public;
+      }
+    })
+    // console.log("SCRIPT ID === " + script.id);
+    
   }
 
   // Updates a track
@@ -349,6 +364,12 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
     setFavorited(favorited);
   }
 
+  async function checkStatus() {
+    console.log("Now checking the status...");
+    console.log("Visibility == " + visibility);
+    setButtonText(visibility ? "Make Private" : "Make Public");
+    console.log(buttonText);
+  }
   function incrementLike() {
     return new Promise((resolve, reject) => {
       var didSucceed = true;
@@ -736,6 +757,32 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "edit"]} />
                                 Save
                             </button>*/}
+
+              {isSearched ? 
+              (<>
+                <button
+                className="btn btn-secondary modal-btn"
+                onClick={() => DownloadScript()}
+              >
+                <FontAwesomeIcon
+                  className="modal-track-icons"
+                  icon={["fas", "music"]}
+                />
+                Download
+              </button>
+              </>) : (<>
+
+
+                <button
+                className="btn btn-secondary modal-btn"
+                onClick={() => setVisibilityButton()}
+              >
+                {/* <FontAwesomeIcon
+                  className="modal-track-icons"
+                  icon={["fas", "edit"]}
+                /> */}
+                {buttonText}
+              </button>
               <button
                 className="btn btn-secondary modal-btn"
                 onClick={() => goToEdit()}
@@ -776,7 +823,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   icon={["fas", "trash"]}
                 />
                 Delete Script
-              </button>
+              </button></>)}              
 
               {/* <ConfirmationModal
         isOpen={isModalOpen}

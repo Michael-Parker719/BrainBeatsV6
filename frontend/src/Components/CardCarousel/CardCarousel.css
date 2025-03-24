@@ -26,22 +26,38 @@
     display: none;
 } 
 
-.card-display{
-    /* height:48vh !important; */
-    /* height:100% !important; */
+/* .card-display{ */
+    /* height:48vh !important; e*/
+    /* height:100% !important; e*/
+    /* display: flex; */
+    /* justify-content: center; */
+    /* align-items: center; */
+    /* background-color: #0e0e0e; */
+    /* background-image: url(''); */
+    /* background-size: 100% 150% !important;e
+    background-position: center !important; e*/
+    /* background-repeat: no-repeat; */
+    /* color: white; */
+    /* word-wrap: break-word; */
+    /* border: 10px solid blue;e */
+    /* height:46vh; */
+    /* width: 45vw;; e*/
+/* } */
+
+.card-display {
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #0e0e0e;
     background-image: url('');
-    /* background-size: 100% 150% !important;
-    background-position: center !important; */
+    background-size: 100% 150% !important;
+    background-position: center center !important;
     background-repeat: no-repeat;
     color: white;
-    word-wrap: break-word;
-    /* border: 10px solid blue; */
+    width: 100%;
+    /* height: 100%; */
     height:46vh;
-    /* width: 45vw;; */
+    word-wrap: break-word;
 }
 
 #play-pause-button{

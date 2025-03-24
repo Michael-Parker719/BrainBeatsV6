@@ -9,6 +9,8 @@ import cytonBoard from '../../images/Cyton.jpg';
 
 
 // Importing Team Segments
+
+import Team6 from '../TeamInfo/Team6/Team6';
 import Team5 from '../TeamInfo/Team5/Team5'
 import Team4 from '../TeamInfo/Team4/Team4'
 import Team3 from '../TeamInfo/Team3/Team3'
@@ -17,7 +19,7 @@ import Team1 from '../TeamInfo/Team1/Team1'
 
 const About = () => {
 
-  const [displayTeam, setDisplayTeam] = useState(5); // displays team 4 by default
+  const [displayTeam, setDisplayTeam] = useState(6); // displays team 4 by default
   return (
     // <div className='aboutMainBody'>
     //     <h2>About Us</h2>
@@ -65,6 +67,10 @@ const About = () => {
           <div id='about-teams'>
             <div id='about-teams-header'>
               {/* <h2>Header</h2> */}
+              <button type="button" className="btn btn-secondary about-team-btn" style={{backgroundColor: displayTeam == 6?  "#005B69" : "#259FB1"}} onClick={(e) => setDisplayTeam(6)}>
+                Team 6
+                <h6 className='about-team-btn-subtitle'>(2024-2025)</h6>
+              </button>
               <button type="button" className="btn btn-secondary about-team-btn" style={{backgroundColor: displayTeam == 5?  "#005B69" : "#259FB1"}} onClick={(e) => setDisplayTeam(5)}>
                 Team 5
                 <h6 className='about-team-btn-subtitle'>(2023-2024)</h6>
@@ -86,6 +92,7 @@ const About = () => {
                 <h6 className='about-team-btn-subtitle'>(2020)</h6>
               </button>
             </div>
+            {displayTeam == 6? <Team6></Team6> : null}
             {displayTeam == 5? <Team5></Team5> : null}
             {displayTeam == 4? <Team4></Team4> : null}
             {displayTeam == 3? <Team3></Team3> : null}

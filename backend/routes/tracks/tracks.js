@@ -165,6 +165,7 @@ router.get("/getTracksByTitle", async (req, res) => {
       SELECT Track.*, User.firstName, User.lastName
       FROM Track
       INNER JOIN User ON Track.userID = User.id
+      LIMIT 8
       `;
       let [allTracks] = await promiseConnection.query(sqlQuery1);
       allTracks = await processMultipleTracks(allTracks);
@@ -176,8 +177,10 @@ router.get("/getTracksByTitle", async (req, res) => {
     SELECT Track.*, User.firstName, User.lastName
     FROM Track 
     INNER JOIN User ON Track.userID = User.id
-    WHERE \`title\` = ?`;
-    let [tracks] = await promiseConnection.query(sqlQuery2, [title]);
+    WHERE title LIKE ?
+    OR User.firstName LIKE ? 
+    OR User.lastName LIKE ?;`;
+    let [tracks] = await promiseConnection.query(sqlQuery2, [`%${title}%`, `%${title}%`, `%${title}%`]);
 
     if (!tracks) {
       return res.status(404).json({
@@ -380,6 +383,35 @@ router.put("/updateTrack", async (req, res) => {
     ]);
 
     return res.status(200).json(tracks);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
+
+router.get("/searchTrack", async (req, res) => {
+  try {
+    const userQuery = req.query.q;
+
+    if (!userQuery) {
+      return res.status(400).json({ message: "Query parameter is required" });
+    }
+
+    //Add a limit should the database become fuller later...
+  const sqlQuery = `
+    SELECT * FROM Track
+    WHERE title LIKE ?;
+  `;
+
+    console.log("In the search function...");
+
+    let [rows] = await promiseConnection.query(sqlQuery, [`%${userQuery}%`]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'No tracks found matching the query.' });
+    }
+
+    res.json(rows);
   } catch (err) {
     console.log(err);
     return res.status(500).send({ msg: err });

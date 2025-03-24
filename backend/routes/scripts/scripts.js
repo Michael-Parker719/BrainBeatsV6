@@ -23,7 +23,7 @@ function colorToHex(color) {
 
   if (color.length == 6) {
     return color;
-  } 
+  }
   var redHex = ("00" + color.r.toString(16)).slice(-2); //009A
   var greenHex = ("00" + color.g.toString(16)).slice(-2); //009A
   var blueHex = ("00" + color.b.toString(16)).slice(-2); //009A
@@ -42,7 +42,7 @@ async function updateScript(scriptID, cards, userID) {
 
     //There can be multiple rows, so we need to make sure that we delete all of the image paths
     let [rows] = await promiseConnection.query(sqlQuery1, [scriptID]);
-    console.log("In the update script function...")
+    console.log("In the update script function...");
     console.log(rows);
     console.log("The rows are above");
 
@@ -75,7 +75,7 @@ async function updateScript(scriptID, cards, userID) {
       }
 
       let filePath2 = "";
-      
+
       if (cards[i].audioURL) {
         const fileName2 = await generateFileName();
         filePath2 = await writeToFile(fileName2, cards[i].audioURL, userID);
@@ -107,8 +107,6 @@ async function updateScript(scriptID, cards, userID) {
     throw err;
   }
 }
-
-
 
 router.post("/createScript", async (req, res) => {
   try {
@@ -202,7 +200,7 @@ router.post("/importScript", async (req, res) => {
 
     // console.log(rows);
     let newScript = rows[0];
-    let newCards = await updateScript(newScript.id, cards, userId);
+    let newCards = await updateScript(newScript.id, cards, userID);
 
     ret = { newScript, newCards };
 
@@ -221,7 +219,6 @@ router.post("/updateScript", async (req, res) => {
     console.log(cards);
     console.log("Cards.length == " + cards.length);
     const decoded = verifyJWT(token);
-
 
     if (!decoded) {
       return res.status(401).json({
@@ -244,7 +241,6 @@ router.post("/updateScript", async (req, res) => {
 
     await deleteFile(thumbnailPath);
 
-
     const fileName = await generateFileName();
     const filePath = "";
     if (thumbnail) {
@@ -259,12 +255,7 @@ SET
     public = true
 WHERE id = ?;`;
 
-    await promiseConnection.query(sqlQuery2, [
-      userID,
-      title,
-      filePath,
-      id,
-    ]);
+    await promiseConnection.query(sqlQuery2, [userID, title, filePath, id]);
 
     const sqlQuery3 = `SELECT * FROM Script WHERE id = ?;`;
     let [newScript] = await promiseConnection.query(sqlQuery3, [id]);
@@ -312,13 +303,13 @@ router.delete("/deleteScript", async (req, res) => {
 
       await deleteFile(imagePath);
       await deleteFile(audioPath);
-    })
+    });
 
     thumbnail = "";
     if (row2[0]) {
       thumbnail = row2[0].thumbnail;
     }
-    
+
     await deleteFile(thumbnail);
 
     let [row3] = await promiseConnection.query(sqlQuery3, [scriptID]);
@@ -386,7 +377,7 @@ router.get("/getUserScriptsByID", async (req, res) => {
     const userID = req.query.userID;
     if (userID === "") {
       const sqlQuery1 = "SELECT * FROM Script;";
-      const [allScripts] = await promiseConnection.query(sqlQuery1, []);
+      let [allScripts] = await promiseConnection.query(sqlQuery1, []);
 
       allScripts = await processMultipleScripts(allScripts);
       return res.json(allScripts);
@@ -428,6 +419,76 @@ WHERE Script.userID = ?;`;
   }
 });
 
+router.get("/getScriptsByTitle", async (req, res) => {
+  try {
+    const title = req.query.title;
+    if (title === "") {
+      const sqlQuery1 = `
+      SELECT Script.*, User.firstName, User.lastName 
+      FROM Script INNER JOIN User 
+      ON Script.userID = User.id
+      LIMIT 4;`;
+      let [allScripts] = await promiseConnection.query(sqlQuery1, []);
+
+      allScripts = await processMultipleScripts(allScripts);
+      return res.json(allScripts);
+    }
+    // Find the records
+
+    const sqlQuery2 = `SELECT Script.id as id, 
+      Script.title, Script.thumbnail, Script.createdAt, Script.public, 
+      User.id as userID, User.firstName, User.lastName
+      FROM Script
+      JOIN User ON Script.userID = User.id
+      WHERE title LIKE ? 
+      OR User.firstName LIKE ? 
+      OR User.lastName LIKE ?;`;
+
+    let [scripts] = await promiseConnection.query(sqlQuery2, [`%${title}%`, `%${title}%`, `%${title}%`]);
+
+    if (!scripts) {
+      return res.status(404).json({
+        msg: "Scripts not found",
+      });
+    }
+
+    scripts = await processMultipleScripts(scripts);
+
+    return res.status(200).json(scripts);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
+
+
+router.put("/changeStatus", async (req, res) => {
+  try {
+    const id = req.body.id;
+    // console.log(req.body);
+    // console.log(id);
+    if (!id) {
+      return res.status(400).json({ error: 'Script ID is required' });
+    }
+
+    const sqlQuery1 = `SELECT public from Script WHERE id = ?`;
+    let [rows] = await promiseConnection.query(sqlQuery1, [id]);
+
+    let status = rows[0].public;
+    let newStatus = status === 1 ? 0 : 1;
+
+    const sqlQuery2 = `UPDATE Script SET public = ?
+    WHERE id = ?`;
+    
+    await promiseConnection.query(sqlQuery2, [newStatus, id]);
+    return res.status(200).json({message: "Script status has changed"});
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
+
 router.get("/getCardsByScriptID", async (req, res) => {
   try {
     const scriptID = req.query.id;
@@ -450,9 +511,7 @@ router.get("/getCardsByScriptID", async (req, res) => {
     } else {
       // Find the records
       const sqlQuery2 = "SELECT * FROM Card WHERE scriptID = ?;";
-      let [scriptCards] = await promiseConnection.query(sqlQuery2, [
-        scriptID,
-      ]);
+      let [scriptCards] = await promiseConnection.query(sqlQuery2, [scriptID]);
 
       if (!scriptCards) {
         return res.status(404).json({
@@ -472,7 +531,7 @@ router.get("/getCardsByScriptID", async (req, res) => {
 
 router.post("/downloadScript", async (req, res) => {
   console.log("In the download route...");
-  
+
   const scriptID = req.body.id; // Use query params or req.params depending on how you send the ID
 
   // Query to get scripts and their related cards
@@ -490,13 +549,13 @@ router.post("/downloadScript", async (req, res) => {
 
     console.log("Organizing Scripts...");
     // Organize data by script
-    const download = ({
+    const download = {
       title: script.title,
       thumbnail: script.thumbnail,
       createdAt: script.createdAt,
       public: script.public,
       cards: [],
-    });
+    };
 
     cards.forEach((card) => {
       download.cards.push({
@@ -537,5 +596,35 @@ router.post("/downloadScript", async (req, res) => {
   }
 });
 
-module.exports = router;
+router.get("/searchScript", async (req, res) => {
+  try {
+    const userQuery = req.query.q;
 
+    if (!userQuery) {
+      return res.status(400).json({ message: "Query parameter is required" });
+    }
+
+    //Add a limit should the database become fuller later...
+    const sqlQuery = `
+    SELECT * FROM Script
+    WHERE title LIKE ?;
+  `;
+
+    console.log("In the search function...");
+
+    let [rows] = await promiseConnection.query(sqlQuery, [`%${userQuery}%`]);
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No scripts found matching the query." });
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+});
+
+module.exports = router;
