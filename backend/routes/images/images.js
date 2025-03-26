@@ -37,7 +37,7 @@ router.put("/updateUserProfilePic", async (req, res) => {
     await deleteFile(fullPath);
 
     const fileName = await generateFileName();
-    const filePath = await writeToFile(fileName, profilePicture);
+    const filePath = await writeToFile(fileName, profilePicture, userExists.id);
 
     const sqlQuery1 = `
         UPDATE User SET profilePicture = ? WHERE id = ?`;

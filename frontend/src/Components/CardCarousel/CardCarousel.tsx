@@ -84,8 +84,8 @@ const CardCarousel = () => {
                         background: `rgba(${card.backgroundColor.r}, ${card.backgroundColor.g}, ${card.backgroundColor.b}, ${card.backgroundColor.a})`,
                         backgroundImage: `url(${card.imageURL})`,
                         color: `rgba(${card.textColor.r}, ${card.textColor.g}, ${card.textColor.b}, ${card.textColor.a})`,
-                        width: '100%',
-                        height: '100%',
+                        // width: '100%',
+                        // height: '100%',
                     }}>
                         <h1>{card.text}</h1>
                     </div>

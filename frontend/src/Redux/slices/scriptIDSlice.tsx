@@ -9,16 +9,16 @@ export const scriptIDSlice = createSlice({
     name: 'scriptIDSlice',
     initialState,
     reducers: {
-        setScriptIDGlobal: (state, action: PayloadAction<string>) => {
-            // Clear the state before we add to it again
-            // state = initialState;
-            state = action.payload;
-        },
-        unsetScriptIDGlobal: (state) => {
-            state = initialState;
-        }
+      setScriptIDGlobal: (state, action: PayloadAction<string>) => {
+        // Directly update the state value (no reassignment)
+        return action.payload; // Correct way to set the state value
+      },
+      unsetScriptIDGlobal: () => {
+        return initialState; // Reset the state to its initial value
+      }
     },
-})
+  });
+  
 
 
 

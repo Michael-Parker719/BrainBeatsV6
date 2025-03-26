@@ -35,11 +35,12 @@ import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 type Props = {
   script: Interfaces.Script;
   closeModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isSearched: boolean;
 };
 
 const emptyLikeArr: Interfaces.Like[] = [];
 
-const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
+const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
   const navigate = useNavigate();
   const jwt: any = useRecoilValue(userJWT);
   const [user, setUser] = useRecoilState(userModeState);
@@ -49,11 +50,11 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   const [successMsg, setSuccessMsg] = useState("");
 
   const [scriptName, setScriptName] = useState(script.title);
-  const [visibility, setVisibility] = useState(script.public);
-  const [editVisibility, setEditVisibility] = useState(false);
-  const [buttonText, setButtonText] = useState(
-    visibility ? "Make Private" : "Make Public"
-  );
+  const [visibility, setVisibility] = useState(script.public ? true : false);
+  
+  const [buttonText, setButtonText] = useState("");
+
+  const visibilityText = ["Make Public", "Make Private"];
   const [thumbnail, setThumbnail] = useState(script.thumbnail);
 
   const [likeCount, setLikeCount] = useState(script.likeCount);
@@ -75,23 +76,30 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
 
   // Initializes favorited variable
   useEffect(() => {
-    checkScriptOwner();
     checkLike();
+    getStatus();
   }, [isModalOpen]);
 
   // ============================= Functions for User Track =============================
-  function checkScriptOwner() {
-    if (user != null) {
-      if (user?.id === script.userID) {
-        setEditVisibility(true);
+  
+
+  async function getStatus() {
+    let data = {
+      id: script.id
+    };
+    // console.log("***********");
+    // console.log(script.id);
+
+    sendAPI("get", "/scripts/getStatus", data).then((res) => {
+      if (res.status == 200) {
+        // console.log("res: " + res.data.public);
+        let text = visibilityText[res.data.public];
+        // console.log("text: " + text);
+        setButtonText(text);
+        // script.public = !script.public;
       }
-
-      // if(user.likes !== undefined){
-      //   setUserLikeArr(user.likes);
-      // }
-    }
+    })
   }
-
   // ============================= Functions for Track Updating System =============================
 
   function verifyDeleteRecording() {
@@ -125,8 +133,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
             setSuccessMsg("");
           } else {
             // Close the modal, refresh the posts showed on current page
-            console.log("Sucessfully deleted Script");
-            console.log("Data: " + data);
+            // console.log("Sucessfully deleted Script");
+            // console.log("Data: " + data);
             setErrMsg("");
             setSuccessMsg("");
             closeModal(false);
@@ -168,9 +176,22 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
     setIsModalOpen(false); // Close the modal without doing anything
   };
 
-  function setVisibilityButton() {
-    setVisibility(!visibility);
-    setButtonText(visibility ? "Make Private" : "Make Public");
+  async function setVisibilityButton() {
+
+    let data = {
+      id: script.id
+    };
+
+    sendAPI("put", "/scripts/changeStatus", data).then((res) => {
+      if (res.status == 200) {
+        // console.log("new res: " + res.data.public);
+        let text = visibilityText[res.data.public];
+        setButtonText(text);
+        // script.public = !script.public;
+      }
+    })
+    // console.log("SCRIPT ID === " + script.id);
+    
   }
 
   // Updates a track
@@ -348,6 +369,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
 
     setFavorited(favorited);
   }
+
+  
 
   function incrementLike() {
     return new Promise((resolve, reject) => {
@@ -542,7 +565,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
   }
 
   function goToEdit() {
-    navigate("/script-settings");
+    navigate("/script-settings", {state: {isEditMode: true}});
     dispatch(setScriptIDGlobal(script.id));
   }
 
@@ -580,6 +603,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
             closeButton
           ></Modal.Header>
           <Modal.Body className="modal-container-body">
+
+            {/* CARDS AND IMAGES */}
             <div id="modal-track-cover-div">
               {editing && (
                 <div id="edit-track-cover-div">
@@ -601,11 +626,13 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   />
                 </div>
               )}
-              {/*<img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} />*/}
+              {/* <img src={displayThumbnail} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => { }} /> */}
               <CardCarousel></CardCarousel>
             </div>
+
+            {/* TEXT FOR SCRIPT */}
             <div id="modal-track-text-div">
-              {!visibility && (
+              {/* {!visibility && (
                 <h6 id="hidden-track-text">
                   <FontAwesomeIcon
                     className="modal-track-icons"
@@ -622,7 +649,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   />
                   Public script
                 </h6>
-              )}
+              )} */}
               {!editing && <h1 id="track-title-text">{scriptName}</h1>}
               {editing && (
                 <input
@@ -646,9 +673,12 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                 {likeCount} Favorites
               </h5>
             </div>
+
+
           </Modal.Body>
+
           <Modal.Footer className="modal-container-footer">
-            <div id="modal-container-footer-1">
+            {/* <div id="modal-container-footer-1">
               {editing && (
                 <button
                   className="btn btn-secondary modal-btn-public"
@@ -684,9 +714,11 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   Delete Script
                 </button>
               )}
-            </div>
+            </div> */}
+
+
             <div id="modal-container-footer-2">
-              {!favorited && (
+              {/* {!favorited && (
                 <button
                   className="btn btn-secondary modal-btn"
                   id="like-track-btn"
@@ -716,7 +748,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   />
                   Favorited
                 </button>
-              )}
+              )} */}
 
               {/* Possibly add playlists feature in the future */}
               {/* <button className='btn btn-secondary modal-btn'>
@@ -727,6 +759,32 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                                 <FontAwesomeIcon className='modal-track-icons' icon={["fas", "edit"]} />
                                 Save
                             </button>*/}
+
+              {isSearched ? 
+              (<>
+                <button
+                className="btn btn-secondary modal-btn"
+                onClick={() => DownloadScript()}
+              >
+                <FontAwesomeIcon
+                  className="modal-track-icons"
+                  icon={["fas", "music"]}
+                />
+                Download
+              </button>
+              </>) : (<>
+
+
+                <button
+                className="btn btn-secondary modal-btn"
+                onClick={() => setVisibilityButton()}
+              >
+                {/* <FontAwesomeIcon
+                  className="modal-track-icons"
+                  icon={["fas", "edit"]}
+                /> */}
+                {buttonText}
+              </button>
               <button
                 className="btn btn-secondary modal-btn"
                 onClick={() => goToEdit()}
@@ -767,7 +825,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal }) => {
                   icon={["fas", "trash"]}
                 />
                 Delete Script
-              </button>
+              </button></>)}              
 
               {/* <ConfirmationModal
         isOpen={isModalOpen}

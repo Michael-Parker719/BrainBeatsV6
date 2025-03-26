@@ -138,8 +138,8 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
 
         await sendAPI('get', '/tracks/getUserTracksByID', currentUser)
             .then(res => {
-                console.log("Checking res.data...")
-                console.log(res.data);
+                // console.log("Checking res.data...")
+                // console.log(res.data);
                 for(var i = 0; i < res.data.length; i++) {                    
                     var currentTrack:Track = res.data[i];
                     var fullname:string =  res.data[i].firstName + ' ' + res.data[i].lastName;
@@ -166,10 +166,12 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
             .then(async(res) => {
                 for(var i = 0; i < res.data.length; i++) {
                     
+
+                    // console.log(res.data[i]);
                     var trackID: string = res.data[i].trackID;
                     var currentTrack:Track = await getLikedTrackByID(trackID);
-
-                    var fullname:string =  currentTrack?.user?.firstName + ' ' + currentTrack?.user?.lastName;
+                    // console.log("Current Track: " + currentTrack);
+                    var fullname:string =  res.data[i].firstName + ' ' + res.data[i].lastName;
                     // console.log(currentTrack.user);
                     currentTrack = Object.assign({fullname: fullname}, currentTrack);
                     
@@ -186,13 +188,14 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
     async function getLikedTrackByID(trackID: string) {
 
         var trackObj = {id: trackID};
-
         var likedTrack:Track = emptyTrack;
 
         await sendAPI('get', '/tracks/getTrackByID', trackObj)
             .then(res => {
 
+                // console.log("RES: " + res.data);
                 if (res.status == 200) {
+                    
                     likedTrack = {
                         "id": res.data.id,
                         "title": res.data.title,
@@ -209,7 +212,7 @@ const TrackCard: React.FC<Props> = ({cardType, input}) => {
                         "user": res.data.user
                     }
                 }
-                // console.log(likedTrack);
+                // console.log("Liked track title: " + likedTrack.title);
                 
             }).catch(e => {
                 console.error("Failed to pull liked tracks: ", e);

@@ -64,10 +64,18 @@ async function deleteFile(filePath) {
   });
 }
 
-async function writeToFile(fileName, base64String) {
+async function writeToFile(fileName, base64String, userID) {
 
   return new Promise((resolve, reject) => {
-    const filePath = path.join(BASE_DIR, path.basename(fileName, ".txt"));
+
+
+    const userDir = path.join(BASE_DIR, `user_${userID}`);
+
+    if (!fs.existsSync(userDir)) {
+      fs.mkdirSync(userDir, { recursive: true });
+    }
+
+    const filePath = path.join(userDir, path.basename(fileName, ".txt"));
   
       fs.writeFile(filePath, base64String, "utf8", (err) => {
         if (err) {
@@ -78,46 +86,17 @@ async function writeToFile(fileName, base64String) {
   })
 }
 
-// Function to convert base64 string to file
-function base64ToFile(base64String, fileName) {
-  return new Promise((resolve, reject) => {
-    try {
-      // Split the base64 string into metadata and the actual base64 data
-      // const base64Data = base64String.replace(/^data:image\/(png|jpg|jpeg);base64,/, '');
-      
-      // Decode base64 data
-      // const buffer = Buffer.from(base64Data, 'base64');
-      
-      // Define the file path
-      const filePath = path.join(BASE_DIR, fileName);
-      
-      // Write the buffer to the file
-      fs.writeFile(filePath, base64String, 'base64', (err) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(filePath);
-      });
 
-      // fs.writeFile(filePath, base64String, "utf8", (err) => {
-      //   if (err) {
-      //     return reject(err);
-      //   }
-      //   resolve(filePath);
-      // });
-
-    } catch (error) {
-      reject(error);
-    }
-  });
+async function getUserIdFromCookie(req) {
+  return req.cookies.userID;
 }
+
 
 module.exports = {
   readFileContent: readFileContent,
   generateFileName: generateFileName,
   deleteFile: deleteFile,
   writeToFile: writeToFile,
-  base64ToFile: base64ToFile,
-  BASE_DIR: BASE_DIR
+  getUserIdFromCookie: getUserIdFromCookie
 };
 

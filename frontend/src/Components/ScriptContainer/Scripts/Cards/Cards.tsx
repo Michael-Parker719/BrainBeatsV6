@@ -1,5 +1,5 @@
 import { CompactPicker } from 'react-color';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './Cards.css';
 import { Modal } from 'react-bootstrap';
 import ImageModal from '../../../Modals/ImageModal/ImageModal';
@@ -8,7 +8,7 @@ import { Card, Script } from '../../../../util/Interfaces'
 import { useDispatch } from 'react-redux';
 import { set, unset } from '../../../../Redux/slices/cardArraySlice'
 import { setScriptIDGlobal, unsetScriptIDGlobal } from '../../../../Redux/slices/scriptIDSlice'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import videojs from 'video.js';
 import VideoJS from '../../../Video/Video';
 import Player from "video.js/dist/types/player";
@@ -22,8 +22,11 @@ import { emptyScript } from '../../../../util/Constants';
 
 
 function Cards() {
-    // console.log("bruh")
 
+    const location = useLocation();
+    const isEditMode = location.state?.isEditMode || false;
+
+    
     const initialBackground = {
         displayColorPicker: false,
         color: {
@@ -43,7 +46,6 @@ function Cards() {
         },
     }
 
-
     // For displaying Modal
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
@@ -56,15 +58,57 @@ function Cards() {
 
     // For holding card information
     const globalCard = useAppSelector(state => state.cardArraySlice)
-    const [cards, setCards] = useState<Card[]>([...globalCard])
-    const [cardText, setCardTextState] = useState('');
+
+    const initialCardsState = useMemo(() => {
+        if (isEditMode && globalCard.length > 0) {
+            return [...globalCard];
+        } else {
+            return [];
+        }
+    }, [isEditMode, globalCard]);
+
+    
+    const [cards, setCards] = useState<Card[]>(initialCardsState);
     const [cardDisplayed, setCardDisplayed] = useState(0);
-    const [speed, setSpeed] = useState(1000)
-    const [backgroundColor, setBackgroundColor] = useState(initialBackground);
-    const [textColor, setTextColor] = useState(initialTextColor);
-    const [imageURL, setImageURL] = useState('');
+
+    const initialState = useMemo(() => {
+        if (isEditMode && cards.length > 0) {
+            const card = cards[cardDisplayed]; 
+            return {
+                backgroundColor: { displayColorPicker: false, color: card.backgroundColor },
+                textColor: { displayColorPicker: false, color: card.textColor },
+                cardTextState: card.text,
+                speed: card.speed,
+                imageURL: card.imageURL,
+                audioURL: card.audioURL
+            };
+        } else {
+            return {
+                backgroundColor: initialBackground,
+                textColor: initialTextColor,
+                cardTextState: '',
+                speed: 1000,
+                imageURL: '',
+                audioURL: ''
+            };
+        }
+    }, [isEditMode, cards]);
+
+
+    const [backgroundColor, setBackgroundColor] = useState(initialState.backgroundColor);
+    const [textColor, setTextColor] = useState(initialState.textColor);
+    const [cardText, setCardTextState] = useState(initialState.cardTextState);
+    const [speed, setSpeed] = useState(initialState.speed);
+    const [imageURL, setImageURL] = useState(initialState.imageURL);
+    const [audioURL, setAudioURL] = useState(initialState.audioURL);
+
+    // const [cardText, setCardTextState] = useState('');
+    // const [speed, setSpeed] = useState(1000)
+    // const [backgroundColor, setBackgroundColor] = useState(initialBackground);
+    // const [textColor, setTextColor] = useState(initialTextColor);
+    // const [imageURL, setImageURL] = useState('');
     const [videoURL, setVideoURL] = useState('');
-    const [audioURL, setAudioURL] = useState('');
+    // const [audioURL, setAudioURL] = useState('');
     const [usingVideoAudio, setUsingVideoAudio] = useState(false);
 
     const [scriptTitle, setScriptTitle] = useState('');
@@ -72,16 +116,6 @@ function Cards() {
     const [scriptID, setScriptID] = useState(useAppSelector(state => state.scriptIDSlice));
 
     const [started, setStarted] = useState(false);
-
-    // useEffect(() => {
-    //     if (scriptID != '') {
-    //         setCards(useAppSelector(state => state.cardArraySlice))
-    //         
-    //     }
-    // }, [])
-
-
-
 
     const playerRef = React.useRef<Player>();
     const videoJsOptions = {
@@ -97,6 +131,7 @@ function Cards() {
             type: 'video/mp4'
         }]
     };
+
 
     // Navigating
     const navigate = useNavigate();
@@ -295,22 +330,26 @@ function Cards() {
             cards: cards,
             likeCount: 0,
         }
-        if (scriptID.length === 0) {
+        if (!isEditMode) {
             sendAPI('post', '/scripts/createScript', info)
                 .then(res => {
                     console.log("Save Script!", res);
-                    console.log("ScriptID == " + scriptID);
+                    console.log("ScriptID == " + res.data.newScript.id);
                     // setScriptID(res.data.id);
+                    dispatch(setScriptIDGlobal(res.data.newScript.id));
+
                     navigate('/profile')
                 }).catch(err => {
                     console.error("error!", err);
                 })
         }
         else {
+            console.log(info);
             sendAPI('post', '/scripts/updateScript', info)
                 .then(res => {
                     console.log("Save Script!", res);
                     // setScriptID(res.data.id);
+                    navigate('/profile')
                 }).catch(err => {
                     console.error("error!", err);
                 })
@@ -365,16 +404,27 @@ function Cards() {
     }, [image]);
 
     useEffect(() => {
-        let i = cardDisplayed;
-        setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor });
-        setTextColor({ displayColorPicker: false, color: cards[i].textColor });
-        setCardTextState(cards[i].text);
-        setSpeed(cards[i].speed);
-        setImageURL(cards[i].imageURL);
-        setAudioURL(cards[i].audioURL);
+
+        if (isEditMode) {
+            let i = cardDisplayed;
+            setBackgroundColor({ displayColorPicker: false, color: cards[i].backgroundColor });
+            setTextColor({ displayColorPicker: false, color: cards[i].textColor });
+            setCardTextState(cards[i].text);
+            setSpeed(cards[i].speed);
+            setImageURL(cards[i].imageURL);
+            setAudioURL(cards[i].audioURL);
+        } else {
+            // setCards([]);
+            setBackgroundColor(initialBackground);
+            setTextColor(initialTextColor);
+            setCardTextState('');
+            setSpeed(1000);
+            setImageURL('');
+            setAudioURL('');
+        }
 
 
-    }, [cardDisplayed, cards]);
+    }, [isEditMode, cardDisplayed, cards]);
 
     return (
         <div id='record-card-info-div'>

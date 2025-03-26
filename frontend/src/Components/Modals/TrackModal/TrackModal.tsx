@@ -396,51 +396,59 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
             setFavorited(false);
 
             sendAPI("delete", "/likes/removeUserLike", removedLike).then((res) => {
-                if (res.status == 200) {
-                    setErrMsg(track.title);
-                    setSuccessMsg(JSON.stringify(res.data));
+                console.log(res);  
+            }).catch((error) => {
+                console.error("Error occurred:", error);
+            });
+            
+            // sendAPI("delete", "/likes/removeUserLike", removedLike).then((res) => {
+            //     console.log("RES: " + res);
+                
+            //     if (res.status == 200) {
+            //         setErrMsg(track.title);
+            //         setSuccessMsg(JSON.stringify(res.data));
 
-                    // Decrements local likeCount
-                    decrementLike().then(newLikes => decrementLike()).then(newLikes => {
-                        updateLikes(newLikes);
-                        return true;
-                    }).catch(err => console.error("There was an error unliking this post.", err));
+            //         // Decrements local likeCount
+            //         decrementLike().then(newLikes => decrementLike()).then(newLikes => {
+            //             updateLikes(newLikes);
+            //             return true;
+            //         }).catch(err => console.error("There was an error unliking this post.", err));
 
-                    // Searching for unfavorited track to update user LikeArray
-                    let newLikeArr: Array<Interfaces.Like> = [...userLikeArr];
-                    // console.log("removeLike() userLikeArr: ", userLikeArr);   
+            //         // Searching for unfavorited track to update user LikeArray
+            //         let newLikeArr: Array<Interfaces.Like> = [...userLikeArr];
+            //         // console.log("removeLike() userLikeArr: ", userLikeArr);   
 
-                    if (user?.likes != null) {
-                        for (var i = 0; i < user.likes.length; i++) {
-                            if (user.likes[i].trackID === removedLike.objectID)
-                                newLikeArr.splice(i, 1);
-                        }
+            //         if (user?.likes != null) {
+            //             for (var i = 0; i < user.likes.length; i++) {
+            //                 if (user.likes[i].trackID === removedLike.objectID)
+            //                     newLikeArr.splice(i, 1);
+            //             }
 
-                        // Set user like array to be array with removed like
-                        // console.log("removeLike() newLikeArr: ", newLikeArr);
+            //             // Set user like array to be array with removed like
+            //             // console.log("removeLike() newLikeArr: ", newLikeArr);
 
-                        var newUser: Interfaces.User = {
-                            // unchanged
-                            id: user.id,
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            email: user.email,
-                            bio: user.bio,
-                            profilePicture: user.profilePicture,
-                            username: user.username,
-                            token: jwt,
-                            // likes: newLikeArr
-                        };
+            //             var newUser: Interfaces.User = {
+            //                 // unchanged
+            //                 id: user.id,
+            //                 firstName: user.firstName,
+            //                 lastName: user.lastName,
+            //                 email: user.email,
+            //                 bio: user.bio,
+            //                 profilePicture: user.profilePicture,
+            //                 username: user.username,
+            //                 token: jwt,
+            //                 // likes: newLikeArr
+            //             };
 
-                        setUser(newUser);
-                        // setUserLikeArr(newUser.likes);
-                    }
-                }
-                else {
-                    setErrMsg("Could not like post.");
-                    setSuccessMsg("");
-                }
-            })
+            //             setUser(newUser);
+            //             // setUserLikeArr(newUser.likes);
+            //         }
+            //     }
+            //     else {
+            //         setErrMsg("Could not like post.");
+            //         setSuccessMsg("");
+            //     }
+            // })
         }
         else {
             navigate('/login');
@@ -591,7 +599,7 @@ const TrackModal: React.FC<Props> = ({ track, closeModal }) => {
                                 <Playback midiString={track.midi} />
                             </div>
 
-                            {isDev() && <h5>Upload midi<input id="track-cover-upload" onChange={event => { if (!event.target.files) { return } else { uploadMidi(event.target.files[0]) } }} name="midi" type="file" accept='.MID, .MIDI' /></h5>}
+                            {/* {isDev() && <h5>Upload midi<input id="track-cover-upload" onChange={event => { if (!event.target.files) { return } else { uploadMidi(event.target.files[0]) } }} name="midi" type="file" accept='.MID, .MIDI' /></h5>} */}
 
                             <h5>{errMsg}</h5>
 

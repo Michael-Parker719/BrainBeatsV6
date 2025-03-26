@@ -20,9 +20,10 @@ type Props = {
     cardType: string;
     input: string; // was :any
     submitted: boolean;
+    isSearched: boolean;
 }
 
-const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
+const ScriptCard: React.FC<Props> = ({ cardType, input, submitted, isSearched }) => {
 
     // For displaying Modal
     const [show, setShow] = useState(false);
@@ -46,7 +47,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
     }
 
     useEffect(() => {
-        getProfileScripts();
+        PopulateScriptCards()
     }, [submitted]);
     // Initializes newTrackList
     // useEffect(() => {
@@ -106,7 +107,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
 
                     var currentScript: Script = res.data[i];
 
-                    var fullname: string = res.data[i].user.firstName + ' ' + res.data[i].user.lastName;
+                    var fullname: string = res.data[i].firstName + ' ' + res.data[i].lastName;
 
                     // Copy over the script from res, "append" the fullname key-value to it
                     currentScript = Object.assign({ fullname: fullname }, currentScript);
@@ -275,12 +276,12 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
     async function setScript(currentScript: Script) {
         var objArray: Card[] = [];
         // must set cards here!
-        console.log("Current ID == " + currentScript.id);
-        console.log(currentScript);
+        // console.log("Current ID == " + currentScript.id);
+        // console.log(currentScript);
         let scriptParams = {id: currentScript.id};
         await sendAPI('get', '/scripts/getCardsByScriptID', scriptParams)
             .then(res => {
-                console.log('Response Data:', res);
+                // console.log('Response Data:', res);
                 function compareCards(card1: any, card2: any) {
                     return card1.order - card2.order
                 }
@@ -298,7 +299,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
 
                 // setCardList(objArray);
                 // setScriptsPulled(true)
-                console.log("Card List:", objArray)
+                // console.log("Card List:", objArray)
 
             }).catch(e => {
                 console.error("Failed to pull script cards: ", e);
@@ -335,7 +336,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted }) => {
                 ))}
             </div>
             <Modal id='pop-up' show={show} onHide={handleClose} onExit={resetScriptComponent}>
-                <ScriptModal key={seed} script={currentScript} closeModal={setShow} />
+                <ScriptModal key={seed} script={currentScript} closeModal={setShow} isSearched={isSearched} />
             </Modal>
         </div>
     )
