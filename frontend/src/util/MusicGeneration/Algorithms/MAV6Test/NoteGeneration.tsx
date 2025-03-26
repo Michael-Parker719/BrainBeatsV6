@@ -36,17 +36,18 @@ export class NoteHandler extends AbstractNoteHandler {
   private timeForEachNoteArray: Array<number>; //Constant Array
   private EEGaverage: Array<number> = [0, 0, 0, 0, 0];
 
-  private rangeOfNorm: Array<number> = [1,1,10,10,10];//Range zone from average that is consider not Anomlous
+  private rangeOfNorm: Array<number> = [1,1,0,0,10];//Range zone from average that is consider not Anomlous
   private AnomlousStreak: Array<number> = []; //Anomlous Data consecutive appearence counter
   private AnomlousWeight: Array<number> = []; //Data Skew Value
-  private AnomlousStreakMax: number = 5; //------[!!!]------//Temporary value---
-  private AnomlousWeightMax: number = 5; //------[!!!]------//Temporary value---
+  private AnomlousStreakMax: number = 5; //Maximum streak possible
+  private AnomlousStreakVolThreashold: number = 3;
+  private AnomlousWeightMax: number = 5; //Maximum amount of data weighing in one direction
 
   private EEGbuffer: number[][] = []; //buffer if note generation is busy to generate the next note
   private EEGabnormalRecord: number[][] = []; //average adjustment case 1: Outlier streak towards one side[higher or lower]
   private EEGabnormalTotal: number[][] = []; //average adjustment case 2: Data is skewing towards one side[higher or lower]
 
-  private startUp: boolean = true; //Prevents empty data to note convertion
+  private startUp: boolean = true; //Flag for setting very first input as new average
 
   private isMajorScale: number = 1;
   private noteSetNumb: number = 5; //Set of sets of notes from a scale(either Major or Minor)
@@ -55,9 +56,11 @@ export class NoteHandler extends AbstractNoteHandler {
 
   private channelTotal: number = 5; //How many 1-1 ratios(inputted EEG to track) are there?
 
-  private nextPause: Array<number> = [0, 0, 100, 100, 100]; //Wait Counter maximum
-  private pauseCounter: Array<number> = [0, 0, 0, 0, 0]; //Wait Counter/Tally
-  private NoiseCapacity: number = 10; //Temp value---
+  private previousTimeRec: Array<number> = [0, 0, 0, 0, 0]; //Time of last note generation
+  private currentTime: number = 0; //Time of next input
+  private noteGenTime: number = 2 * 1000; //miliseconds
+  private runningTrackCapacity: number = 10; //Temp value---
+  private allSilent: boolean = false;
 
   private midiGenerator; //Defines Midi Generator
 
@@ -93,9 +96,15 @@ export class NoteHandler extends AbstractNoteHandler {
 
     this.keyGroup = KeyGroups[settings.keyGroup as keyof typeof KeyGroups]; // Example: Major
     this.scale = Keys[settings.scale as keyof typeof Keys]; // Example: C#, full example: C# Major
+    
+    if(settings.keyGroup === "Minor")
+    {
+      this.isMajorScale = 0;
+    }
 
     this.keySignature = Constants.KEY_SIGNATURES[this.keyGroup][this.scale];
     this.instrumentNoteSettings = Object.values(settings.deviceSettings.durations) as number[];
+    this.instrumentNoteSettings.push(this.instrumentNoteSettings[3]);
 
     this.midiGenerator = new MIDIManager(
       settings,
@@ -116,8 +125,7 @@ export class NoteHandler extends AbstractNoteHandler {
       this.EEGabnormalRecord.push([]);
       this.EEGabnormalTotal.push([]);
       this.EEGaverage[i] = 0;
-      /////////////////////////////////////this.nextPause[i] = 0; TEMPORARY
-      this.pauseCounter[i] = 0;
+      this.previousTimeRec[i] = 0;
       this.AnomlousStreak[i] = 0;
       this.AnomlousWeight[i] = 0;
     }
@@ -156,6 +164,27 @@ export class NoteHandler extends AbstractNoteHandler {
       clearInterval(this.musicClock);
       this.midiGenerator.setStopFlag();
       return;
+    }
+
+    this.currentTime = Date.now();
+
+    let silentTally = 0;
+
+    for(let i = 0; i < this.channelTotal; i++)//Check if all tracks are currently busy
+    {
+      if(this.currentTime - this.previousTimeRec[i] < 3000)
+      {
+        silentTally += 1;
+      }
+    }
+
+    if(silentTally === this.channelTotal)//Turn off silent measure offset
+    {
+      this.allSilent = true;
+    }
+    else
+    {
+      this.allSilent = false;//Turn on silent measure offset
     }
     
     for(let i = 0; i < this.channelTotal; i++)
@@ -214,6 +243,7 @@ export class NoteHandler extends AbstractNoteHandler {
 
   private ScaleAdjustment(idVal: number)
   {//Might have to fix since lower activity is normal
+    //console.log("id: " + idVal + " Streak: " + this.AnomlousStreak[idVal]);
     if(this.AnomlousStreak[idVal] <= this.AnomlousStreakMax * -1)//Lower theta/delta activity -> user is not sleepy
     {
       this.AnomlousStreak[idVal] = 0;
@@ -233,6 +263,7 @@ export class NoteHandler extends AbstractNoteHandler {
           this.noteSetNumb = 0;
         }
       }
+      //console.log("Scale: " + this.isMajorScale + " Set: " + this.noteSetNumb);
       this.keySignature = Constants.KEY_SIGNATURES[this.isMajorScale][this.noteSetNumb]; //KEY_SIGNATURES[ScaleType][Scale note set][A music note of the scale]
     }
     else if(this.AnomlousStreak[idVal] >= this.AnomlousStreakMax)//Higher theta/delta activity -> user is getting sleepy
@@ -254,73 +285,126 @@ export class NoteHandler extends AbstractNoteHandler {
           this.noteSetNumb = 11;
         }
       }
+      //console.log("Scale: " + this.isMajorScale + " Set: " + this.noteSetNumb);
       this.keySignature = Constants.KEY_SIGNATURES[this.isMajorScale][this.noteSetNumb];
+    }
+  }
+
+  //Note: Higher beta or Low Alpha wave -> Alert or less relaxed
+  private VolumeAndTempoAdjust(idVal: number)
+  {
+    //Volume adjustment
+    if(this.AnomlousStreak[idVal] <= this.AnomlousStreakVolThreashold * -1)//Lower alpha/beta activity
+    {
+      if(idVal === 2)//Low Alpha wave -> Alert or less relaxed
+      {
+        this.midiGenerator.adjustVolume(-0.1);
+      }
+      else if(idVal === 3)//Low Beta wave -> Maybe Too relaxed
+      {
+        this.midiGenerator.adjustVolume(0.1);
+      }
+    }
+    else if(this.AnomlousStreak[idVal] >= this.AnomlousStreakVolThreashold)//Higher alpha/beta activity
+    {  
+      if(idVal === 2)//High Alpha wave -> Maybe Too relaxed
+      {
+        this.midiGenerator.adjustVolume(0.1);
+      }
+      else if(idVal === 3)//High Beta wave -> Alert or less relaxed
+      {
+        this.midiGenerator.adjustVolume(-0.1);
+      }
+    }
+
+    //Tempo threshold check
+    if(this.AnomlousStreak[idVal] <= this.AnomlousStreakMax * -2)//Lower alpha/beta activity
+    {
+      this.AnomlousStreak[idVal] = 0;
+      this.AnomlousWeight[idVal] = 0;
+
+      if(idVal === 2)//Low Alpha wave -> Alert or less relaxed
+      {
+        this.midiGenerator.adjustTempo(-5);
+      }
+      else if(idVal === 3)//Low Beta wave -> Maybe Too relaxed
+      {
+        this.midiGenerator.adjustTempo(5);
+      }
+
+    }
+    else if(this.AnomlousStreak[idVal] >= this.AnomlousStreakMax)//Higher alpha/beta activity
+    {  
+      this.AnomlousStreak[idVal] = 0;
+      this.AnomlousWeight[idVal] = 0;
+
+      if(idVal === 2)//High Alpha wave -> Maybe Too relaxed
+      {
+        this.midiGenerator.adjustTempo(5);
+      }
+      else if(idVal === 3)//High Beta wave -> Alert or less relaxed
+      {
+        this.midiGenerator.adjustTempo(-5);
+      }
     }
   }
 
   private generateNextBeat(idVal: number)
   {
-    var NoiseTotal = 0; //Temporarily set to amount of active channels
+    var totalTracksRunning = 0; //Temporarily set to amount of active channels
 
     if(idVal <= 1)//[ID 0 -> Delta channel | ID 1 -> Theta channel] (See Interfaces.tsx)
     {
       this.ScaleAdjustment(idVal); //Check for a need to change the scale
     }
-    if(false)//volume tempo
+    if(idVal === 2 || idVal === 3)//volume tempo adjustment check
     {
-
+      this.VolumeAndTempoAdjust(idVal); //Check for a need to change the volume or both volume and tempo
     }
 
-    if(true) //------[!!!]------//TEMPORARY
-    {//Update to new average due to outlier weight
-      if( (this.AnomlousWeight[idVal] < (this.AnomlousWeightMax * -1)) || (this.AnomlousWeight[idVal] > this.AnomlousWeightMax))
-      {
-        let abArrSize:number = this.EEGabnormalTotal[idVal].length
-        this.EEGaverage[idVal] = Math.floor( (this.average(this.EEGabnormalTotal[idVal]) *  abArrSize) + (this.EEGaverage[idVal] * abArrSize) / (abArrSize * 2))
-      }
-    }
+    //Update to new average due to outlier weight
+    if( (this.AnomlousWeight[idVal] < (this.AnomlousWeightMax * -1)) || (this.AnomlousWeight[idVal] > this.AnomlousWeightMax))
+    {
+      let abArrSize:number = this.EEGabnormalTotal[idVal].length;
+      //console.log("ID: "+ idVal +" oldAve: " + this.EEGaverage[idVal]);
+      this.EEGaverage[idVal] = ( (this.average(this.EEGabnormalTotal[idVal]) *  abArrSize) + (this.EEGaverage[idVal] * abArrSize) ) / (abArrSize * 2);
+      //console.log("newAve: " + this.EEGaverage[idVal]);
+    }    
 
-    console.log("pauseCount: " + this.pauseCounter[idVal] + "next Pause: " + this.nextPause[idVal] + "ID: " + idVal);
+    //console.log("Time Pause: " + (this.currentTime - this.previousTimeRec[idVal]) + " ID: " + idVal);
 
-    if(this.pauseCounter[idVal] >= this.nextPause[idVal])//MIDI channel is available?
+    if(this.currentTime - this.previousTimeRec[idVal] >= 3000)//MIDI channel is available?
     {
       //Check if able to generate notes in this channel or track
       for(let i = 0; i < this.channelTotal; i++ )//Get number of channels active
       {
-        if(this.pauseCounter[i] < this.nextPause[i])
+        if(this.currentTime - this.previousTimeRec[i] < 3000)
         {
-          NoiseTotal = NoiseTotal + 1; //------[!!!]------//TEMPORARY
+          totalTracksRunning = totalTracksRunning + 1;
         }
       }
 
-      if(NoiseTotal < this.NoiseCapacity)
+      if(totalTracksRunning < this.runningTrackCapacity)//Is able to be generated without exceding noise capacity(white noise prevention)
       {
-        //Is able to be generated without exceding noise capacity(white noise prevention)
         var declaredBeat = this.noteDeclaration(idVal);
-        this.pauseCounter[idVal] = 0;
-        this.nextPause[idVal] = 4; //------[!!!]------//TEMPORARY delay timer for A channel
-
+        this.previousTimeRec[idVal] = this.currentTime;
         this.generateBeat(declaredBeat, idVal);
         this.midiGenerator.realtimeGenerate(this.currentNoteData[idVal], idVal);
-        //this.nextPause =
-        //  this.currentNoteData.player.noteLength === 3
-        //     ? 1
-        //     : this.currentNoteData.player.noteLength === 4
-        //     ? 3
-        //     : 0; // 1 wait for half notes, 3 for whole notes
+        
       }
-    } //This MIDI Channel is currently busy generating a note so try again later
-    else
+    } 
+    else//This MIDI Channel is currently busy generating a note so try again later
     {
-      this.pauseCounter[idVal]++;
+      if(!(this.allSilent))//If all channels can't generate notes then don't add the silent measure offset
+      {
+        var silentMeasure = {//This is to ensure that the generated notes are in their respective locations
+          notes: [-1,-1,-1,-1],
+          duration: 4,
+        };
 
-      // var silentMeasure = {//This is to ensure that the generated notes are in their respective locations
-      //   notes: [-1],
-      //   duration: 4,
-      // };
-
-      // this.generateBeat(silentMeasure, idVal);
-      // this.midiGenerator.realtimeGenerate(this.currentNoteData[idVal], idVal);
+        this.generateBeat(silentMeasure, idVal);
+        this.midiGenerator.realtimeGenerate(this.currentNoteData[idVal], idVal);
+      }
     }
   }
 
@@ -328,21 +412,17 @@ export class NoteHandler extends AbstractNoteHandler {
   {
     var beats;
 
-    var duration = 4
-    if(idVal !== 4)
-    {
-      duration = this.instrumentNoteSettings[idVal];
-    }
+    var duration = 2;
+    duration = this.instrumentNoteSettings[idVal];
     var aveNorm = -1; //Default to no silent note
 
     if(this.EEGbuffer[idVal].length !== 0)
     {
       aveNorm = (Math.floor(this.average(this.EEGbuffer[idVal]) * this.EEGbuffer[idVal].length )) % 89;
-      console.log(aveNorm);
       this.EEGbuffer[idVal].splice(0, this.EEGbuffer[idVal].length);
 
-    } //Literally no data to process
-    else
+    }
+    else //Literally no data to process
     {
       console.log("What happend to the input!?");
 
@@ -353,7 +433,7 @@ export class NoteHandler extends AbstractNoteHandler {
       return beats;
     }
 
-    if(idVal === 1)
+    if(idVal === 9)
     {
       beats = {
         notes: [

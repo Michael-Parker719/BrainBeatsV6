@@ -33,6 +33,9 @@ export class MIDIManager {
     private lastPlayedTime:number;//Unused for now
     private silentFiller = true;
     private overflowAdjust = false;
+    private volumeAdjustLimit = 1;
+    private tempoAdjustLimit = 60;
+    private tempoAdjustValue = 0;
 
     private midiWriterTracks:Array<Track> = []; 
      
@@ -74,8 +77,8 @@ export class MIDIManager {
     private initializeSynth() {
         Tone.getTransport().bpm.value = this.settings.bpm;
     
-        var instArr = Object.values(this.settings.deviceSettings.instruments)   
-        instArr.push(0);//Since it's using the default GanglionSettings settings        
+        var instArr = Object.values(this.settings.deviceSettings.instruments); 
+        instArr.push(instArr[3]);//Since it's using the default GanglionSettings settings        
        
         /*  Here we are assigning a sampler and a polysynth to each channel based on the instruments array, we are passing a NULL to those 
         that will never utilize the sampler to maintain the samplerArr having a strict typing definition of Sampler and also keep the 
@@ -87,20 +90,6 @@ export class MIDIManager {
         // Loop through the user chosen instruments and set their SL values
         for(let i = 0; i < 5; i++)
         { 
-            ///OLD Code///
-            ////////////// // Sinewave / Default
-            ////////////// if (instArr[i] === 0) {
-            //////////////     sampler = SamplerList[instArr[i]].toDestination();
-            //////////////     polySynthesizer.volume.value = -10;
-            ////////////// }
-            ////////////// else {
-            //////////////     
-            //////////////     // This is piano right now, any new instrument that gets added needs to go in in its respective location in the sampler list
-            //////////////     // constant
-            //////////////     // console.log(instArr[i], SamplerList[instArr[i]]);
-            //////////////     sampler = SamplerList[instArr[i]].toDestination()
-            ////////////// }
-
             // Sinewave / Default
             if (instArr[i] === 0)
             {    
@@ -128,15 +117,32 @@ export class MIDIManager {
         }
     }
 
-    public adjustVolume(amount: number, channel: number) {
-        this.synthArr[channel].volume.value += amount;
-        this.samplerArr[channel].volume.value += amount;
+    public adjustVolume(amount: number)//Note: Volume at default starts at 0 for some reason
+    {
+        let currentVolume = this.samplerArr[0].volume.value;
+        //Volume adjustment limit
+        if( ( (currentVolume + amount) < (this.volumeAdjustLimit) ) && ( (currentVolume + amount) > (this.volumeAdjustLimit * -1) ) )
+        {
+            //console.log("[=]Volume + " + amount + " VOL: " + currentVolume);
+            this.synthArr[0].volume.value += amount;
+            this.samplerArr[0].volume.value += amount;
+        }
     }
 
-    public adjustTempo(amount: number, channel:number) {
-        this.BPM += amount;
-        this.MIDIChannels[channel].setTempo(this.BPM, 0.1);
-        Tone.getTransport().bpm.value = this.BPM;
+    public adjustTempo(amount: number)
+    {
+        //Tempo adjustment limit
+        if( ( (this.tempoAdjustValue + amount) < this.tempoAdjustLimit) && ( (this.tempoAdjustValue + amount) > (this.tempoAdjustLimit * -1) ) )
+        {
+            //console.log("[+]TEMPO + " + amount + " TEMP: " + this.tempoAdjustValue);
+            this.tempoAdjustValue = this.tempoAdjustValue + amount;
+            this.BPM += amount;
+            Tone.getTransport().bpm.value = this.BPM;
+            for(var i = 0; i < 5; i++)
+            {
+                this.MIDIChannels[i].setTempo(this.BPM, 0.1);
+            }
+        }
     }
 
     /*  This function exists to help convert the MIDI file into base64, the reason why we're splitting it
@@ -289,7 +295,6 @@ export class MIDIManager {
             noteDuration = '4';
             expectMaxNumNotes = 4;
         }
-        console.log(noteData.noteLengthName + expectMaxNumNotes);
 
         if(this.overflowAdjust)//[overflow adjustment] EX: Try to generate 3 half notes but a measure can only hold 2 half notes so change into quarter notes
         {
@@ -465,14 +470,14 @@ export class MIDIManager {
         {
             instrumentsArr.push(instruments[inst]);
         }
-        instrumentsArr.push(0);//Since it's using the default GanglionSettings settings
+        instrumentsArr.push(instrumentsArr[3]);//Since it's using the default GanglionSettings settings
 
         let dur: keyof typeof durations;
         for(dur in durations)
         {
             durationsArr.push(durations[dur]);
         }
-        durationsArr.push(4);//Since it's using the default GanglionSettings settings
+        durationsArr.push(durationsArr[3]);//Since it's using the default GanglionSettings settings
 
         // let lengthCount = 16;
 
@@ -515,31 +520,28 @@ export class MIDIManager {
 
         // Setup for their vars
         var duration;
-        if(false)
+        
+        // Old version of setting duration
+        //duration = 2 + (2 - playerInfo.noteLength);         // Durations is reversed in here for some reason    
+        
+        duration = playerInfo.noteLength;
+        while(true)
         {
-            duration = 2 + (2 - playerInfo.noteLength);         // Durations is reversed in here for some reason    
-        }
-        else
-        {
-            duration = playerInfo.noteLength;
-            while(true)
+            if(noteData.writer.notes.length > (2 ** duration))
             {
-                if(noteData.writer.notes.length > (2 ** duration))
-                {
-                    duration++;
-                }
-                else
-                {
-                    break;
-                }
+                duration++;
             }
-            duration = playerInfo.noteLength;
+            else
+            {
+                break;
+            }
         }
+        duration = playerInfo.noteLength;
         
         var frequencies = playerInfo.noteFrequencies;
 
         var instArr = Object.values(this.settings.deviceSettings.instruments); 
-        instArr.push(0);           
+        instArr.push(instArr[3]);           
 
         /*
         * The duration lengths are defined in https://github.com/Tonejs/Tone.js/blob/641ada9/Tone/core/type/Units.ts#L53.
@@ -551,7 +553,7 @@ export class MIDIManager {
 
         var durationString:string = this.convertDurationToString(duration); 
         
-        var noteDurationMS = this.setTimeForEachNoteArray(this.settings.bpm, duration);
+        var noteDurationMS = this.setTimeForEachNoteArray(this.BPM, duration);
 
         /* This is the base case, if there is nothing stored in the array then we don't want to check if the currentVoice is undefined */
         if(instArr[idVal] === Enums.InstrumentTypes.SINEWAVE) {

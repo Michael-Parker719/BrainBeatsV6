@@ -99,14 +99,14 @@ const TrackSettings = () => {
         the first 4 of each case are used for ganglion and cyton and the next four are for the cyton board. */
 
   /* These define the instrument type that will play based on the readings from each electrode. */
-  const [instrument00, setInstrument00] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument01, setInstrument01] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument02, setInstrument02] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument03, setInstrument03] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument04, setInstrument04] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument05, setInstrument05] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument06, setInstrument06] = useState(InstrumentTypes.SINEWAVE);
-  const [instrument07, setInstrument07] = useState(InstrumentTypes.SINEWAVE);
+  const [instrument00, setInstrument00] = useState(InstrumentTypes.PIANO);
+  const [instrument01, setInstrument01] = useState(InstrumentTypes.PIANO);
+  const [instrument02, setInstrument02] = useState(InstrumentTypes.PIANO);
+  const [instrument03, setInstrument03] = useState(InstrumentTypes.PIANO);
+  const [instrument04, setInstrument04] = useState(InstrumentTypes.PIANO);
+  const [instrument05, setInstrument05] = useState(InstrumentTypes.PIANO);
+  const [instrument06, setInstrument06] = useState(InstrumentTypes.PIANO);
+  const [instrument07, setInstrument07] = useState(InstrumentTypes.PIANO);
   /* These define the duration of each note. */
   const [duration00, setDuration00] = useState(NoteDurations.QUARTER);
   const [duration01, setDuration01] = useState(NoteDurations.QUARTER);
