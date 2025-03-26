@@ -427,7 +427,7 @@ router.get("/getScriptsByTitle", async (req, res) => {
       SELECT Script.*, User.firstName, User.lastName 
       FROM Script INNER JOIN User 
       ON Script.userID = User.id
-      LIMIT 4;`;
+      LIMIT 8;`;
       let [allScripts] = await promiseConnection.query(sqlQuery1, []);
 
       allScripts = await processMultipleScripts(allScripts);
@@ -440,7 +440,8 @@ router.get("/getScriptsByTitle", async (req, res) => {
       User.id as userID, User.firstName, User.lastName
       FROM Script
       JOIN User ON Script.userID = User.id
-      WHERE title LIKE ? 
+      WHERE Script.title LIKE ? 
+      AND Script.public = 1
       OR User.firstName LIKE ? 
       OR User.lastName LIKE ?;`;
 
@@ -462,11 +463,26 @@ router.get("/getScriptsByTitle", async (req, res) => {
 });
 
 
+router.get("/getStatus", async (req, res) => {
+  try {
+    const id = req.query.id;
+    if (!id) {
+      return res.status(400).json({ error: 'Script ID is required' });
+    }
+
+    const sqlQuery = `SELECT public FROM Script WHERE id = ?`;
+    let [public] = await promiseConnection.query(sqlQuery, [id]);
+
+    return res.status(200).json(public[0]);
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ msg: err });
+  }
+})
 router.put("/changeStatus", async (req, res) => {
   try {
     const id = req.body.id;
-    // console.log(req.body);
-    // console.log(id);
     if (!id) {
       return res.status(400).json({ error: 'Script ID is required' });
     }
@@ -481,7 +497,7 @@ router.put("/changeStatus", async (req, res) => {
     WHERE id = ?`;
     
     await promiseConnection.query(sqlQuery2, [newStatus, id]);
-    return res.status(200).json({message: "Script status has changed"});
+    return res.status(200).json({public: newStatus});
 
   } catch (err) {
     console.log(err);

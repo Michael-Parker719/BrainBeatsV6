@@ -51,10 +51,10 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
 
   const [scriptName, setScriptName] = useState(script.title);
   const [visibility, setVisibility] = useState(script.public ? true : false);
-  const [editVisibility, setEditVisibility] = useState(false);
-  const [buttonText, setButtonText] = useState(
-    visibility ? "Make Private" : "Make Public"
-  );
+  
+  const [buttonText, setButtonText] = useState("");
+
+  const visibilityText = ["Make Public", "Make Private"];
   const [thumbnail, setThumbnail] = useState(script.thumbnail);
 
   const [likeCount, setLikeCount] = useState(script.likeCount);
@@ -76,24 +76,30 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
 
   // Initializes favorited variable
   useEffect(() => {
-    checkScriptOwner();
     checkLike();
-    checkStatus();
+    getStatus();
   }, [isModalOpen]);
 
   // ============================= Functions for User Track =============================
-  function checkScriptOwner() {
-    if (user != null) {
-      if (user?.id === script.userID) {
-        setEditVisibility(true);
+  
+
+  async function getStatus() {
+    let data = {
+      id: script.id
+    };
+    // console.log("***********");
+    // console.log(script.id);
+
+    sendAPI("get", "/scripts/getStatus", data).then((res) => {
+      if (res.status == 200) {
+        // console.log("res: " + res.data.public);
+        let text = visibilityText[res.data.public];
+        // console.log("text: " + text);
+        setButtonText(text);
+        // script.public = !script.public;
       }
-
-      // if(user.likes !== undefined){
-      //   setUserLikeArr(user.likes);
-      // }
-    }
+    })
   }
-
   // ============================= Functions for Track Updating System =============================
 
   function verifyDeleteRecording() {
@@ -127,8 +133,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
             setSuccessMsg("");
           } else {
             // Close the modal, refresh the posts showed on current page
-            console.log("Sucessfully deleted Script");
-            console.log("Data: " + data);
+            // console.log("Sucessfully deleted Script");
+            // console.log("Data: " + data);
             setErrMsg("");
             setSuccessMsg("");
             closeModal(false);
@@ -170,7 +176,7 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
     setIsModalOpen(false); // Close the modal without doing anything
   };
 
-  function setVisibilityButton() {
+  async function setVisibilityButton() {
 
     let data = {
       id: script.id
@@ -178,10 +184,10 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
 
     sendAPI("put", "/scripts/changeStatus", data).then((res) => {
       if (res.status == 200) {
-        console.log("Changed visibility");
-        setVisibility((prevState) => !prevState);
-        setButtonText(visibility ? "Make Private" : "Make Public");
-        script.public = !script.public;
+        // console.log("new res: " + res.data.public);
+        let text = visibilityText[res.data.public];
+        setButtonText(text);
+        // script.public = !script.public;
       }
     })
     // console.log("SCRIPT ID === " + script.id);
@@ -364,12 +370,8 @@ const ScriptModal: React.FC<Props> = ({ script, closeModal, isSearched }) => {
     setFavorited(favorited);
   }
 
-  async function checkStatus() {
-    console.log("Now checking the status...");
-    console.log("Visibility == " + visibility);
-    setButtonText(visibility ? "Make Private" : "Make Public");
-    console.log(buttonText);
-  }
+  
+
   function incrementLike() {
     return new Promise((resolve, reject) => {
       var didSucceed = true;

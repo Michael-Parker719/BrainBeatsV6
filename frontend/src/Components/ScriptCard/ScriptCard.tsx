@@ -276,12 +276,12 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted, isSearched })
     async function setScript(currentScript: Script) {
         var objArray: Card[] = [];
         // must set cards here!
-        console.log("Current ID == " + currentScript.id);
-        console.log(currentScript);
+        // console.log("Current ID == " + currentScript.id);
+        // console.log(currentScript);
         let scriptParams = {id: currentScript.id};
         await sendAPI('get', '/scripts/getCardsByScriptID', scriptParams)
             .then(res => {
-                console.log('Response Data:', res);
+                // console.log('Response Data:', res);
                 function compareCards(card1: any, card2: any) {
                     return card1.order - card2.order
                 }
@@ -299,7 +299,7 @@ const ScriptCard: React.FC<Props> = ({ cardType, input, submitted, isSearched })
 
                 // setCardList(objArray);
                 // setScriptsPulled(true)
-                console.log("Card List:", objArray)
+                // console.log("Card List:", objArray)
 
             }).catch(e => {
                 console.error("Failed to pull script cards: ", e);
