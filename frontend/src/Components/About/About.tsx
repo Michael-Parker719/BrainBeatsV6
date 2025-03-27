@@ -110,10 +110,13 @@ const About = () => {
               <h1 className='about-tech-subtitle'>Using Electroencephalogram (EEG)</h1>
               <p>An electroencephalogram (EEG) test measures electrical activity in the brain through electrodes consisting of small metal discs with thin wires pasted onto the scalp. The electrodes attached to the scalp detect tiny electrical charges resulting from brain cell activity. BrainBeats uses the electrical activity read from an EEG test alongside different music settings provided by the user to convert this information into music.</p>
               <h1 className='about-tech-subtitle'>Resources Used</h1>
+              <p>Version 6 of BrainBeats used a design for a cheaper EEG Device using an Arduino and a heart monitor chip. This is a 2-channel design that uses standard 3 piece electrode leads (One electrode is ground) and OpenBCI electrode caps which are connected to the heart monitor chip to extract electrical signals from the forehead. More information on this device can be found here <a href="https://www.instructables.com/Mind-Control-3-EEG-Monitor/">Lingib Instructibles Design</a></p>
+              <p>Instructions made by the BrainBeats V6 Team can be found here TODO</p>
               <p>Version 4 of BrainBeats took advantage of OpenBCI, an open-source brain-computer interface platform that can be used to measure and record electrical activity produced by the brain. Version 4 of BrainBeats created and tested our application throughout production using OpenBCI's Cyton board, an Arduino-compatible, 8-channel neural interface with a 32-bit processor.</p>
-              <p>More information on the OpenBCI platform and the Cyton board may be found here: <a href="https://docs.openbci.com/Cyton/CytonLanding/">https://docs.openbci.com/Cyton/CytonLanding/</a>.</p>
+              <p>More information on the OpenBCI platform and the Cyton board may be found here: <a href="https://docs.openbci.com/Cyton/CytonLanding/">https://docs.openbci.com/Cyton/CytonLanding/</a>.</p> 
               <br />
             </div>
+            
           </div>
           <hr className='about-linebreak'></hr>
         </div>
