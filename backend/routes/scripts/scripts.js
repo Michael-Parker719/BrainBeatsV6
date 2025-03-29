@@ -16,7 +16,6 @@ const {
   processMultipleCards,
   processSingleScript,
 } = require("../../file/processScripts/processScripts");
-const { image } = require("framer-motion/client");
 
 function colorToHex(color) {
   if (!color) return "ffffff";
