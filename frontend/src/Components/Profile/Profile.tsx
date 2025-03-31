@@ -372,6 +372,7 @@ const Profile = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; 
     }
+    window.location.reload();
   };
 
   return (
