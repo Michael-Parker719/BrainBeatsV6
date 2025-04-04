@@ -132,7 +132,7 @@ function getRandomArbitrary(min:number, max:number) {
   
 // First to last, -3 (Sinewave) 8 + 1(Piano)
 export function getRandomInstrument() {
-    return getRandomArbitrary(0, 1);
+    return getRandomArbitrary(1, 2);
 }
 
 // Frist to last, 0 (Whole) 4 (Sixteenth)
