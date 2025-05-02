@@ -10,12 +10,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // Importing Team Member Images
 
 
-import AidanAhern from '../../../images/Version5Photos/AidanAhern.png';
-import GraftonLeGare from '../../../images/Version5Photos/GraftonLeGare.jpg';
-import IsabellaFaile from '../../../images/Version5Photos/IsabellaFaile.jpg';
-import SerinaChugani from '../../../images/Version5Photos/SerinaChugani.jpg';
-import TsehaiBoucaud from '../../../images/Version5Photos/TsehaiBoucaud.jpg';
-import VicenteVivanco from '../../../images/Version5Photos/VicenteVivanco.png';
+import AlexX from '../../../images/Version6Photos/AlexX.jpg';
+import MichaelParker from '../../../images/Version6Photos/MichaelParker.jpg';
+import KensleyCadet from '../../../images/Version6Photos/KensleyCadet.jpg';
+import NaomiMbwambo from '../../../images/Version6Photos/NaomiMbwambo.jpg';
+import ThomasBelyakov from '../../../images/Version6Photos/ThomasBelyakov.jpg';
+import WessAiken from '../../../images/Version6Photos/WessAiken.jpg';
 
 const Team6 = () => {
 
@@ -36,19 +36,19 @@ const Team6 = () => {
 
         "contributions": "Version ’s contributions include:" +
         "\n\t• A complete overhaul of the backend and database" +
-        "\n\t\t◦ (TBD STUFF TO GO HERE)" +
-        "\n\t\t◦ (TBD STUFF TO GO HERE)" +
+        "\n\t\t◦ Refactored backend to remove Prisma and use pure SQL queries" +
+        "\n\t\t◦ Updated database to store images by file path and modified id variables" +
         
         "\n\t• Updated headset design" +
-        "\n\t\t◦ (TBD STUFF TO GO HERE)" +
-        "\n\t\t◦ (TBD STUFF TO GO HERE)" +
-        "\n\t\t◦ (TBD STUFF TO GO HERE)" +
+        "\n\t\t◦ Researched, built, and tested a cheaper design for an EEG device" +
+        "\n\t\t◦ EEG device built from Mind Control 3 (Arduino Uno)" +
+        "\n\t\t◦ Implemented a Fast Fourier Transform to better extrapolate brain wave data" +
     
-        
         "\n\t• Improved Music algorithm" +
-        "\n\t\t◦ (TBD STUFF TO GO HERE)",
+        "\n\t\t◦ Created a new algorithm to interpret brain waves instead of raw EEG data" + 
+        "\n\t\t◦ Modularized the music algorithm for the creation of newer modes of music",
 
-        "github": "actual link not created yet",
+        "github": "https://github.com/Michael-Parker719/BrainBeatsV6.git",
     }
     // ===============================  Enter TEAM MEMBERS info here =============================== 
 
@@ -71,23 +71,31 @@ const Team6 = () => {
     const defaultImage = profileImage;
     var teamMembers : TeamMember[] = [
 
-       {name: "Alex X", position: "Music Algrithm/Generation", image: SerinaChugani, bio: "", 
-       contributions: ""}, 
+       {name: "Alex X", position: "Music Algrithm/Generation", image: AlexX, bio: "", 
+       contributions: "• Reworked one of the existing music algorithms to work with the new headset" + 
+        "\n• Bug fixes and removal of some old code" + "\n• Added changes to some parts of the algorithm (volume and tempo limiters)"}, 
 
-      {name: "Naomi Mbwambo", position: "Music Algrithm/Generation", image: IsabellaFaile, bio: "", 
-        contributions: ""},
+      {name: "Naomi Mbwambo", position: "Music Algrithm/Generation", image: NaomiMbwambo, bio: "", 
+        contributions: "• Researched the different EEG brain waves and the meaning behind each one" + 
+        "\n• Worked on the new music algorithm to use EEG waves instead of raw EEG data"},
 
-        {name: "Thomas Belyakov", position: "Back-end developer", image: AidanAhern, bio: "", 
-        contributions:""},
+        {name: "Thomas Belyakov", position: "Back-end developer", image: ThomasBelyakov, bio: "", 
+        contributions:"• Refactored backend, removed Prisma ORM and replaced all Prisma calls with asynchronous SQL promise statements" + 
+        "\n• Updated frontend and added the foundations for a community page"},
 
-        {name: "Kensley Cadet", position: "Full-stack developer", image: GraftonLeGare, bio: "",
-        contributions: ""},
+        {name: "Kensley Cadet", position: "Full-stack developer", image: KensleyCadet, bio: "",
+        contributions: "• Refactored backend, removing Prisma ORM and added filebase for images and audio" + 
+        "\n• Added import/export functionality to the frontend and backend" + 
+        "\n• Reworked frontend modals for better UX" + 
+        "\n• Supplemented search for user scripts and tracks"},
 
-        {name: "Wess Aiken", position: "EEG software developer", image: VicenteVivanco, bio: "", 
-     contributions: ""}, 
+        {name: "Wess Aiken", position: "EEG software developer", image: WessAiken, bio: "", 
+     contributions: "• Researched and developed a new affordable EEG Device using Arduino" + 
+        "\n• Implemented remote arduino code upload and execution" + "\n• Bug Mucker"}, 
 
-     {name: "Michael Parker", position: "Project Manager", image: TsehaiBoucaud, bio: "", 
-     contributions: ""}, 
+     {name: "Michael Parker", position: "Project Manager", image: MichaelParker, bio: "", 
+     contributions: "• Researched and developed a new affordable EEG Device using Arduino" + 
+        "\n• Implemented signal processing on the raw EEG data to describe the data in an array of brain waves using an FFT"}, 
     ];
     // ============================================================================================= 
     
@@ -139,7 +147,7 @@ const Team6 = () => {
                 {'GitHub '} 
                 <a href={teamInfo.github}>{teamInfo.github}</a>
             </h6>
-            <img src={''} id='version4-team-photo' alt="Team image" onClick={() => {}}/>
+            {/* <img src={''} id='version4-team-photo' alt="Team image" onClick={() => {}}/> */}
 
         </div>
         <div className='about-team-members'>

@@ -29,7 +29,7 @@ const TeamMemberModal: React.FC<Props> = ({teamMember}) => {
             <div id='modal-track-cover-div'>
               <img src={teamMember.image} className="card-img-top modal-track-cover" id="card-img-ID" alt="track image" onClick={() => {}}/>
             </div>
-            <div id='modal-track-text-div'>
+            <div id=''>
               <h1 id='track-title-text'>{teamMember.name}</h1>
               <h6 id="track-author-text">{teamMember.position}</h6>
               <br/>
@@ -37,9 +37,7 @@ const TeamMemberModal: React.FC<Props> = ({teamMember}) => {
               {(teamMember.bio != '') && <p>{teamMember.bio}</p>}
               {(teamMember.bio != '') && <br/>}
               <h6>Individual Contributions</h6>
-              <div id='member-contributions-div'>
-                <p>{teamMember.contributions}</p>
-              </div>
+              <p>{teamMember.contributions}</p>
             </div>
           </Modal.Body>
           <Modal.Footer className='modal-container-footer'>

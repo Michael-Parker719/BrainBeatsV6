@@ -191,10 +191,11 @@ function Cards() {
             console.log("it's null")
             return
         }
-        if (event.target.files[0].size > 64000) {
-            console.error("File too big! Must be 64KB or less");
-            return;
-        }
+        // No need for file size to be capped at 64000 due to change in file management
+        // if (event.target.files[0].size > 64000) {
+        //     console.error("File too big! Must be 64KB or less");
+        //     return;
+        // }
 
         let file64: any
         await convertToBase64(event.target.files[0]).then(res => {
